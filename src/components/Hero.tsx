@@ -6,25 +6,25 @@ import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
-    <div className="relative bg-gradient-to-br from-brand-50 to-brand-100 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
       <div className="container mx-auto px-4 py-20 md:py-24 lg:py-32">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-              Find Trusted Talent for Your <span className="text-brand-600">Home Services</span>
+              Find Trusted Talent for Your <span className="text-kwikie-orange">Home Services</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-lg">
               Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/services">
-                <Button className="bg-brand-600 hover:bg-brand-700 text-lg h-12 px-8">
+                <Button className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
                   Browse Services
                 </Button>
               </Link>
               <Link to="/how-it-works">
-                <Button variant="outline" className="border-brand-500 text-brand-600 hover:bg-brand-50 text-lg h-12 px-8">
+                <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8">
                   How It Works
                   <ArrowRight size={18} className="ml-2" />
                 </Button>

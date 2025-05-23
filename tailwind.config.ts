@@ -74,6 +74,13 @@ export default {
 					700: '#0369a1',
 					800: '#075985',
 					900: '#0c4a6e',
+				},
+				kwikie: {
+					yellow: '#C4A747',
+					orange: '#D2691E',
+					red: '#CD5C5C',
+					gray: '#8C8C8C',
+					'gray-dark': '#6B6B6B',
 				}
 			},
 			borderRadius: {
