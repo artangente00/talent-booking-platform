@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
+import BookingForm from './BookingForm';
 
 interface ServiceCardProps {
   title: string;
@@ -33,11 +34,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             <p className="text-sm text-gray-500">Starting at</p>
             <p className="text-lg font-bold text-kwikie-orange">{price}</p>
           </div>
-          <Link to={route}>
+          <BookingForm preselectedService={title}>
             <Button className="bg-kwikie-orange hover:bg-kwikie-red">
               Book Now
             </Button>
-          </Link>
+          </BookingForm>
         </div>
       </div>
     </div>

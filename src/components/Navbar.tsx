@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
+import BookingForm from './BookingForm';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,9 +42,11 @@ const Navbar = () => {
           <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10">
             Login
           </Button>
-          <Button className="bg-kwikie-orange hover:bg-kwikie-red">
-            Book Now
-          </Button>
+          <BookingForm>
+            <Button className="bg-kwikie-orange hover:bg-kwikie-red">
+              Book Now
+            </Button>
+          </BookingForm>
         </div>
 
         {/* Mobile Menu Button */}
@@ -100,9 +103,11 @@ const Navbar = () => {
                 <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full">
                   Login
                 </Button>
-                <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
-                  Book Now
-                </Button>
+                <BookingForm>
+                  <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
+                    Book Now
+                  </Button>
+                </BookingForm>
               </div>
             </nav>
           </div>
