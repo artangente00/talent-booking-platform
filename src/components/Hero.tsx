@@ -4,6 +4,14 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Hero = () => {
+  const handleBrowseServicesClick = () => {
+    console.log('Browse Services button clicked');
+  };
+
+  const handleHowItWorksClick = () => {
+    console.log('How It Works button clicked');
+  };
+
   return (
     <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
@@ -18,12 +26,12 @@ const Hero = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
-                <Link to="/services">
+                <Link to="/services" onClick={handleBrowseServicesClick}>
                   Browse Services
                 </Link>
               </Button>
               <Button asChild variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8">
-                <Link to="/how-it-works">
+                <Link to="/how-it-works" onClick={handleHowItWorksClick}>
                   How It Works
                   <ArrowRight size={18} className="ml-2" />
                 </Link>
