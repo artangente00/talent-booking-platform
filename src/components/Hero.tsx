@@ -29,17 +29,19 @@ const Hero = () => {
             <p className="text-xl text-gray-600 max-w-lg">
               Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 
-                className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8"
+                className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8 cursor-pointer"
                 onClick={handleBrowseServicesClick}
+                type="button"
               >
                 Browse Services
               </Button>
               <Button 
                 variant="outline" 
-                className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8"
+                className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8 cursor-pointer"
                 onClick={handleHowItWorksClick}
+                type="button"
               >
                 How It Works
                 <ArrowRight size={18} className="ml-2" />
