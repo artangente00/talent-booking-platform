@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -18,17 +17,17 @@ const Hero = () => {
               Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/services">
-                <Button className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
+              <Button asChild className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
+                <Link to="/services">
                   Browse Services
-                </Button>
-              </Link>
-              <Link to="/how-it-works">
-                <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8">
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8">
+                <Link to="/how-it-works">
                   How It Works
                   <ArrowRight size={18} className="ml-2" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
             <div className="flex items-center space-x-6 text-sm text-gray-600">
               <div className="flex items-center">
