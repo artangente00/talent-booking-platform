@@ -53,11 +53,11 @@ const HowItWorks = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        <section className="bg-gradient-to-r from-brand-500 to-brand-700 py-16">
+        <section className="bg-gradient-to-r from-kwikie-yellow to-kwikie-orange py-16">
           <div className="container mx-auto px-4 text-center text-white">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h1>
             <p className="text-xl max-w-2xl mx-auto">
-              Booking home services with TalentHub is simple, safe, and convenient.
+              Booking home services with Kwikie is simple, safe, and convenient.
               Follow these easy steps to get started.
             </p>
           </div>
@@ -71,7 +71,7 @@ const HowItWorks = () => {
                 className={`flex flex-col ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center mb-16 last:mb-0`}
               >
                 <div className="md:w-1/2 mb-6 md:mb-0 md:px-6">
-                  <div className="bg-brand-50 text-brand-600 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
+                  <div className="bg-kwikie-yellow/20 text-kwikie-orange w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
                     {step.number}
                   </div>
                   <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
@@ -80,7 +80,7 @@ const HowItWorks = () => {
                   </p>
                   {index === steps.length - 1 && (
                     <Link to="/services">
-                      <Button className="bg-brand-600 hover:bg-brand-700">
+                      <Button className="bg-kwikie-orange hover:bg-kwikie-red">
                         Book a Service Now
                       </Button>
                     </Link>
@@ -101,7 +101,7 @@ const HowItWorks = () => {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Choose TalentHub?</h2>
+              <h2 className="text-3xl font-bold mb-4">Why Choose Kwikie?</h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 We're committed to providing the best home service experience for our clients.
               </p>
@@ -111,7 +111,7 @@ const HowItWorks = () => {
               {features.map((feature, index) => (
                 <div key={index} className="flex items-start space-x-3">
                   <div className="mt-1 bg-green-100 rounded-full p-1">
-                    <Check size={16} className="text-green-600" />
+                    <Check size={16} className="text-kwikie-orange" />
                   </div>
                   <p className="text-gray-700">{feature}</p>
                 </div>

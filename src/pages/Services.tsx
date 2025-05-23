@@ -40,7 +40,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
         </div>
         <CardContent className="md:w-2/3 p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-brand-100 text-brand-600">
+            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-kwikie-yellow/20 text-kwikie-orange">
               {icon}
             </div>
             <h3 className="text-2xl font-bold">{title}</h3>
@@ -54,7 +54,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
               {pricing.map((item, index) => (
                 <div key={index} className="flex justify-between items-center">
                   <span className="text-gray-600">{item.label}</span>
-                  <span className="font-bold">{item.price}</span>
+                  <span className="font-bold text-kwikie-orange">{item.price}</span>
                 </div>
               ))}
             </div>
@@ -69,7 +69,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
             </ul>
           </div>
           
-          <Button className="bg-brand-600 hover:bg-brand-700 w-full md:w-auto">
+          <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full md:w-auto">
             Book Now
           </Button>
         </CardContent>
@@ -176,7 +176,7 @@ const Services = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        <section className="bg-gradient-to-r from-brand-500 to-brand-700 py-16">
+        <section className="bg-gradient-to-r from-kwikie-yellow to-kwikie-orange py-16">
           <div className="container mx-auto px-4 text-center text-white">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h1>
             <p className="text-xl max-w-2xl mx-auto">
