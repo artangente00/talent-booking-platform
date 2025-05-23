@@ -1,15 +1,20 @@
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   const handleBrowseServicesClick = () => {
     console.log('Browse Services button clicked');
+    navigate('/services');
   };
 
   const handleHowItWorksClick = () => {
     console.log('How It Works button clicked');
+    navigate('/how-it-works');
   };
 
   return (
@@ -25,16 +30,19 @@ const Hero = () => {
               Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
-                <Link to="/services" onClick={handleBrowseServicesClick}>
-                  Browse Services
-                </Link>
+              <Button 
+                className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8"
+                onClick={handleBrowseServicesClick}
+              >
+                Browse Services
               </Button>
-              <Button asChild variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8">
-                <Link to="/how-it-works" onClick={handleHowItWorksClick}>
-                  How It Works
-                  <ArrowRight size={18} className="ml-2" />
-                </Link>
+              <Button 
+                variant="outline" 
+                className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8"
+                onClick={handleHowItWorksClick}
+              >
+                How It Works
+                <ArrowRight size={18} className="ml-2" />
               </Button>
             </div>
             <div className="flex items-center space-x-6 text-sm text-gray-600">
