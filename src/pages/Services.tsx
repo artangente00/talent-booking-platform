@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
+import BookingForm from '@/components/BookingForm';
 
 interface ServiceDetailProps {
   title: string;
@@ -69,9 +69,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
             </ul>
           </div>
           
-          <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full md:w-auto">
-            Book Now
-          </Button>
+          <BookingForm preselectedService={title}>
+            <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full md:w-auto">
+              Book Now
+            </Button>
+          </BookingForm>
         </CardContent>
       </div>
     </Card>
