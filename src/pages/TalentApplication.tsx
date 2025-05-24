@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,14 +13,13 @@ import { supabase } from '@/integrations/supabase/client';
 const TalentApplication = () => {
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
     phone: '',
     address: '',
     experience: '',
     services: [] as string[],
     description: '',
     availability: '',
-    hourlyRate: ''
+    dailyRate: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -73,14 +71,14 @@ const TalentApplication = () => {
         .from('talents')
         .insert({
           full_name: formData.fullName,
-          email: formData.email,
+          email: '', // Empty email since we removed the field
           phone: formData.phone,
           address: formData.address,
           experience: formData.experience || null,
           services: formData.services,
           description: formData.description || null,
           availability: formData.availability || null,
-          hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
+          hourly_rate: formData.dailyRate ? parseFloat(formData.dailyRate) : null,
         });
 
       if (error) {
@@ -96,14 +94,13 @@ const TalentApplication = () => {
       // Reset form
       setFormData({
         fullName: '',
-        email: '',
         phone: '',
         address: '',
         experience: '',
         services: [],
         description: '',
         availability: '',
-        hourlyRate: ''
+        dailyRate: ''
       });
       
     } catch (error) {
@@ -179,42 +176,28 @@ const TalentApplication = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number *</Label>
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="+63 917 123 4567"
                         value={formData.phone}
                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                         required
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address *</Label>
-                      <Input
-                        id="address"
-                        type="text"
-                        placeholder="City, State"
-                        value={formData.address}
-                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                        required
-                      />
-                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address *</Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      placeholder="City, Province"
+                      value={formData.address}
+                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      required
+                    />
                   </div>
                 </div>
 
@@ -273,14 +256,14 @@ const TalentApplication = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="hourlyRate">Preferred Hourly Rate (USD)</Label>
+                      <Label htmlFor="dailyRate">Preferred Daily Rate (PHP)</Label>
                       <Input
-                        id="hourlyRate"
+                        id="dailyRate"
                         type="number"
-                        placeholder="25"
-                        min="10"
-                        value={formData.hourlyRate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                        placeholder="1500"
+                        min="500"
+                        value={formData.dailyRate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, dailyRate: e.target.value }))}
                       />
                     </div>
                     
