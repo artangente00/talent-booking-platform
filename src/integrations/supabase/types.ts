@@ -185,6 +185,48 @@ export type Database = {
           },
         ]
       }
+      services: {
+        Row: {
+          color_class: string
+          created_at: string
+          description: string
+          icon_name: string
+          id: string
+          is_active: boolean
+          price_range: string
+          route: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color_class: string
+          created_at?: string
+          description: string
+          icon_name: string
+          id?: string
+          is_active?: boolean
+          price_range: string
+          route: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color_class?: string
+          created_at?: string
+          description?: string
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          price_range?: string
+          route?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       talents: {
         Row: {
           address: string
