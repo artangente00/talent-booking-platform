@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,10 +48,16 @@ const CustomersManagement = () => {
 
       console.log('User authenticated, fetching customers...');
       
-      // Fetch customers - RLS policies will handle permissions
+      // Fetch customers with their booking counts using a single query
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
-        .select('*')
+        .select(`
+          *,
+          bookings!bookings_customer_id_fkey (
+            id,
+            created_at
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (customersError) {
@@ -73,37 +80,22 @@ const CustomersManagement = () => {
         return;
       }
 
-      // Get booking counts for each customer
-      const customersWithBookings = await Promise.all(
-        customersData.map(async (customer) => {
-          const { data: bookings, error: bookingsError } = await supabase
-            .from('bookings')
-            .select('id, created_at')
-            .eq('customer_id', customer.id);
+      // Process the data to include booking counts and last booking
+      const processedCustomers = customersData.map((customer) => {
+        const bookings = customer.bookings || [];
+        const lastBooking = bookings.length > 0 
+          ? new Date(Math.max(...bookings.map(b => new Date(b.created_at).getTime()))).toISOString()
+          : null;
 
-          if (bookingsError) {
-            console.error('Error fetching bookings for customer:', customer.id, bookingsError);
-            return {
-              ...customer,
-              bookingsCount: 0,
-              lastBooking: null,
-            };
-          }
+        return {
+          ...customer,
+          bookingsCount: bookings.length,
+          lastBooking,
+        };
+      });
 
-          const lastBooking = bookings && bookings.length > 0 
-            ? new Date(Math.max(...bookings.map(b => new Date(b.created_at).getTime()))).toISOString()
-            : null;
-
-          return {
-            ...customer,
-            bookingsCount: bookings ? bookings.length : 0,
-            lastBooking,
-          };
-        })
-      );
-
-      console.log('Processed customers with bookings:', customersWithBookings);
-      setCustomers(customersWithBookings);
+      console.log('Processed customers with bookings:', processedCustomers);
+      setCustomers(processedCustomers);
     } catch (error) {
       console.error('Error fetching customers:', error);
       toast({
