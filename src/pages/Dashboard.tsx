@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
+type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+
 interface Booking {
   id: string;
   service_type: string;
@@ -20,7 +22,7 @@ interface Booking {
   booking_time: string;
   duration: string | null;
   special_instructions: string | null;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  status: BookingStatus;
   created_at: string;
   ratings?: {
     id: string;
@@ -97,7 +99,13 @@ const Dashboard = () => {
 
       if (bookingsError) throw bookingsError;
 
-      setBookings(bookingsData || []);
+      // Type assertion to ensure status is properly typed
+      const typedBookings = (bookingsData || []).map(booking => ({
+        ...booking,
+        status: booking.status as BookingStatus
+      }));
+
+      setBookings(typedBookings);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -182,7 +190,7 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: BookingStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'confirmed': return 'bg-blue-100 text-blue-800';
