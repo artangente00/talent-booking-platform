@@ -33,6 +33,39 @@ export type Database = {
         }
         Relationships: []
       }
+      bookers: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -283,6 +316,10 @@ export type Database = {
       }
       is_admin_safe: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_booker: {
+        Args: { user_uuid?: string }
         Returns: boolean
       }
       is_user_admin: {

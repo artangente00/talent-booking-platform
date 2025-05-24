@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -30,23 +31,33 @@ const Auth = () => {
     checkUser();
   }, [navigate]);
 
-  const checkAdminAndRedirect = async (userId: string) => {
+  const checkUserRoleAndRedirect = async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('is_admin', { user_uuid: userId });
+      // Check if user is admin
+      const { data: isAdminData, error: adminError } = await supabase.rpc('is_admin', { user_uuid: userId });
       
-      if (error) {
-        console.error('Error checking admin status:', error);
-        navigate('/');
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+      } else if (isAdminData) {
+        navigate('/admin');
         return;
       }
+
+      // Check if user is booker
+      const { data: isBookerData, error: bookerError } = await supabase.rpc('is_booker', { user_uuid: userId });
       
-      if (data) {
-        navigate('/admin');
-      } else {
-        navigate('/');
+      if (bookerError) {
+        console.error('Error checking booker status:', bookerError);
+      } else if (isBookerData) {
+        // For now, redirect bookers to dashboard - you can create a specific booker dashboard later
+        navigate('/dashboard');
+        return;
       }
+
+      // Default redirect for regular customers
+      navigate('/');
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('Error checking user roles:', error);
       navigate('/');
     }
   };
@@ -172,9 +183,9 @@ const Auth = () => {
           description: "You have been successfully logged in.",
         });
         
-        // Check if user is admin and redirect accordingly
+        // Check user role and redirect accordingly
         if (data.user) {
-          await checkAdminAndRedirect(data.user.id);
+          await checkUserRoleAndRedirect(data.user.id);
         } else {
           navigate('/');
         }
