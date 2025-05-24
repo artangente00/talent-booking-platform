@@ -31,38 +31,59 @@ const CustomersManagement = () => {
 
   const fetchCustomers = async () => {
     try {
-      // Fetch customers with booking count and last booking
-      const { data: customersData, error } = await supabase
+      console.log('Fetching customers data...');
+      
+      // First, get all customers
+      const { data: customersData, error: customersError } = await supabase
         .from('customers')
-        .select(`
-          *,
-          bookings (
-            id,
-            created_at
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (customersError) {
+        console.error('Error fetching customers:', customersError);
+        throw customersError;
+      }
 
-      const processedCustomers = customersData.map(customer => {
-        const bookings = customer.bookings || [];
-        const lastBooking = bookings.length > 0 
-          ? new Date(Math.max(...bookings.map(b => new Date(b.created_at).getTime()))).toISOString()
-          : null;
+      console.log('Customers data:', customersData);
 
-        return {
-          id: customer.id,
-          full_name: customer.full_name,
-          email: customer.email,
-          phone: customer.phone,
-          created_at: customer.created_at,
-          bookingsCount: bookings.length,
-          lastBooking,
-        };
-      });
+      if (!customersData || customersData.length === 0) {
+        console.log('No customers found');
+        setCustomers([]);
+        setLoading(false);
+        return;
+      }
 
-      setCustomers(processedCustomers);
+      // Get booking counts for each customer
+      const customersWithBookings = await Promise.all(
+        customersData.map(async (customer) => {
+          const { data: bookings, error: bookingsError } = await supabase
+            .from('bookings')
+            .select('id, created_at')
+            .eq('customer_id', customer.id);
+
+          if (bookingsError) {
+            console.error('Error fetching bookings for customer:', customer.id, bookingsError);
+            return {
+              ...customer,
+              bookingsCount: 0,
+              lastBooking: null,
+            };
+          }
+
+          const lastBooking = bookings && bookings.length > 0 
+            ? new Date(Math.max(...bookings.map(b => new Date(b.created_at).getTime()))).toISOString()
+            : null;
+
+          return {
+            ...customer,
+            bookingsCount: bookings ? bookings.length : 0,
+            lastBooking,
+          };
+        })
+      );
+
+      console.log('Processed customers with bookings:', customersWithBookings);
+      setCustomers(customersWithBookings);
     } catch (error) {
       console.error('Error fetching customers:', error);
       toast({
@@ -110,7 +131,7 @@ const CustomersManagement = () => {
           Customers Management
         </CardTitle>
         <CardDescription>
-          View and manage all registered customers
+          View and manage all registered customers ({customers.length} total)
         </CardDescription>
       </CardHeader>
       <CardContent>
