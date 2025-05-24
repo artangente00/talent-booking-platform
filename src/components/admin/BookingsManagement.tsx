@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, User, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays, startOfWeek, isSameDay, addWeeks, subWeeks } from 'date-fns';
+import { addDays, startOfWeek, isSameDay } from 'date-fns';
 import * as LucideIcons from 'lucide-react';
+import WeekNavigation from './bookings/WeekNavigation';
+import BookingCalendarGrid from './bookings/BookingCalendarGrid';
+import BookingSummaryStats from './bookings/BookingSummaryStats';
 
 interface Service {
   id: string;
@@ -139,7 +140,6 @@ const BookingsManagement = () => {
     }
   };
 
-  const currentService = services.find(s => s.id === activeService);
   const weekDays = getWeekDays();
 
   if (loading) {
@@ -179,99 +179,23 @@ const BookingsManagement = () => {
 
           {services.map((service) => (
             <TabsContent key={service.id} value={service.id} className="mt-6">
-              {/* Week Navigation */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <h2 className="text-xl font-semibold">
-                    {format(weekDays[0], 'MMMM d')} - {format(weekDays[6], 'd, yyyy')}
-                  </h2>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentWeek(new Date())}
-                >
-                  Today
-                </Button>
-              </div>
+              <WeekNavigation 
+                currentWeek={currentWeek}
+                weekDays={weekDays}
+                onWeekChange={setCurrentWeek}
+              />
 
-              {/* Weekly Calendar Grid */}
-              <div className="border rounded-lg overflow-hidden">
-                {/* Header with days */}
-                <div className="grid grid-cols-8 bg-gray-50">
-                  <div className="p-3 text-sm font-medium text-gray-600 border-r">Time</div>
-                  {weekDays.map((day, index) => (
-                    <div key={index} className="p-3 text-center border-r last:border-r-0">
-                      <div className="text-sm font-medium text-gray-900">
-                        {format(day, 'EEE')}
-                      </div>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {format(day, 'd')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <BookingCalendarGrid
+                weekDays={weekDays}
+                timeSlots={timeSlots}
+                serviceTitle={service.title}
+                getBookingForTimeSlot={getBookingForTimeSlot}
+                getStatusColor={getStatusColor}
+              />
 
-                {/* Time slots grid */}
-                {timeSlots.map((timeSlot, timeIndex) => (
-                  <div key={timeSlot} className="grid grid-cols-8 border-t">
-                    <div className="p-3 text-sm font-medium text-gray-600 border-r bg-gray-50">
-                      {timeSlot}
-                    </div>
-                    {weekDays.map((day, dayIndex) => {
-                      const booking = getBookingForTimeSlot(day, timeSlot, service.title);
-                      return (
-                        <div key={dayIndex} className="border-r last:border-r-0 min-h-[80px] p-1">
-                          {booking && (
-                            <div className={`rounded p-2 text-xs border ${getStatusColor(booking.status)}`}>
-                              <div className="font-medium truncate">
-                                {booking.talent_name}
-                              </div>
-                              <div className="text-gray-600 truncate">
-                                {booking.customer.full_name}
-                              </div>
-                              <div className="flex items-center gap-1 mt-1">
-                                <MapPin className="w-3 h-3" />
-                                <span className="truncate">{booking.service_address}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary Stats for Service */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { label: 'Total Bookings', value: getServiceBookings(service.title).length, color: 'bg-blue-50 text-blue-700' },
-                  { label: 'Pending', value: getServiceBookings(service.title).filter(b => b.status === 'pending').length, color: 'bg-yellow-50 text-yellow-700' },
-                  { label: 'Confirmed', value: getServiceBookings(service.title).filter(b => b.status === 'confirmed').length, color: 'bg-green-50 text-green-700' },
-                  { label: 'Completed', value: getServiceBookings(service.title).filter(b => b.status === 'completed').length, color: 'bg-purple-50 text-purple-700' },
-                ].map((stat, index) => (
-                  <Card key={index} className={`p-4 ${stat.color}`}>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <div className="text-sm">{stat.label}</div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+              <BookingSummaryStats 
+                serviceBookings={getServiceBookings(service.title)}
+              />
             </TabsContent>
           ))}
         </Tabs>
