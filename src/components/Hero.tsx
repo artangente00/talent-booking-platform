@@ -17,6 +17,11 @@ const Hero = () => {
     navigate('/how-it-works');
   };
 
+  const handleBecomeTalentClick = () => {
+    console.log('Become a Talent button clicked');
+    navigate('/talent-application');
+  };
+
   return (
     <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
@@ -47,6 +52,20 @@ const Hero = () => {
                 <ArrowRight size={18} className="ml-2" />
               </Button>
             </div>
+            
+            {/* Additional CTA for becoming a talent */}
+            <div className="pt-4">
+              <p className="text-gray-600 mb-3">Want to earn money providing services?</p>
+              <Button
+                variant="outline"
+                className="border-kwikie-yellow text-kwikie-orange hover:bg-kwikie-yellow/20 h-11 px-6"
+                onClick={handleBecomeTalentClick}
+                type="button"
+              >
+                Become a Talent
+              </Button>
+            </div>
+            
             <div className="flex items-center space-x-6 text-sm text-gray-600">
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
