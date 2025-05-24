@@ -52,10 +52,28 @@ const Auth = () => {
       return;
     }
 
+    if (!fullName.trim()) {
+      toast({
+        title: "Error",
+        description: "Full name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!phone.trim()) {
+      toast({
+        title: "Error",
+        description: "Phone number is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -93,6 +111,7 @@ const Auth = () => {
         setPhone('');
       }
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -135,6 +154,7 @@ const Auth = () => {
         navigate('/');
       }
     } catch (error) {
+      console.error('Signin error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
