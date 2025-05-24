@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,6 +8,8 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Calendar, Clock, MapPin, User, Phone, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface BookingFormProps {
   children: React.ReactNode;
@@ -16,6 +18,7 @@ interface BookingFormProps {
 
 const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [formData, setFormData] = useState({
     service: preselectedService || '',
     name: '',
@@ -28,6 +31,31 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     notes: ''
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleBookingClick = () => {
+    if (!user) {
+      // Redirect to auth page if user is not signed in
+      navigate('/auth');
+      return;
+    }
+    // Open booking form if user is authenticated
+    setIsOpen(true);
+  };
 
   const services = [
     'Cleaning Services',
@@ -96,7 +124,9 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {children}
+        <div onClick={handleBookingClick}>
+          {children}
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>

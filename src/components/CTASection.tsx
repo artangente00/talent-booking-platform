@@ -1,9 +1,36 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 const CTASection = () => {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleBookServiceClick = () => {
+    if (!user) {
+      navigate('/auth');
+    } else {
+      navigate('/services');
+    }
+  };
+
   return (
     <section className="py-16 bg-kwikie-orange text-white">
       <div className="container mx-auto px-4 text-center">
@@ -13,11 +40,12 @@ const CTASection = () => {
           Book now and experience the difference.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link to="/services">
-            <Button className="bg-white text-kwikie-orange hover:bg-gray-50 text-lg h-12 px-8">
-              Book a Service
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleBookServiceClick}
+            className="bg-white text-kwikie-orange hover:bg-gray-50 text-lg h-12 px-8"
+          >
+            Book a Service
+          </Button>
           <Link to="/contact">
             <Button variant="outline" className="border-white text-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
               Contact Us
