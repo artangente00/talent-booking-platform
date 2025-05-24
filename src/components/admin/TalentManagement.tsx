@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 interface Talent {
   id: string;
   full_name: string;
-  email: string;
   phone: string;
   address: string;
   services: string[];
@@ -34,7 +32,6 @@ const TalentManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTalent, setNewTalent] = useState({
     full_name: '',
-    email: '',
     phone: '',
     address: '',
     services: [] as string[],
@@ -71,7 +68,7 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    if (!newTalent.full_name || !newTalent.email || !newTalent.phone || !newTalent.address) {
+    if (!newTalent.full_name || !newTalent.phone || !newTalent.address) {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -85,7 +82,6 @@ const TalentManagement = () => {
         .from('talents')
         .insert({
           full_name: newTalent.full_name,
-          email: newTalent.email,
           phone: newTalent.phone,
           address: newTalent.address,
           services: newTalent.services,
@@ -104,7 +100,6 @@ const TalentManagement = () => {
       setIsDialogOpen(false);
       setNewTalent({
         full_name: '',
-        email: '',
         phone: '',
         address: '',
         services: [],
@@ -156,7 +151,6 @@ const TalentManagement = () => {
 
   const filteredTalents = talents.filter(talent =>
     talent.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    talent.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     talent.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -228,16 +222,6 @@ const TalentManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter email address"
-                    value={newTalent.email}
-                    onChange={(e) => setNewTalent(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-                <div>
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
@@ -273,7 +257,7 @@ const TalentManagement = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search talents by name, email, or services..."
+              placeholder="Search talents by name or services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -312,10 +296,6 @@ const TalentManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Mail className="w-3 h-3" />
-                          {talent.email}
-                        </div>
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Phone className="w-3 h-3" />
                           {talent.phone}
@@ -341,7 +321,7 @@ const TalentManagement = () => {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {talent.hourly_rate ? `$${talent.hourly_rate}/hr` : 'Not specified'}
+                        {talent.hourly_rate ? `₱${talent.hourly_rate}/day` : 'Not specified'}
                       </span>
                     </TableCell>
                     <TableCell>
