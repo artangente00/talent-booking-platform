@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,6 @@ const TalentApplication = () => {
         .from('talents')
         .insert({
           full_name: formData.fullName,
-          email: '', // Empty email since we removed the field
           phone: formData.phone,
           address: formData.address,
           experience: formData.experience || null,
