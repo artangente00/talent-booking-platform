@@ -57,7 +57,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Baby,
-    image: 'https://images.unsplash.com/photo-1595118216221-63caa91a5c68?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: 'https://images.unsplash.com/photo-1544776527-0cbac41c8e51?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: 'elderly-care',
@@ -77,7 +77,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Heart,
-    image: 'https://images.unsplash.com/photo-1577896851674-61d1dd733277?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: 'laundry',
