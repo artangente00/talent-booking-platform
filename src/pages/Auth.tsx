@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,27 @@ const Auth = () => {
     };
     checkUser();
   }, [navigate]);
+
+  const checkAdminAndRedirect = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('is_admin', { user_uuid: userId });
+      
+      if (error) {
+        console.error('Error checking admin status:', error);
+        navigate('/');
+        return;
+      }
+      
+      if (data) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      navigate('/');
+    }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +147,7 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -151,7 +171,13 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
-        navigate('/');
+        
+        // Check if user is admin and redirect accordingly
+        if (data.user) {
+          await checkAdminAndRedirect(data.user.id);
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('Signin error:', error);

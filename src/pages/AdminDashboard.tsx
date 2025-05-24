@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, TrendingUp, UserPlus, Settings } from 'lucide-react';
+import { Users, Calendar, TrendingUp, UserPlus, Settings, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -15,6 +15,7 @@ import AdminStats from '@/components/admin/AdminStats';
 import CustomersManagement from '@/components/admin/CustomersManagement';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import AdminsManagement from '@/components/admin/AdminsManagement';
+import TalentManagement from '@/components/admin/TalentManagement';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -108,7 +109,7 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Overview
@@ -120,6 +121,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="bookings" className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Bookings
+              </TabsTrigger>
+              <TabsTrigger value="talents" className="flex items-center gap-2">
+                <Star className="w-4 h-4" />
+                Talents
               </TabsTrigger>
               <TabsTrigger value="admins" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
@@ -137,6 +142,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="bookings">
               <BookingsManagement />
+            </TabsContent>
+
+            <TabsContent value="talents">
+              <TalentManagement />
             </TabsContent>
 
             <TabsContent value="admins">
