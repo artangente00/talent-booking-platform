@@ -1,73 +1,87 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Calendar, MapPin, User } from 'lucide-react';
+import { Calendar, MapPin, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format, isSameDay } from 'date-fns';
+import * as LucideIcons from 'lucide-react';
 
-type BookingStatus = 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+interface Service {
+  id: string;
+  title: string;
+  icon_name: string;
+}
 
 interface Booking {
   id: string;
-  service_type: string;
-  service_address: string;
   booking_date: string;
   booking_time: string;
-  status: BookingStatus;
-  created_at: string;
+  service_address: string;
+  status: string;
   customer: {
     full_name: string;
-    email: string;
-    phone: string;
   };
+  talent_name?: string; // Mock data for now
 }
 
 const BookingsManagement = () => {
+  const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [activeService, setActiveService] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchBookings();
+    fetchData();
   }, []);
 
-  const fetchBookings = async () => {
+  const fetchData = async () => {
     try {
-      const { data: bookingsData, error } = await supabase
+      // Fetch services
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('id, title, icon_name')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (servicesError) throw servicesError;
+      setServices(servicesData || []);
+      if (servicesData && servicesData.length > 0) {
+        setActiveService(servicesData[0].id);
+      }
+
+      // Fetch bookings with customer data
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
           customers (
-            full_name,
-            email,
-            phone
+            full_name
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('booking_date', { ascending: true });
 
-      if (error) throw error;
+      if (bookingsError) throw bookingsError;
 
-      const processedBookings = bookingsData.map(booking => ({
+      // Process bookings and add mock talent data
+      const processedBookings = (bookingsData || []).map(booking => ({
         id: booking.id,
-        service_type: booking.service_type,
-        service_address: booking.service_address,
         booking_date: booking.booking_date,
         booking_time: booking.booking_time,
-        status: booking.status as BookingStatus,
-        created_at: booking.created_at,
+        service_address: booking.service_address,
+        status: booking.status,
         customer: booking.customers,
+        talent_name: getMockTalentName(), // Mock talent assignment
       }));
 
       setBookings(processedBookings);
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error fetching data:', error);
       toast({
         title: "Error",
         description: "Failed to load bookings data.",
@@ -78,48 +92,37 @@ const BookingsManagement = () => {
     }
   };
 
-  const updateBookingStatus = async (bookingId: string, newStatus: BookingStatus) => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: newStatus }
-          : booking
-      ));
-
-      toast({
-        title: "Success",
-        description: "Booking status updated successfully.",
-      });
-    } catch (error) {
-      console.error('Error updating booking status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update booking status.",
-        variant: "destructive",
-      });
-    }
+  // Mock function to generate talent names
+  const getMockTalentName = () => {
+    const talents = ['Maria Santos', 'Juan Cruz', 'Anna Reyes', 'Pedro Garcia', 'Sofia Mendoza', 'Carlos Dela Cruz'];
+    return talents[Math.floor(Math.random() * talents.length)];
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
-      booking.service_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service_address.toLowerCase().includes(searchTerm.toLowerCase());
+  const getIcon = (iconName: string) => {
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Home;
+    return <IconComponent size={16} />;
+  };
 
-    const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
+  const getServiceBookings = (serviceTitle: string) => {
+    return bookings.filter(booking => 
+      booking.service_address.toLowerCase().includes(serviceTitle.toLowerCase()) ||
+      serviceTitle.toLowerCase().includes(booking.service_address.toLowerCase())
+    );
+  };
 
-    return matchesSearch && matchesStatus;
-  });
+  const getBookingsForDate = (date: Date, serviceTitle: string) => {
+    const serviceBookings = getServiceBookings(serviceTitle);
+    return serviceBookings.filter(booking => 
+      isSameDay(new Date(booking.booking_date), date)
+    );
+  };
 
-  const getStatusColor = (status: BookingStatus) => {
+  const getDatesWithBookings = (serviceTitle: string) => {
+    const serviceBookings = getServiceBookings(serviceTitle);
+    return serviceBookings.map(booking => new Date(booking.booking_date));
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'confirmed': return 'bg-blue-100 text-blue-800';
@@ -130,13 +133,10 @@ const BookingsManagement = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const currentService = services.find(s => s.id === activeService);
+  const selectedDateBookings = selectedDate && currentService 
+    ? getBookingsForDate(selectedDate, currentService.title)
+    : [];
 
   if (loading) {
     return (
@@ -159,105 +159,134 @@ const BookingsManagement = () => {
           Bookings Management
         </CardTitle>
         <CardDescription>
-          Monitor and manage all service bookings
+          Monitor talent assignments and bookings by service category
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search bookings by service, customer, or address..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Tabs value={activeService} onValueChange={setActiveService}>
+          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${services.length}, minmax(0, 1fr))` }}>
+            {services.map((service) => (
+              <TabsTrigger key={service.id} value={service.id} className="flex items-center gap-2">
+                {getIcon(service.icon_name)}
+                <span className="hidden sm:inline">{service.title}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Service & Customer</TableHead>
-                <TableHead>Schedule</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBookings.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    {searchTerm || statusFilter !== 'all' ? 'No bookings found matching your filters.' : 'No bookings found.'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredBookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{booking.service_type}</div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <User className="w-3 h-3" />
-                          {booking.customer.full_name}
+          {services.map((service) => (
+            <TabsContent key={service.id} value={service.id} className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Calendar View */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    {getIcon(service.icon_name)}
+                    {service.title} Calendar
+                  </h3>
+                  <div className="border rounded-lg p-4">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      className="w-full pointer-events-auto"
+                      modifiers={{
+                        hasBookings: getDatesWithBookings(service.title)
+                      }}
+                      modifiersStyles={{
+                        hasBookings: {
+                          backgroundColor: '#fef3c7',
+                          color: '#92400e',
+                          fontWeight: 'bold'
+                        }
+                      }}
+                    />
+                    <div className="mt-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-yellow-200 rounded"></div>
+                        <span>Days with bookings</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bookings for Selected Date */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">
+                    {selectedDate ? `Bookings for ${format(selectedDate, 'MMMM d, yyyy')}` : 'Select a date'}
+                  </h3>
+                  
+                  {selectedDate && (
+                    <div className="space-y-3">
+                      {selectedDateBookings.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>No bookings for this date</p>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm">{formatDate(booking.booking_date)}</div>
-                        <div className="text-sm text-gray-600">{booking.booking_time}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-start gap-1 text-sm">
-                        <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{booking.service_address}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(booking.status)} border-0`}>
-                        {booking.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={booking.status}
-                        onValueChange={(value) => updateBookingStatus(booking.id, value as BookingStatus)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                      ) : (
+                        selectedDateBookings.map((booking) => (
+                          <Card key={booking.id} className="p-4">
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 text-sm font-medium">
+                                    <Clock className="w-4 h-4" />
+                                    {booking.booking_time}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <User className="w-4 h-4" />
+                                    {booking.customer.full_name}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <MapPin className="w-4 h-4" />
+                                    {booking.service_address}
+                                  </div>
+                                </div>
+                                <Badge className={`${getStatusColor(booking.status)} border-0`}>
+                                  {booking.status.replace('_', ' ').toUpperCase()}
+                                </Badge>
+                              </div>
+                              
+                              {/* Talent Assignment - Mock Data */}
+                              <div className="pt-2 border-t">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-sm">
+                                    <span className="text-gray-600">Assigned Talent:</span>
+                                    <span className="ml-2 font-medium text-blue-600">
+                                      {booking.talent_name}
+                                    </span>
+                                  </div>
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <User className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Summary Stats for Service */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Bookings', value: getServiceBookings(service.title).length, color: 'bg-blue-50 text-blue-700' },
+                  { label: 'Pending', value: getServiceBookings(service.title).filter(b => b.status === 'pending').length, color: 'bg-yellow-50 text-yellow-700' },
+                  { label: 'Confirmed', value: getServiceBookings(service.title).filter(b => b.status === 'confirmed').length, color: 'bg-green-50 text-green-700' },
+                  { label: 'Completed', value: getServiceBookings(service.title).filter(b => b.status === 'completed').length, color: 'bg-purple-50 text-purple-700' },
+                ].map((stat, index) => (
+                  <Card key={index} className={`p-4 ${stat.color}`}>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <div className="text-sm">{stat.label}</div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </CardContent>
     </Card>
   );

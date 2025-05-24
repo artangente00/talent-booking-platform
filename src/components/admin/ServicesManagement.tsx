@@ -1,33 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Edit, Plus, Trash2 } from 'lucide-react';
-
-const serviceSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  icon_name: z.string().min(1, 'Icon is required'),
-  price_range: z.string().min(1, 'Price range is required'),
-  route: z.string().min(1, 'Route is required'),
-  color_class: z.string().min(1, 'Color class is required'),
-  is_active: z.boolean(),
-  sort_order: z.number().int().min(0)
-});
-
-type ServiceFormData = z.infer<typeof serviceSchema>;
+import { useToast } from '@/hooks/use-toast';
+import * as LucideIcons from 'lucide-react';
 
 interface Service {
   id: string;
@@ -43,41 +28,34 @@ interface Service {
   updated_at: string;
 }
 
+interface ServiceFormData {
+  title: string;
+  description: string;
+  icon_name: string;
+  price_range: string;
+  route: string;
+  color_class: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
 const ServicesManagement = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const { toast } = useToast();
-
-  const form = useForm<ServiceFormData>({
-    resolver: zodResolver(serviceSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      icon_name: 'Home',
-      price_range: '',
-      route: '',
-      color_class: 'hover:border-blue-300',
-      is_active: true,
-      sort_order: 0
-    }
+  const [formData, setFormData] = useState<ServiceFormData>({
+    title: '',
+    description: '',
+    icon_name: 'Home',
+    price_range: '',
+    route: '',
+    color_class: 'hover:border-blue-300',
+    is_active: true,
+    sort_order: 0,
   });
-
-  const availableIcons = [
-    'Home', 'Car', 'Baby', 'Heart', 'ScrollText', 'Users', 'Shield', 'Clock', 'Star', 'Settings'
-  ];
-
-  const colorClasses = [
-    'hover:border-blue-300',
-    'hover:border-green-300',
-    'hover:border-purple-300',
-    'hover:border-red-300',
-    'hover:border-yellow-300',
-    'hover:border-pink-300',
-    'hover:border-indigo-300',
-    'hover:border-orange-300'
-  ];
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchServices();
@@ -85,7 +63,6 @@ const ServicesManagement = () => {
 
   const fetchServices = async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -97,7 +74,7 @@ const ServicesManagement = () => {
       console.error('Error fetching services:', error);
       toast({
         title: "Error",
-        description: "Failed to load services.",
+        description: "Failed to load services data.",
         variant: "destructive",
       });
     } finally {
@@ -105,13 +82,17 @@ const ServicesManagement = () => {
     }
   };
 
-  const onSubmit = async (data: ServiceFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
       if (editingService) {
-        // Update existing service
         const { error } = await supabase
           .from('services')
-          .update(data)
+          .update({
+            ...formData,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', editingService.id);
 
         if (error) throw error;
@@ -121,10 +102,9 @@ const ServicesManagement = () => {
           description: "Service updated successfully.",
         });
       } else {
-        // Create new service
         const { error } = await supabase
           .from('services')
-          .insert([data]);
+          .insert([formData]);
 
         if (error) throw error;
 
@@ -134,10 +114,10 @@ const ServicesManagement = () => {
         });
       }
 
-      setIsDialogOpen(false);
-      setEditingService(null);
-      form.reset();
       fetchServices();
+      resetForm();
+      setIsAddDialogOpen(false);
+      setEditingService(null);
     } catch (error) {
       console.error('Error saving service:', error);
       toast({
@@ -150,18 +130,24 @@ const ServicesManagement = () => {
 
   const handleEdit = (service: Service) => {
     setEditingService(service);
-    form.reset(service);
-    setIsDialogOpen(true);
+    setFormData({
+      title: service.title,
+      description: service.description,
+      icon_name: service.icon_name,
+      price_range: service.price_range,
+      route: service.route,
+      color_class: service.color_class,
+      is_active: service.is_active,
+      sort_order: service.sort_order,
+    });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
-
+  const handleDelete = async (serviceId: string) => {
     try {
       const { error } = await supabase
         .from('services')
         .delete()
-        .eq('id', id);
+        .eq('id', serviceId);
 
       if (error) throw error;
 
@@ -169,6 +155,7 @@ const ServicesManagement = () => {
         title: "Success",
         description: "Service deleted successfully.",
       });
+      
       fetchServices();
     } catch (error) {
       console.error('Error deleting service:', error);
@@ -180,269 +167,448 @@ const ServicesManagement = () => {
     }
   };
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingService(null);
-    form.reset();
+  const moveService = async (serviceId: string, direction: 'up' | 'down') => {
+    const currentIndex = services.findIndex(s => s.id === serviceId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= services.length) return;
+
+    const updates = [
+      { id: services[currentIndex].id, sort_order: services[newIndex].sort_order },
+      { id: services[newIndex].id, sort_order: services[currentIndex].sort_order }
+    ];
+
+    try {
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('services')
+          .update({ sort_order: update.sort_order, updated_at: new Date().toISOString() })
+          .eq('id', update.id);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Service order updated successfully.",
+      });
+      
+      fetchServices();
+    } catch (error) {
+      console.error('Error updating service order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update service order.",
+        variant: "destructive",
+      });
+    }
   };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      icon_name: 'Home',
+      price_range: '',
+      route: '',
+      color_class: 'hover:border-blue-300',
+      is_active: true,
+      sort_order: services.length,
+    });
+  };
+
+  const getIcon = (iconName: string) => {
+    const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Home;
+    return <IconComponent size={20} />;
+  };
+
+  const filteredServices = services.filter(service =>
+    service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const iconOptions = ['Home', 'Car', 'Baby', 'Heart', 'ScrollText', 'Wrench', 'Paintbrush', 'Zap', 'Scissors', 'Shield'];
+  const colorOptions = [
+    'hover:border-blue-300',
+    'hover:border-green-300',
+    'hover:border-purple-300',
+    'hover:border-red-300',
+    'hover:border-yellow-300',
+    'hover:border-pink-300',
+    'hover:border-indigo-300',
+    'hover:border-gray-300',
+  ];
 
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">Loading services...</div>
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Services Management</CardTitle>
-              <CardDescription>
-                Manage your services that appear on the homepage
-              </CardDescription>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setEditingService(null)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Service
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingService ? 'Edit Service' : 'Add New Service'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Fill in the details for the service
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Service title" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="price_range"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Price Range</FormLabel>
-                            <FormControl>
-                              <Input placeholder="₱500 or ₱500 - ₱1,000" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Service description" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="icon_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Icon</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select an icon" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {availableIcons.map((icon) => (
-                                  <SelectItem key={icon} value={icon}>
-                                    {icon}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="color_class"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Color Theme</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a color" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {colorClasses.map((color) => (
-                                  <SelectItem key={color} value={color}>
-                                    {color.replace('hover:border-', '').replace('-300', '')}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="route"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Route</FormLabel>
-                            <FormControl>
-                              <Input placeholder="/services/service-name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="sort_order"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sort Order</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                placeholder="0" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="is_active"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel>Active (visible on homepage)</FormLabel>
-                        </FormItem>
-                      )}
-                    />
-
-                    <DialogFooter>
-                      <Button type="button" variant="outline" onClick={handleDialogClose}>
-                        Cancel
-                      </Button>
-                      <Button type="submit">
-                        {editingService ? 'Update Service' : 'Create Service'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Package className="w-5 h-5" />
+          Services Management
+        </CardTitle>
+        <CardDescription>
+          Manage your service offerings, pricing, and availability
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm} className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Add Service
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Service</DialogTitle>
+                <DialogDescription>
+                  Create a new service offering for your business.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="title">Service Title</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g., Cleaning Services"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="price_range">Price Range</Label>
+                    <Input
+                      id="price_range"
+                      value={formData.price_range}
+                      onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                      placeholder="e.g., ₱500 - ₱1,000"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Brief description of the service"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="icon_name">Icon</Label>
+                    <Select value={formData.icon_name} onValueChange={(value) => setFormData({ ...formData, icon_name: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {iconOptions.map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            <div className="flex items-center gap-2">
+                              {getIcon(icon)}
+                              {icon}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="color_class">Hover Color</Label>
+                    <Select value={formData.color_class} onValueChange={(value) => setFormData({ ...formData, color_class: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colorOptions.map((color) => (
+                          <SelectItem key={color} value={color}>
+                            {color.replace('hover:border-', '').replace('-300', '')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="route">Route</Label>
+                    <Input
+                      id="route"
+                      value={formData.route}
+                      onChange={(e) => setFormData({ ...formData, route: e.target.value })}
+                      placeholder="e.g., /services/cleaning"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="sort_order">Sort Order</Label>
+                    <Input
+                      id="sort_order"
+                      type="number"
+                      value={formData.sort_order}
+                      onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
+                      min="0"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  />
+                  <Label htmlFor="is_active">Active</Label>
+                </div>
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create Service</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
+                <TableHead>Service</TableHead>
                 <TableHead>Price Range</TableHead>
-                <TableHead>Icon</TableHead>
+                <TableHead>Route</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Sort Order</TableHead>
+                <TableHead>Order</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((service) => (
-                <TableRow key={service.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{service.title}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {service.description}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{service.price_range}</TableCell>
-                  <TableCell>{service.icon_name}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      service.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {service.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </TableCell>
-                  <TableCell>{service.sort_order}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(service)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(service.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+              {filteredServices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    {searchTerm ? 'No services found matching your search.' : 'No services found.'}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredServices.map((service, index) => (
+                  <TableRow key={service.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {getIcon(service.icon_name)}
+                        <div>
+                          <div className="font-medium">{service.title}</div>
+                          <div className="text-sm text-gray-600 line-clamp-1">{service.description}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{service.price_range}</TableCell>
+                    <TableCell className="font-mono text-sm">{service.route}</TableCell>
+                    <TableCell>
+                      <Badge variant={service.is_active ? "default" : "secondary"}>
+                        {service.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveService(service.id, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ArrowUp className="w-4 h-4" />
+                        </Button>
+                        <span className="text-sm">{service.sort_order}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => moveService(service.id, 'down')}
+                          disabled={index === filteredServices.length - 1}
+                        >
+                          <ArrowDown className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(service)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Edit Service</DialogTitle>
+                              <DialogDescription>
+                                Update the service information.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="edit_title">Service Title</Label>
+                                  <Input
+                                    id="edit_title"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit_price_range">Price Range</Label>
+                                  <Input
+                                    id="edit_price_range"
+                                    value={formData.price_range}
+                                    onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                                    required
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit_description">Description</Label>
+                                <Textarea
+                                  id="edit_description"
+                                  value={formData.description}
+                                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                  required
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="edit_icon_name">Icon</Label>
+                                  <Select value={formData.icon_name} onValueChange={(value) => setFormData({ ...formData, icon_name: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {iconOptions.map((icon) => (
+                                        <SelectItem key={icon} value={icon}>
+                                          <div className="flex items-center gap-2">
+                                            {getIcon(icon)}
+                                            {icon}
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit_color_class">Hover Color</Label>
+                                  <Select value={formData.color_class} onValueChange={(value) => setFormData({ ...formData, color_class: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {colorOptions.map((color) => (
+                                        <SelectItem key={color} value={color}>
+                                          {color.replace('hover:border-', '').replace('-300', '')}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="edit_route">Route</Label>
+                                  <Input
+                                    id="edit_route"
+                                    value={formData.route}
+                                    onChange={(e) => setFormData({ ...formData, route: e.target.value })}
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit_sort_order">Sort Order</Label>
+                                  <Input
+                                    id="edit_sort_order"
+                                    type="number"
+                                    value={formData.sort_order}
+                                    onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
+                                    min="0"
+                                    required
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <Switch
+                                  id="edit_is_active"
+                                  checked={formData.is_active}
+                                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                                />
+                                <Label htmlFor="edit_is_active">Active</Label>
+                              </div>
+
+                              <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setEditingService(null)}>
+                                  Cancel
+                                </Button>
+                                <Button type="submit">Update Service</Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(service.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
