@@ -56,7 +56,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Baby,
-    image: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: '/lovable-uploads/bf889eee-3300-4be6-ab8c-342131bf9364.png'
   },
   {
     id: 'elderly-care',
