@@ -8,6 +8,7 @@ interface Booking {
   booking_date: string;
   booking_time: string;
   service_address: string;
+  service_type: string;
   status: string;
   customer: {
     full_name: string;
@@ -18,15 +19,15 @@ interface Booking {
 interface BookingCalendarGridProps {
   weekDays: Date[];
   timeSlots: string[];
-  serviceTitle: string;
-  getBookingForTimeSlot: (date: Date, timeSlot: string, serviceTitle: string) => Booking | undefined;
+  serviceId: string;
+  getBookingForTimeSlot: (date: Date, timeSlot: string, serviceId: string) => Booking | undefined;
   getStatusColor: (status: string) => string;
 }
 
 const BookingCalendarGrid = ({ 
   weekDays, 
   timeSlots, 
-  serviceTitle, 
+  serviceId, 
   getBookingForTimeSlot, 
   getStatusColor 
 }: BookingCalendarGridProps) => {
@@ -54,7 +55,7 @@ const BookingCalendarGrid = ({
             {timeSlot}
           </div>
           {weekDays.map((day, dayIndex) => {
-            const booking = getBookingForTimeSlot(day, timeSlot, serviceTitle);
+            const booking = getBookingForTimeSlot(day, timeSlot, serviceId);
             return (
               <div key={dayIndex} className="border-r last:border-r-0 min-h-[80px] p-1">
                 {booking && (

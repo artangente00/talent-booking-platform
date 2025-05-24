@@ -22,6 +22,7 @@ interface Booking {
   booking_date: string;
   booking_time: string;
   service_address: string;
+  service_type: string;
   status: string;
   customer: {
     full_name: string;
@@ -57,6 +58,8 @@ const BookingsManagement = () => {
         .order('sort_order', { ascending: true });
 
       if (servicesError) throw servicesError;
+      
+      console.log('Services data:', servicesData);
       setServices(servicesData || []);
       if (servicesData && servicesData.length > 0) {
         setActiveService(servicesData[0].id);
@@ -75,17 +78,21 @@ const BookingsManagement = () => {
 
       if (bookingsError) throw bookingsError;
 
+      console.log('Raw bookings data:', bookingsData);
+
       // Process bookings and add mock talent data
       const processedBookings = (bookingsData || []).map(booking => ({
         id: booking.id,
         booking_date: booking.booking_date,
         booking_time: booking.booking_time,
         service_address: booking.service_address,
+        service_type: booking.service_type,
         status: booking.status,
         customer: booking.customers,
         talent_name: getMockTalentName(),
       }));
 
+      console.log('Processed bookings:', processedBookings);
       setBookings(processedBookings);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -109,11 +116,22 @@ const BookingsManagement = () => {
     return <IconComponent size={16} />;
   };
 
-  const getServiceBookings = (serviceTitle: string) => {
-    return bookings.filter(booking => 
-      booking.service_address.toLowerCase().includes(serviceTitle.toLowerCase()) ||
-      serviceTitle.toLowerCase().includes(booking.service_address.toLowerCase())
-    );
+  const getServiceBookings = (serviceId: string) => {
+    // Map service ID to service title for filtering
+    const service = services.find(s => s.id === serviceId);
+    if (!service) return [];
+    
+    console.log(`Getting bookings for service: ${service.title}`);
+    
+    // Filter bookings by service_type matching the service title
+    const filteredBookings = bookings.filter(booking => {
+      const serviceTypeMatch = booking.service_type.toLowerCase() === service.title.toLowerCase();
+      console.log(`Booking service_type: ${booking.service_type}, Service title: ${service.title}, Match: ${serviceTypeMatch}`);
+      return serviceTypeMatch;
+    });
+    
+    console.log(`Found ${filteredBookings.length} bookings for ${service.title}`);
+    return filteredBookings;
   };
 
   const getWeekDays = () => {
@@ -121,12 +139,47 @@ const BookingsManagement = () => {
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   };
 
-  const getBookingForTimeSlot = (date: Date, timeSlot: string, serviceTitle: string) => {
-    const serviceBookings = getServiceBookings(serviceTitle);
-    return serviceBookings.find(booking => 
-      isSameDay(new Date(booking.booking_date), date) && 
-      booking.booking_time.includes(timeSlot.split(' ')[0])
-    );
+  const getBookingForTimeSlot = (date: Date, timeSlot: string, serviceId: string) => {
+    const serviceBookings = getServiceBookings(serviceId);
+    console.log(`Looking for booking on ${date.toDateString()} at ${timeSlot}`);
+    
+    const booking = serviceBookings.find(booking => {
+      const bookingDate = new Date(booking.booking_date);
+      const dateMatch = isSameDay(bookingDate, date);
+      
+      // Extract hour from booking_time and timeSlot for comparison
+      const bookingHour = booking.booking_time.split(':')[0];
+      const slotHour = timeSlot.split(' ')[0];
+      
+      // Convert 12-hour format to 24-hour for comparison
+      let bookingHour24 = parseInt(bookingHour);
+      let slotHour24 = parseInt(slotHour);
+      
+      if (booking.booking_time.includes('PM') && bookingHour24 !== 12) {
+        bookingHour24 += 12;
+      }
+      if (timeSlot.includes('PM') && slotHour24 !== 12) {
+        slotHour24 += 12;
+      }
+      if (booking.booking_time.includes('AM') && bookingHour24 === 12) {
+        bookingHour24 = 0;
+      }
+      if (timeSlot.includes('AM') && slotHour24 === 12) {
+        slotHour24 = 0;
+      }
+      
+      const timeMatch = bookingHour24 === slotHour24;
+      
+      console.log(`Booking: ${booking.booking_date} ${booking.booking_time}, Date match: ${dateMatch}, Time match: ${timeMatch}`);
+      
+      return dateMatch && timeMatch;
+    });
+    
+    if (booking) {
+      console.log(`Found booking:`, booking);
+    }
+    
+    return booking;
   };
 
   const getStatusColor = (status: string) => {
@@ -188,13 +241,13 @@ const BookingsManagement = () => {
               <BookingCalendarGrid
                 weekDays={weekDays}
                 timeSlots={timeSlots}
-                serviceTitle={service.title}
+                serviceId={service.id}
                 getBookingForTimeSlot={getBookingForTimeSlot}
                 getStatusColor={getStatusColor}
               />
 
               <BookingSummaryStats 
-                serviceBookings={getServiceBookings(service.title)}
+                serviceBookings={getServiceBookings(service.id)}
               />
             </TabsContent>
           ))}
