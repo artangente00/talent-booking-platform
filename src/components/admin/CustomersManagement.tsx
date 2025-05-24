@@ -41,7 +41,13 @@ const CustomersManagement = () => {
 
       if (customersError) {
         console.error('Error fetching customers:', customersError);
-        throw customersError;
+        toast({
+          title: "Error",
+          description: `Failed to load customers: ${customersError.message}`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
       }
 
       console.log('Customers data:', customersData);
