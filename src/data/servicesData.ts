@@ -1,3 +1,4 @@
+
 import { Home, Car, Baby, Heart, ScrollText } from 'lucide-react';
 
 export const servicesData = [
@@ -56,7 +57,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Baby,
-    image: '/lovable-uploads/5b8e3833-0e52-4c8b-af96-08983bff5bdd.png'
+    image: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: 'elderly-care',
@@ -76,7 +77,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Heart,
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: 'laundry',
