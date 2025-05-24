@@ -1,4 +1,3 @@
-
 import { Home, Car, Baby, Heart, ScrollText } from 'lucide-react';
 
 export const servicesData = [
@@ -77,7 +76,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Heart,
-    image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: '/lovable-uploads/e1273bbd-91a5-4855-8e66-48d3270b3479.png'
   },
   {
     id: 'laundry',
