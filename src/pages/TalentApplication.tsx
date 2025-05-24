@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const TalentApplication = () => {
@@ -16,7 +17,7 @@ const TalentApplication = () => {
     phone: '',
     address: '',
     experience: '',
-    services: [] as string[],
+    service: '', // Changed from services array to single service string
     description: '',
     availability: '',
     dailyRate: ''
@@ -43,22 +44,13 @@ const TalentApplication = () => {
     'Dry Cleaning Pickup'
   ];
 
-  const handleServiceToggle = (service: string) => {
-    setFormData(prev => ({
-      ...prev,
-      services: prev.services.includes(service)
-        ? prev.services.filter(s => s !== service)
-        : [...prev.services, service]
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.services.length === 0) {
+    if (!formData.service) {
       toast({
         title: "Error",
-        description: "Please select at least one service you can provide.",
+        description: "Please select a service you can provide.",
         variant: "destructive",
       });
       return;
@@ -75,7 +67,7 @@ const TalentApplication = () => {
           phone: formData.phone,
           address: formData.address,
           experience: formData.experience || null,
-          services: formData.services,
+          services: [formData.service], // Convert single service to array for database
           description: formData.description || null,
           availability: formData.availability || null,
           hourly_rate: formData.dailyRate ? parseFloat(formData.dailyRate) : null,
@@ -97,7 +89,7 @@ const TalentApplication = () => {
         phone: '',
         address: '',
         experience: '',
-        services: [],
+        service: '',
         description: '',
         availability: '',
         dailyRate: ''
@@ -153,7 +145,7 @@ const TalentApplication = () => {
             <CardHeader>
               <CardTitle className="text-2xl">Talent Application Form</CardTitle>
               <CardDescription>
-                Tell us about yourself and the services you'd like to offer
+                Tell us about yourself and the service you'd like to offer
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -201,36 +193,25 @@ const TalentApplication = () => {
                   </div>
                 </div>
 
-                {/* Services Offered */}
+                {/* Service Selection */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Services You Can Provide *</h3>
-                  <p className="text-sm text-gray-600">Select all services you're qualified and willing to provide</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Service You Can Provide *</h3>
+                  <p className="text-sm text-gray-600">Select the service you're qualified and willing to provide</p>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {serviceOptions.map((service) => (
-                      <div 
-                        key={service}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                          formData.services.includes(service)
-                            ? 'border-kwikie-orange bg-kwikie-orange/10 text-kwikie-orange'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => handleServiceToggle(service)}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                            formData.services.includes(service)
-                              ? 'border-kwikie-orange bg-kwikie-orange'
-                              : 'border-gray-300'
-                          }`}>
-                            {formData.services.includes(service) && (
-                              <CheckCircle className="w-3 h-3 text-white" />
-                            )}
-                          </div>
-                          <span className="text-sm font-medium">{service}</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    <Label htmlFor="service">Service Type</Label>
+                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, service: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceOptions.map((service) => (
+                          <SelectItem key={service} value={service}>
+                            {service}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
