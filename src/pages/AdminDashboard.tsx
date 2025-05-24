@@ -1,13 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, TrendingUp, UserPlus, Settings, Star } from 'lucide-react';
+import { Users, Calendar, TrendingUp, Settings, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -87,7 +82,6 @@ const AdminDashboard = () => {
             <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -154,7 +148,6 @@ const AdminDashboard = () => {
           </Tabs>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

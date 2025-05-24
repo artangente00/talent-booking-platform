@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Menu, X, User, Calendar, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +19,11 @@ const Navbar = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  // Check if we're on admin pages
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     // Get initial session
@@ -117,17 +120,21 @@ const Navbar = () => {
                 <User size={16} />
                 <span>Welcome, {customer?.full_name || 'Customer'}!</span>
               </span>
-              <Link to="/dashboard">
-                <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 flex items-center gap-1">
-                  <Calendar size={16} />
-                  My Bookings
-                </Button>
-              </Link>
-              <BookingForm>
-                <Button className="bg-kwikie-orange hover:bg-kwikie-red">
-                  Book Now
-                </Button>
-              </BookingForm>
+              {!isAdminPage && (
+                <>
+                  <Link to="/dashboard">
+                    <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 flex items-center gap-1">
+                      <Calendar size={16} />
+                      My Bookings
+                    </Button>
+                  </Link>
+                  <BookingForm>
+                    <Button className="bg-kwikie-orange hover:bg-kwikie-red">
+                      Book Now
+                    </Button>
+                  </BookingForm>
+                </>
+              )}
               <Button 
                 variant="outline" 
                 onClick={handleSignOut}
@@ -210,17 +217,21 @@ const Navbar = () => {
                       <User size={16} />
                       <span>Welcome, {customer?.full_name || 'Customer'}!</span>
                     </span>
-                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full flex items-center gap-1">
-                        <Calendar size={16} />
-                        My Bookings
-                      </Button>
-                    </Link>
-                    <BookingForm>
-                      <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
-                        Book Now
-                      </Button>
-                    </BookingForm>
+                    {!isAdminPage && (
+                      <>
+                        <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                          <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full flex items-center gap-1">
+                            <Calendar size={16} />
+                            My Bookings
+                          </Button>
+                        </Link>
+                        <BookingForm>
+                          <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
+                            Book Now
+                          </Button>
+                        </BookingForm>
+                      </>
+                    )}
                     <Button 
                       variant="outline" 
                       onClick={handleSignOut}

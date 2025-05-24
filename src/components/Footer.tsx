@@ -1,32 +1,12 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Twitter, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Facebook, Instagram, Twitter } from 'lucide-react';
 
 const Footer = () => {
   return (
     <footer className="bg-gray-50 border-t border-gray-200">
       <div className="container mx-auto px-4 py-12 md:py-16">
-        {/* Join as Talent CTA Section */}
-        <div className="bg-gradient-to-r from-kwikie-orange to-kwikie-red rounded-lg p-6 mb-12 text-center">
-          <h3 className="text-2xl font-bold text-white mb-2">
-            Want to Offer Your Services?
-          </h3>
-          <p className="text-white/90 mb-4">
-            Join our network of trusted professionals and start earning by providing quality services
-          </p>
-          <Button 
-            asChild
-            className="bg-white text-kwikie-orange hover:bg-gray-100 font-semibold"
-          >
-            <Link to="/talent-application" className="inline-flex items-center gap-2">
-              <UserPlus className="w-4 h-4" />
-              Join as Talent
-            </Link>
-          </Button>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-brand-600">TalentHub</h3>
