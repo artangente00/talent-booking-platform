@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, UserPlus } from 'lucide-react';
@@ -19,7 +20,7 @@ const Footer = () => {
             asChild
             className="bg-white text-kwikie-orange hover:bg-gray-100 font-semibold"
           >
-            <Link to="/auth" className="inline-flex items-center gap-2">
+            <Link to="/talent-application" className="inline-flex items-center gap-2">
               <UserPlus className="w-4 h-4" />
               Join as Talent
             </Link>
