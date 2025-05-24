@@ -1,3 +1,4 @@
+
 import { Home, Car, Baby, Heart, ScrollText } from 'lucide-react';
 
 export const servicesData = [
@@ -35,7 +36,7 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: Car,
-    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: '/lovable-uploads/fbe05fba-04d9-4ea9-b34d-33669d0d8a2d.png'
   },
   {
     id: 'babysitting',
@@ -93,6 +94,6 @@ export const servicesData = [
       'Penalty of 24 hours for service provider'
     ],
     icon: ScrollText,
-    image: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80'
+    image: '/lovable-uploads/a26bede1-b2c5-4335-960d-ed1e452d6869.png'
   }
 ];
