@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,22 @@ const CustomersManagement = () => {
     try {
       console.log('Fetching customers data...');
       
-      // First, get all customers
+      // Check if user is authenticated first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('User not authenticated');
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to view customers.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      console.log('User authenticated, fetching customers...');
+      
+      // Fetch customers - RLS policies will handle permissions
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select('*')
@@ -50,7 +64,7 @@ const CustomersManagement = () => {
         return;
       }
 
-      console.log('Customers data:', customersData);
+      console.log('Customers data fetched successfully:', customersData);
 
       if (!customersData || customersData.length === 0) {
         console.log('No customers found');
