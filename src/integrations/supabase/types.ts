@@ -161,7 +161,6 @@ export type Database = {
           availability: string | null
           created_at: string
           description: string | null
-          email: string
           experience: string | null
           full_name: string
           hourly_rate: number | null
@@ -176,7 +175,6 @@ export type Database = {
           availability?: string | null
           created_at?: string
           description?: string | null
-          email: string
           experience?: string | null
           full_name: string
           hourly_rate?: number | null
@@ -191,7 +189,6 @@ export type Database = {
           availability?: string | null
           created_at?: string
           description?: string | null
-          email?: string
           experience?: string | null
           full_name?: string
           hourly_rate?: number | null

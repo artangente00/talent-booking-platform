@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -242,7 +241,7 @@ const TalentApplication = () => {
                         id="dailyRate"
                         type="number"
                         placeholder="1500"
-                        min="500"
+                        min="300"
                         value={formData.dailyRate}
                         onChange={(e) => setFormData(prev => ({ ...prev, dailyRate: e.target.value }))}
                       />
