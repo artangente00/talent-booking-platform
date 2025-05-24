@@ -44,25 +44,44 @@ const AdminsManagement = () => {
 
   const fetchAdmins = async () => {
     try {
-      const { data: adminsData, error } = await supabase
+      // First get the admins
+      const { data: adminsData, error: adminsError } = await supabase
         .from('admins')
-        .select(`
-          *,
-          customers!admins_user_id_fkey (
-            full_name,
-            email,
-            phone
-          ),
-          creator:customers!admins_created_by_fkey (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (adminsError) throw adminsError;
 
-      setAdmins(adminsData || []);
+      // Then get customer data for each admin
+      const adminsWithCustomers = await Promise.all(
+        (adminsData || []).map(async (admin) => {
+          // Get customer data for the admin user
+          const { data: customerData } = await supabase
+            .from('customers')
+            .select('full_name, email, phone')
+            .eq('user_id', admin.user_id)
+            .single();
+
+          // Get creator data if exists
+          let creatorData = null;
+          if (admin.created_by) {
+            const { data: creator } = await supabase
+              .from('customers')
+              .select('full_name, email')
+              .eq('user_id', admin.created_by)
+              .single();
+            creatorData = creator;
+          }
+
+          return {
+            ...admin,
+            customer: customerData,
+            creator: creatorData
+          };
+        })
+      );
+
+      setAdmins(adminsWithCustomers);
     } catch (error) {
       console.error('Error fetching admins:', error);
       toast({
