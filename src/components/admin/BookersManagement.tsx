@@ -51,6 +51,7 @@ const BookersManagement = () => {
     full_name: '',
     email: '',
     phone: '',
+    password: '',
   });
   const { toast } = useToast();
 
@@ -82,10 +83,19 @@ const BookersManagement = () => {
   const handleAddBooker = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newBooker.full_name || !newBooker.email || !newBooker.phone) {
+    if (!newBooker.full_name || !newBooker.email || !newBooker.phone || !newBooker.password) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newBooker.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
       return;
@@ -95,7 +105,7 @@ const BookersManagement = () => {
       // First create a user account for the booker
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newBooker.email,
-        password: 'TempPassword123!', // Temporary password
+        password: newBooker.password,
         options: {
           data: {
             full_name: newBooker.full_name,
@@ -121,10 +131,10 @@ const BookersManagement = () => {
 
         toast({
           title: "Success",
-          description: "Booker added successfully. They will receive an email to set their password.",
+          description: "Booker added successfully.",
         });
 
-        setNewBooker({ full_name: '', email: '', phone: '' });
+        setNewBooker({ full_name: '', email: '', phone: '', password: '' });
         setIsAddDialogOpen(false);
         fetchBookers();
       }
@@ -205,7 +215,7 @@ const BookersManagement = () => {
                 <DialogHeader>
                   <DialogTitle>Add New Booker</DialogTitle>
                   <DialogDescription>
-                    Create a new booker account. They will receive an email to set their password.
+                    Create a new booker account. They will be able to log in with the provided credentials.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleAddBooker} className="space-y-4">
@@ -239,6 +249,18 @@ const BookersManagement = () => {
                       onChange={(e) => setNewBooker({ ...newBooker, phone: e.target.value })}
                       placeholder="Enter phone number"
                       required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newBooker.password}
+                      onChange={(e) => setNewBooker({ ...newBooker, password: e.target.value })}
+                      placeholder="Enter password"
+                      required
+                      minLength={6}
                     />
                   </div>
                   <div className="flex justify-end space-x-2">
