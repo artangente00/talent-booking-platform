@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, User, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, MapPin, User, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format, isSameDay } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import * as LucideIcons from 'lucide-react';
 
 interface Service {
@@ -25,16 +25,22 @@ interface Booking {
   customer: {
     full_name: string;
   };
-  talent_name?: string; // Mock data for now
+  talent_name?: string;
 }
 
 const BookingsManagement = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentWeek, setCurrentWeek] = useState(new Date());
   const [activeService, setActiveService] = useState<string>('');
   const { toast } = useToast();
+
+  // Time slots for the calendar (9 AM to 9 PM)
+  const timeSlots = [
+    '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', 
+    '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM'
+  ];
 
   useEffect(() => {
     fetchData();
@@ -76,7 +82,7 @@ const BookingsManagement = () => {
         service_address: booking.service_address,
         status: booking.status,
         customer: booking.customers,
-        talent_name: getMockTalentName(), // Mock talent assignment
+        talent_name: getMockTalentName(),
       }));
 
       setBookings(processedBookings);
@@ -92,7 +98,6 @@ const BookingsManagement = () => {
     }
   };
 
-  // Mock function to generate talent names
   const getMockTalentName = () => {
     const talents = ['Maria Santos', 'Juan Cruz', 'Anna Reyes', 'Pedro Garcia', 'Sofia Mendoza', 'Carlos Dela Cruz'];
     return talents[Math.floor(Math.random() * talents.length)];
@@ -110,33 +115,32 @@ const BookingsManagement = () => {
     );
   };
 
-  const getBookingsForDate = (date: Date, serviceTitle: string) => {
-    const serviceBookings = getServiceBookings(serviceTitle);
-    return serviceBookings.filter(booking => 
-      isSameDay(new Date(booking.booking_date), date)
-    );
+  const getWeekDays = () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 0 });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   };
 
-  const getDatesWithBookings = (serviceTitle: string) => {
+  const getBookingForTimeSlot = (date: Date, timeSlot: string, serviceTitle: string) => {
     const serviceBookings = getServiceBookings(serviceTitle);
-    return serviceBookings.map(booking => new Date(booking.booking_date));
+    return serviceBookings.find(booking => 
+      isSameDay(new Date(booking.booking_date), date) && 
+      booking.booking_time.includes(timeSlot.split(' ')[0])
+    );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'confirmed': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'in_progress': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-300';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const currentService = services.find(s => s.id === activeService);
-  const selectedDateBookings = selectedDate && currentService 
-    ? getBookingsForDate(selectedDate, currentService.title)
-    : [];
+  const weekDays = getWeekDays();
 
   if (loading) {
     return (
@@ -175,97 +179,81 @@ const BookingsManagement = () => {
 
           {services.map((service) => (
             <TabsContent key={service.id} value={service.id} className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Calendar View */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    {getIcon(service.icon_name)}
-                    {service.title} Calendar
-                  </h3>
-                  <div className="border rounded-lg p-4">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="w-full pointer-events-auto"
-                      modifiers={{
-                        hasBookings: getDatesWithBookings(service.title)
-                      }}
-                      modifiersStyles={{
-                        hasBookings: {
-                          backgroundColor: '#fef3c7',
-                          color: '#92400e',
-                          fontWeight: 'bold'
-                        }
-                      }}
-                    />
-                    <div className="mt-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-200 rounded"></div>
-                        <span>Days with bookings</span>
+              {/* Week Navigation */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <h2 className="text-xl font-semibold">
+                    {format(weekDays[0], 'MMMM d')} - {format(weekDays[6], 'd, yyyy')}
+                  </h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentWeek(new Date())}
+                >
+                  Today
+                </Button>
+              </div>
+
+              {/* Weekly Calendar Grid */}
+              <div className="border rounded-lg overflow-hidden">
+                {/* Header with days */}
+                <div className="grid grid-cols-8 bg-gray-50">
+                  <div className="p-3 text-sm font-medium text-gray-600 border-r">Time</div>
+                  {weekDays.map((day, index) => (
+                    <div key={index} className="p-3 text-center border-r last:border-r-0">
+                      <div className="text-sm font-medium text-gray-900">
+                        {format(day, 'EEE')}
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {format(day, 'd')}
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Bookings for Selected Date */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">
-                    {selectedDate ? `Bookings for ${format(selectedDate, 'MMMM d, yyyy')}` : 'Select a date'}
-                  </h3>
-                  
-                  {selectedDate && (
-                    <div className="space-y-3">
-                      {selectedDateBookings.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                          <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                          <p>No bookings for this date</p>
-                        </div>
-                      ) : (
-                        selectedDateBookings.map((booking) => (
-                          <Card key={booking.id} className="p-4">
-                            <div className="space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2 text-sm font-medium">
-                                    <Clock className="w-4 h-4" />
-                                    {booking.booking_time}
-                                  </div>
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <User className="w-4 h-4" />
-                                    {booking.customer.full_name}
-                                  </div>
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <MapPin className="w-4 h-4" />
-                                    {booking.service_address}
-                                  </div>
-                                </div>
-                                <Badge className={`${getStatusColor(booking.status)} border-0`}>
-                                  {booking.status.replace('_', ' ').toUpperCase()}
-                                </Badge>
+                {/* Time slots grid */}
+                {timeSlots.map((timeSlot, timeIndex) => (
+                  <div key={timeSlot} className="grid grid-cols-8 border-t">
+                    <div className="p-3 text-sm font-medium text-gray-600 border-r bg-gray-50">
+                      {timeSlot}
+                    </div>
+                    {weekDays.map((day, dayIndex) => {
+                      const booking = getBookingForTimeSlot(day, timeSlot, service.title);
+                      return (
+                        <div key={dayIndex} className="border-r last:border-r-0 min-h-[80px] p-1">
+                          {booking && (
+                            <div className={`rounded p-2 text-xs border ${getStatusColor(booking.status)}`}>
+                              <div className="font-medium truncate">
+                                {booking.talent_name}
                               </div>
-                              
-                              {/* Talent Assignment - Mock Data */}
-                              <div className="pt-2 border-t">
-                                <div className="flex items-center justify-between">
-                                  <div className="text-sm">
-                                    <span className="text-gray-600">Assigned Talent:</span>
-                                    <span className="ml-2 font-medium text-blue-600">
-                                      {booking.talent_name}
-                                    </span>
-                                  </div>
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-blue-600" />
-                                  </div>
-                                </div>
+                              <div className="text-gray-600 truncate">
+                                {booking.customer.full_name}
+                              </div>
+                              <div className="flex items-center gap-1 mt-1">
+                                <MapPin className="w-3 h-3" />
+                                <span className="truncate">{booking.service_address}</span>
                               </div>
                             </div>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
 
               {/* Summary Stats for Service */}
