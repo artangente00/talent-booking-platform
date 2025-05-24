@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import CustomerSearch from './customers/CustomerSearch';
 import CustomerTable from './customers/CustomerTable';
 import CustomersLoadingState from './customers/CustomersLoadingState';
+import AddCustomerDialog from './customers/AddCustomerDialog';
 
 interface Customer {
   id: string;
@@ -114,13 +115,18 @@ const CustomersManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Customers Management
-        </CardTitle>
-        <CardDescription>
-          View and manage all registered customers ({customers.length} total)
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Customers Management
+            </CardTitle>
+            <CardDescription>
+              View and manage all registered customers ({customers.length} total)
+            </CardDescription>
+          </div>
+          <AddCustomerDialog onCustomerAdded={fetchCustomers} />
+        </div>
       </CardHeader>
       <CardContent>
         <CustomerSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
