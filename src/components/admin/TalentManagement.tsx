@@ -17,11 +17,14 @@ interface Talent {
   full_name: string;
   email: string;
   phone: string;
-  specialty: string;
-  rating: number;
-  status: 'active' | 'inactive' | 'pending';
+  address: string;
+  services: string[];
+  experience: string | null;
+  availability: string | null;
+  hourly_rate: number | null;
+  status: string;
   created_at: string;
-  completed_jobs: number;
+  description: string | null;
 }
 
 const TalentManagement = () => {
@@ -33,7 +36,8 @@ const TalentManagement = () => {
     full_name: '',
     email: '',
     phone: '',
-    specialty: '',
+    address: '',
+    services: [] as string[],
   });
   const { toast } = useToast();
 
@@ -43,45 +47,17 @@ const TalentManagement = () => {
 
   const fetchTalents = async () => {
     try {
-      // For now, we'll use mock data since talent table doesn't exist yet
-      // In a real implementation, you would fetch from a 'talents' table
-      const mockTalents: Talent[] = [
-        {
-          id: '1',
-          full_name: 'John Smith',
-          email: 'john.smith@example.com',
-          phone: '+1 (555) 123-4567',
-          specialty: 'Plumbing',
-          rating: 4.8,
-          status: 'active',
-          created_at: '2024-01-15T10:00:00Z',
-          completed_jobs: 25
-        },
-        {
-          id: '2',
-          full_name: 'Sarah Johnson',
-          email: 'sarah.johnson@example.com',
-          phone: '+1 (555) 234-5678',
-          specialty: 'Electrical',
-          rating: 4.9,
-          status: 'active',
-          created_at: '2024-02-01T14:30:00Z',
-          completed_jobs: 18
-        },
-        {
-          id: '3',
-          full_name: 'Mike Davis',
-          email: 'mike.davis@example.com',
-          phone: '+1 (555) 345-6789',
-          specialty: 'Cleaning',
-          rating: 4.6,
-          status: 'pending',
-          created_at: '2024-03-10T09:15:00Z',
-          completed_jobs: 0
-        }
-      ];
+      const { data, error } = await supabase
+        .from('talents')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setTalents(mockTalents);
+      if (error) {
+        console.error('Error fetching talents:', error);
+        throw error;
+      }
+
+      setTalents(data || []);
     } catch (error) {
       console.error('Error fetching talents:', error);
       toast({
@@ -95,27 +71,30 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    if (!newTalent.full_name || !newTalent.email || !newTalent.phone || !newTalent.specialty) {
+    if (!newTalent.full_name || !newTalent.email || !newTalent.phone || !newTalent.address) {
       toast({
         title: "Error",
-        description: "Please fill in all fields.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // In a real implementation, you would insert into a 'talents' table
-      const mockNewTalent: Talent = {
-        id: Date.now().toString(),
-        ...newTalent,
-        rating: 0,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        completed_jobs: 0
-      };
+      const { error } = await supabase
+        .from('talents')
+        .insert({
+          full_name: newTalent.full_name,
+          email: newTalent.email,
+          phone: newTalent.phone,
+          address: newTalent.address,
+          services: newTalent.services,
+        });
 
-      setTalents(prev => [mockNewTalent, ...prev]);
+      if (error) {
+        console.error('Error adding talent:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -127,8 +106,12 @@ const TalentManagement = () => {
         full_name: '',
         email: '',
         phone: '',
-        specialty: '',
+        address: '',
+        services: [],
       });
+      
+      // Refresh the list
+      fetchTalents();
     } catch (error) {
       console.error('Error adding talent:', error);
       toast({
@@ -139,8 +122,18 @@ const TalentManagement = () => {
     }
   };
 
-  const updateTalentStatus = async (talentId: string, newStatus: 'active' | 'inactive' | 'pending') => {
+  const updateTalentStatus = async (talentId: string, newStatus: string) => {
     try {
+      const { error } = await supabase
+        .from('talents')
+        .update({ status: newStatus })
+        .eq('id', talentId);
+
+      if (error) {
+        console.error('Error updating talent status:', error);
+        throw error;
+      }
+
       setTalents(prev => prev.map(talent => 
         talent.id === talentId 
           ? { ...talent, status: newStatus }
@@ -164,13 +157,13 @@ const TalentManagement = () => {
   const filteredTalents = talents.filter(talent =>
     talent.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     talent.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    talent.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+    talent.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -207,7 +200,7 @@ const TalentManagement = () => {
               Talent Management
             </CardTitle>
             <CardDescription>
-              Manage service providers and their information
+              Manage service providers and their applications
             </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -254,20 +247,13 @@ const TalentManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="specialty">Specialty</Label>
-                  <Select value={newTalent.specialty} onValueChange={(value) => setNewTalent(prev => ({ ...prev, specialty: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select specialty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Plumbing">Plumbing</SelectItem>
-                      <SelectItem value="Electrical">Electrical</SelectItem>
-                      <SelectItem value="Cleaning">Cleaning</SelectItem>
-                      <SelectItem value="HVAC">HVAC</SelectItem>
-                      <SelectItem value="Handyman">Handyman</SelectItem>
-                      <SelectItem value="Landscaping">Landscaping</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    placeholder="Enter address"
+                    value={newTalent.address}
+                    onChange={(e) => setNewTalent(prev => ({ ...prev, address: e.target.value }))}
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -287,7 +273,7 @@ const TalentManagement = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search talents by name, email, or specialty..."
+              placeholder="Search talents by name, email, or services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -301,9 +287,9 @@ const TalentManagement = () => {
               <TableRow>
                 <TableHead>Talent</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Specialty</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Jobs</TableHead>
+                <TableHead>Services</TableHead>
+                <TableHead>Experience</TableHead>
+                <TableHead>Rate</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -321,7 +307,7 @@ const TalentManagement = () => {
                     <TableCell>
                       <div className="font-medium">{talent.full_name}</div>
                       <div className="text-sm text-gray-600">
-                        Joined {formatDate(talent.created_at)}
+                        Applied {formatDate(talent.created_at)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -337,20 +323,26 @@ const TalentManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{talent.specialty}</Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {talent.services.slice(0, 2).map((service, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {service}
+                          </Badge>
+                        ))}
+                        {talent.services.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{talent.services.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {talent.rating > 0 ? (
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span>{talent.rating}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">No rating</span>
-                      )}
+                      <span className="text-sm">{talent.experience || 'Not specified'}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">{talent.completed_jobs} completed</span>
+                      <span className="text-sm">
+                        {talent.hourly_rate ? `$${talent.hourly_rate}/hr` : 'Not specified'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <Badge className={`${getStatusColor(talent.status)} border-0`}>
@@ -360,15 +352,15 @@ const TalentManagement = () => {
                     <TableCell>
                       <Select
                         value={talent.status}
-                        onValueChange={(value) => updateTalentStatus(talent.id, value as 'active' | 'inactive' | 'pending')}
+                        onValueChange={(value) => updateTalentStatus(talent.id, value)}
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>

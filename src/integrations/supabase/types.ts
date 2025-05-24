@@ -155,6 +155,54 @@ export type Database = {
           },
         ]
       }
+      talents: {
+        Row: {
+          address: string
+          availability: string | null
+          created_at: string
+          description: string | null
+          email: string
+          experience: string | null
+          full_name: string
+          hourly_rate: number | null
+          id: string
+          phone: string
+          services: string[]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          availability?: string | null
+          created_at?: string
+          description?: string | null
+          email: string
+          experience?: string | null
+          full_name: string
+          hourly_rate?: number | null
+          id?: string
+          phone: string
+          services: string[]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          availability?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string
+          experience?: string | null
+          full_name?: string
+          hourly_rate?: number | null
+          id?: string
+          phone?: string
+          services?: string[]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const TalentApplication = () => {
   const [formData, setFormData] = useState({
@@ -68,8 +69,24 @@ const TalentApplication = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call - in real implementation, this would save to database
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const { error } = await supabase
+        .from('talents')
+        .insert({
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          experience: formData.experience || null,
+          services: formData.services,
+          description: formData.description || null,
+          availability: formData.availability || null,
+          hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
+        });
+
+      if (error) {
+        console.error('Error submitting application:', error);
+        throw error;
+      }
       
       toast({
         title: "Application Submitted!",
@@ -90,6 +107,7 @@ const TalentApplication = () => {
       });
       
     } catch (error) {
+      console.error('Application submission error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
