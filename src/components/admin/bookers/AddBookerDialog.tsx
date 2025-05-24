@@ -21,6 +21,7 @@ interface AddBookerDialogProps {
 
 const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [newBooker, setNewBooker] = useState({
     full_name: '',
     email: '',
@@ -50,7 +51,11 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
+      console.log('Creating booker with data:', newBooker);
+      
       // First create a user account for the booker
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newBooker.email,
@@ -63,20 +68,34 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
         }
       });
 
-      if (authError) throw authError;
+      console.log('Auth signup result:', { authData, authError });
+
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
 
       if (authData.user) {
+        console.log('User created successfully, now creating booker record for user:', authData.user.id);
+        
         // Then create the booker record
-        const { error: bookerError } = await supabase
+        const { data: bookerData, error: bookerError } = await supabase
           .from('bookers')
           .insert([{
             user_id: authData.user.id,
             full_name: newBooker.full_name,
             email: newBooker.email,
             phone: newBooker.phone,
-          }]);
+            is_active: true
+          }])
+          .select();
 
-        if (bookerError) throw bookerError;
+        console.log('Booker insert result:', { bookerData, bookerError });
+
+        if (bookerError) {
+          console.error('Booker insert error:', bookerError);
+          throw bookerError;
+        }
 
         toast({
           title: "Success",
@@ -86,6 +105,8 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
         setNewBooker({ full_name: '', email: '', phone: '', password: '' });
         setIsOpen(false);
         onBookerAdded();
+      } else {
+        throw new Error('User creation failed - no user returned');
       }
     } catch (error: any) {
       console.error('Error adding booker:', error);
@@ -94,6 +115,8 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
         description: error.message || "Failed to add booker",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -121,6 +144,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
               onChange={(e) => setNewBooker({ ...newBooker, full_name: e.target.value })}
               placeholder="Enter full name"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -132,6 +156,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
               onChange={(e) => setNewBooker({ ...newBooker, email: e.target.value })}
               placeholder="Enter email address"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -143,6 +168,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
               onChange={(e) => setNewBooker({ ...newBooker, phone: e.target.value })}
               placeholder="Enter phone number"
               required
+              disabled={isLoading}
             />
           </div>
           <div>
@@ -155,6 +181,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
               placeholder="Enter password"
               required
               minLength={6}
+              disabled={isLoading}
             />
           </div>
           <div className="flex justify-end space-x-2">
@@ -162,11 +189,16 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-kwikie-orange hover:bg-kwikie-red">
-              Add Booker
+            <Button 
+              type="submit" 
+              className="bg-kwikie-orange hover:bg-kwikie-red"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Adding...' : 'Add Booker'}
             </Button>
           </div>
         </form>
