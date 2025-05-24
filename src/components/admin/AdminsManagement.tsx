@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,33 +43,59 @@ const AdminsManagement = () => {
 
   const fetchAdmins = async () => {
     try {
-      // First get the admins
+      console.log('Attempting to fetch admins...');
+      
+      // First get the admins with better error handling
       const { data: adminsData, error: adminsError } = await supabase
         .from('admins')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (adminsError) throw adminsError;
+      console.log('Admins query result:', { adminsData, adminsError });
+
+      if (adminsError) {
+        console.error('Error fetching admins:', adminsError);
+        throw adminsError;
+      }
+
+      if (!adminsData) {
+        console.log('No admins data returned');
+        setAdmins([]);
+        return;
+      }
+
+      console.log('Found admins:', adminsData.length);
 
       // Then get customer data for each admin
       const adminsWithCustomers = await Promise.all(
-        (adminsData || []).map(async (admin) => {
+        adminsData.map(async (admin) => {
+          console.log('Fetching customer data for admin:', admin.user_id);
+          
           // Get customer data for the admin user
-          const { data: customerData } = await supabase
+          const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('full_name, email, phone')
             .eq('user_id', admin.user_id)
             .single();
 
+          if (customerError) {
+            console.error('Error fetching customer for admin:', admin.user_id, customerError);
+          }
+
           // Get creator data if exists
           let creatorData = null;
           if (admin.created_by) {
-            const { data: creator } = await supabase
+            const { data: creator, error: creatorError } = await supabase
               .from('customers')
               .select('full_name, email')
               .eq('user_id', admin.created_by)
               .single();
-            creatorData = creator;
+            
+            if (creatorError) {
+              console.error('Error fetching creator for admin:', admin.created_by, creatorError);
+            } else {
+              creatorData = creator;
+            }
           }
 
           return {
@@ -81,12 +106,13 @@ const AdminsManagement = () => {
         })
       );
 
+      console.log('Admins with customer data:', adminsWithCustomers);
       setAdmins(adminsWithCustomers);
     } catch (error) {
-      console.error('Error fetching admins:', error);
+      console.error('Error in fetchAdmins:', error);
       toast({
         title: "Error",
-        description: "Failed to load admins data.",
+        description: `Failed to load admins data: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -94,13 +120,18 @@ const AdminsManagement = () => {
 
   const fetchCustomers = async () => {
     try {
+      console.log('Fetching customers...');
       const { data: customersData, error } = await supabase
         .from('customers')
         .select('*')
         .order('full_name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching customers:', error);
+        throw error;
+      }
 
+      console.log('Found customers:', customersData?.length || 0);
       setCustomers(customersData || []);
     } catch (error) {
       console.error('Error fetching customers:', error);
