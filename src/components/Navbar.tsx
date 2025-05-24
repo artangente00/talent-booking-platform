@@ -40,7 +40,7 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center space-x-4">
           <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10">
-            Login
+            Sign Up
           </Button>
           <BookingForm>
             <Button className="bg-kwikie-orange hover:bg-kwikie-red">
@@ -101,7 +101,7 @@ const Navbar = () => {
               </Link>
               <div className="flex flex-col space-y-2 pt-2">
                 <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full">
-                  Login
+                  Sign Up
                 </Button>
                 <BookingForm>
                   <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
