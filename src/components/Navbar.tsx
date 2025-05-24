@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -94,24 +95,26 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-            Home
-          </Link>
-          <Link to="/services" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-            Our Services
-          </Link>
-          <Link to="/how-it-works" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-            How It Works
-          </Link>
-          <Link to="/about" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-            About Us
-          </Link>
-          <Link to="/contact" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-            Contact
-          </Link>
-        </nav>
+        {/* Desktop Navigation - Hide on admin pages */}
+        {!isAdminPage && (
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/" className="text-gray-700 hover:text-kwikie-orange transition-colors">
+              Home
+            </Link>
+            <Link to="/services" className="text-gray-700 hover:text-kwikie-orange transition-colors">
+              Our Services
+            </Link>
+            <Link to="/how-it-works" className="text-gray-700 hover:text-kwikie-orange transition-colors">
+              How It Works
+            </Link>
+            <Link to="/about" className="text-gray-700 hover:text-kwikie-orange transition-colors">
+              About Us
+            </Link>
+            <Link to="/contact" className="text-gray-700 hover:text-kwikie-orange transition-colors">
+              Contact
+            </Link>
+          </nav>
+        )}
 
         <div className="hidden md:flex items-center space-x-4">
           {user ? (
@@ -169,46 +172,50 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Hide navigation links on admin pages */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-100">
           <div className="container mx-auto px-4 py-4">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/" 
-                className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/services" 
-                className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Our Services
-              </Link>
-              <Link 
-                to="/how-it-works" 
-                className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                How It Works
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About Us
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
+              {!isAdminPage && (
+                <>
+                  <Link 
+                    to="/" 
+                    className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link 
+                    to="/services" 
+                    className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Our Services
+                  </Link>
+                  <Link 
+                    to="/how-it-works" 
+                    className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    How It Works
+                  </Link>
+                  <Link 
+                    to="/about" 
+                    className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    About Us
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Contact
+                  </Link>
+                </>
+              )}
               
               <div className="flex flex-col space-y-2 pt-2">
                 {user ? (

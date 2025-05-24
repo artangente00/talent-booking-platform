@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, TrendingUp, Settings, Star } from 'lucide-react';
+import { Users, Calendar, TrendingUp, Settings, Star, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -11,6 +12,7 @@ import CustomersManagement from '@/components/admin/CustomersManagement';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import AdminsManagement from '@/components/admin/AdminsManagement';
 import TalentManagement from '@/components/admin/TalentManagement';
+import ContentManagement from '@/components/admin/ContentManagement';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -103,7 +105,7 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Overview
@@ -119,6 +121,10 @@ const AdminDashboard = () => {
               <TabsTrigger value="talents" className="flex items-center gap-2">
                 <Star className="w-4 h-4" />
                 Talents
+              </TabsTrigger>
+              <TabsTrigger value="content" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Content
               </TabsTrigger>
               <TabsTrigger value="admins" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
@@ -140,6 +146,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="talents">
               <TalentManagement />
+            </TabsContent>
+
+            <TabsContent value="content">
+              <ContentManagement />
             </TabsContent>
 
             <TabsContent value="admins">
