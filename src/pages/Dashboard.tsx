@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -24,11 +23,11 @@ interface Booking {
   special_instructions: string | null;
   status: BookingStatus;
   created_at: string;
-  ratings?: {
+  ratings: {
     id: string;
     rating: number;
     review: string | null;
-  }[];
+  }[] | null;
 }
 
 interface Customer {
@@ -99,10 +98,11 @@ const Dashboard = () => {
 
       if (bookingsError) throw bookingsError;
 
-      // Type assertion to ensure status is properly typed
+      // Type assertion to ensure status is properly typed and handle ratings array
       const typedBookings = (bookingsData || []).map(booking => ({
         ...booking,
-        status: booking.status as BookingStatus
+        status: booking.status as BookingStatus,
+        ratings: Array.isArray(booking.ratings) ? booking.ratings : (booking.ratings ? [booking.ratings] : [])
       }));
 
       setBookings(typedBookings);
