@@ -16,9 +16,18 @@ interface BookingFormProps {
   preselectedService?: string;
 }
 
+interface Customer {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+}
+
 const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     service: preselectedService || '',
     name: '',
@@ -37,15 +46,49 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCustomerData(session.user.id);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCustomerData(session.user.id);
+      } else {
+        setCustomer(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchCustomerData = async (userId: string) => {
+    try {
+      const { data: customerData, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching customer data:', error);
+        return;
+      }
+
+      setCustomer(customerData);
+      // Pre-fill form with customer data
+      setFormData(prev => ({
+        ...prev,
+        name: customerData.full_name,
+        email: customerData.email,
+        phone: customerData.phone
+      }));
+    } catch (error) {
+      console.error('Error fetching customer data:', error);
+    }
+  };
 
   const handleBookingClick = () => {
     if (!user) {
@@ -87,9 +130,18 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!customer) {
+      toast({
+        title: "Error",
+        description: "Customer data not found. Please try signing in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Basic validation
     if (!formData.service || !formData.name || !formData.email || !formData.phone || !formData.address || !formData.date || !formData.time) {
       toast({
@@ -100,25 +152,52 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
       return;
     }
 
-    // Simulate booking submission
-    toast({
-      title: "Booking Submitted!",
-      description: "We'll contact you within 2 hours to confirm your booking.",
-    });
+    setIsSubmitting(true);
 
-    // Reset form and close modal
-    setFormData({
-      service: preselectedService || '',
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      date: '',
-      time: '',
-      duration: '',
-      notes: ''
-    });
-    setIsOpen(false);
+    try {
+      // Insert booking into database
+      const { error } = await supabase
+        .from('bookings')
+        .insert({
+          customer_id: customer.id,
+          service_type: formData.service,
+          service_address: formData.address,
+          booking_date: formData.date,
+          booking_time: formData.time,
+          duration: formData.duration || null,
+          special_instructions: formData.notes || null
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Submitted!",
+        description: "We'll contact you within 2 hours to confirm your booking.",
+      });
+
+      // Reset form and close modal
+      setFormData({
+        service: preselectedService || '',
+        name: customer.full_name,
+        email: customer.email,
+        phone: customer.phone,
+        address: '',
+        date: '',
+        time: '',
+        duration: '',
+        notes: ''
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit booking. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -168,6 +247,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter your full name"
+                disabled
               />
             </div>
             
@@ -182,6 +262,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+63 9XX XXX XXXX"
+                disabled
               />
             </div>
           </div>
@@ -197,6 +278,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="your.email@example.com"
+              disabled
             />
           </div>
 
@@ -288,14 +370,16 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
               variant="outline"
               onClick={() => setIsOpen(false)}
               className="flex-1"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-kwikie-orange hover:bg-kwikie-red flex-1"
+              disabled={isSubmitting}
             >
-              Submit Booking Request
+              {isSubmitting ? 'Submitting...' : 'Submit Booking Request'}
             </Button>
           </div>
           

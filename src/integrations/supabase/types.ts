@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          created_at: string
+          customer_id: string
+          duration: string | null
+          id: string
+          service_address: string
+          service_type: string
+          special_instructions: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          customer_id: string
+          duration?: string | null
+          id?: string
+          service_address: string
+          service_type: string
+          special_instructions?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          customer_id?: string
+          duration?: string | null
+          id?: string
+          service_address?: string
+          service_type?: string
+          special_instructions?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           created_at: string
@@ -38,6 +88,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      ratings: {
+        Row: {
+          booking_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          rating: number
+          review: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          rating: number
+          review?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          rating?: number
+          review?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

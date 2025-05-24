@@ -2,15 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import BookingForm from './BookingForm';
 
+interface Customer {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+}
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -18,15 +26,42 @@ const Navbar = () => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCustomerData(session.user.id);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchCustomerData(session.user.id);
+      } else {
+        setCustomer(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchCustomerData = async (userId: string) => {
+    try {
+      const { data: customerData, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching customer data:', error);
+        return;
+      }
+
+      setCustomer(customerData);
+    } catch (error) {
+      console.error('Error fetching customer data:', error);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -80,8 +115,14 @@ const Navbar = () => {
             <>
               <span className="text-sm text-gray-600 flex items-center space-x-1">
                 <User size={16} />
-                <span>Welcome back!</span>
+                <span>Welcome, {customer?.full_name || 'Customer'}!</span>
               </span>
+              <Link to="/dashboard">
+                <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 flex items-center gap-1">
+                  <Calendar size={16} />
+                  My Bookings
+                </Button>
+              </Link>
               <BookingForm>
                 <Button className="bg-kwikie-orange hover:bg-kwikie-red">
                   Book Now
@@ -167,8 +208,14 @@ const Navbar = () => {
                   <>
                     <span className="text-sm text-gray-600 flex items-center space-x-1 py-2">
                       <User size={16} />
-                      <span>Welcome back!</span>
+                      <span>Welcome, {customer?.full_name || 'Customer'}!</span>
                     </span>
+                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full flex items-center gap-1">
+                        <Calendar size={16} />
+                        My Bookings
+                      </Button>
+                    </Link>
                     <BookingForm>
                       <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
                         Book Now
