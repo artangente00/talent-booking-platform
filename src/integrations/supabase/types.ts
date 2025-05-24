@@ -113,6 +113,36 @@ export type Database = {
         }
         Relationships: []
       }
+      page_contents: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          meta_description: string | null
+          page_name: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          page_name: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          meta_description?: string | null
+          page_name?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ratings: {
         Row: {
           booking_id: string

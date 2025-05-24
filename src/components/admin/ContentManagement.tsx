@@ -146,79 +146,87 @@ const ContentManagement = () => {
         <p className="text-gray-600">Edit the content for different pages of your website.</p>
       </div>
 
-      <Tabs defaultValue={pageContents[0]?.page_name || 'home'} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+      {pageContents.length > 0 ? (
+        <Tabs defaultValue={pageContents[0]?.page_name || 'home'} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5">
+            {pageContents.map((page) => (
+              <TabsTrigger key={page.page_name} value={page.page_name} className="capitalize">
+                {page.page_name.replace('-', ' ')}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
           {pageContents.map((page) => (
-            <TabsTrigger key={page.page_name} value={page.page_name} className="capitalize">
-              {page.page_name.replace('-', ' ')}
-            </TabsTrigger>
+            <TabsContent key={page.page_name} value={page.page_name}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="capitalize">{page.page_name.replace('-', ' ')} Page</CardTitle>
+                  <CardDescription>
+                    Edit the content and metadata for the {page.page_name} page.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor={`title-${page.id}`}>Page Title</Label>
+                    <Input
+                      id={`title-${page.id}`}
+                      value={page.title}
+                      onChange={(e) => updatePageContent(page.id, 'title', e.target.value)}
+                      placeholder="Enter page title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`content-${page.id}`}>Page Content</Label>
+                    <Textarea
+                      id={`content-${page.id}`}
+                      value={page.content}
+                      onChange={(e) => updatePageContent(page.id, 'content', e.target.value)}
+                      placeholder="Enter page content"
+                      rows={10}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`meta-${page.id}`}>Meta Description (Optional)</Label>
+                    <Textarea
+                      id={`meta-${page.id}`}
+                      value={page.meta_description || ''}
+                      onChange={(e) => updatePageContent(page.id, 'meta_description', e.target.value)}
+                      placeholder="Enter meta description for SEO"
+                      rows={3}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={() => handleSave(page)}
+                    disabled={saving === page.id}
+                    className="bg-kwikie-orange hover:bg-kwikie-red"
+                  >
+                    {saving === page.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
           ))}
-        </TabsList>
-
-        {pageContents.map((page) => (
-          <TabsContent key={page.page_name} value={page.page_name}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="capitalize">{page.page_name.replace('-', ' ')} Page</CardTitle>
-                <CardDescription>
-                  Edit the content and metadata for the {page.page_name} page.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor={`title-${page.id}`}>Page Title</Label>
-                  <Input
-                    id={`title-${page.id}`}
-                    value={page.title}
-                    onChange={(e) => updatePageContent(page.id, 'title', e.target.value)}
-                    placeholder="Enter page title"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor={`content-${page.id}`}>Page Content</Label>
-                  <Textarea
-                    id={`content-${page.id}`}
-                    value={page.content}
-                    onChange={(e) => updatePageContent(page.id, 'content', e.target.value)}
-                    placeholder="Enter page content"
-                    rows={10}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor={`meta-${page.id}`}>Meta Description (Optional)</Label>
-                  <Textarea
-                    id={`meta-${page.id}`}
-                    value={page.meta_description || ''}
-                    onChange={(e) => updatePageContent(page.id, 'meta_description', e.target.value)}
-                    placeholder="Enter meta description for SEO"
-                    rows={3}
-                  />
-                </div>
-
-                <Button 
-                  onClick={() => handleSave(page)}
-                  disabled={saving === page.id}
-                  className="bg-kwikie-orange hover:bg-kwikie-red"
-                >
-                  {saving === page.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+        </Tabs>
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-500">No page contents found. Please check your permissions.</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
