@@ -56,7 +56,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
     try {
       console.log('Creating booker with data:', newBooker);
       
-      // First create a user account for the booker
+      // Create the user account with specific metadata to identify as booker
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newBooker.email,
         password: newBooker.password,
@@ -64,6 +64,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
           data: {
             full_name: newBooker.full_name,
             phone: newBooker.phone,
+            user_type: 'booker' // Mark this user as a booker
           }
         }
       });
@@ -78,7 +79,7 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
       if (authData.user) {
         console.log('User created successfully, now creating booker record for user:', authData.user.id);
         
-        // Then create the booker record
+        // Create the booker record directly
         const { data: bookerData, error: bookerError } = await supabase
           .from('bookers')
           .insert([{
@@ -95,6 +96,22 @@ const AddBookerDialog = ({ onBookerAdded }: AddBookerDialogProps) => {
         if (bookerError) {
           console.error('Booker insert error:', bookerError);
           throw bookerError;
+        }
+
+        // If there's a customer record that was auto-created, remove it
+        try {
+          const { error: deleteError } = await supabase
+            .from('customers')
+            .delete()
+            .eq('user_id', authData.user.id);
+          
+          if (deleteError) {
+            console.log('No customer record to delete or deletion failed:', deleteError);
+          } else {
+            console.log('Successfully removed auto-created customer record');
+          }
+        } catch (deleteError) {
+          console.log('Could not delete customer record:', deleteError);
         }
 
         toast({
