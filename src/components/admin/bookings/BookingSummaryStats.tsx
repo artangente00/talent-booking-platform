@@ -9,7 +9,9 @@ interface Booking {
   service_address: string;
   status: string;
   customer: {
-    full_name: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
   };
   talent_name?: string;
 }
