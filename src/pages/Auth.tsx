@@ -8,15 +8,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Heart } from 'lucide-react';
+import { User, Heart, Upload } from 'lucide-react';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  
+  // Customer registration fields
+  const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [birthplace, setBirthplace] = useState('');
+  const [address, setAddress] = useState('');
+  const [validGovernmentId, setValidGovernmentId] = useState('');
+  const [idPhoto, setIdPhoto] = useState<File | null>(null);
+  const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,7 +60,6 @@ const Auth = () => {
       if (bookerError) {
         console.error('Error checking booker status:', bookerError);
       } else if (isBookerData) {
-        // For now, redirect bookers to dashboard - you can create a specific booker dashboard later
         navigate('/dashboard');
         return;
       }
@@ -59,6 +69,45 @@ const Auth = () => {
     } catch (error) {
       console.error('Error checking user roles:', error);
       navigate('/');
+    }
+  };
+
+  const handleIdPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIdPhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadIdPhoto = async (userId: string, file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/id-photo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('id-photos')
+        .upload(fileName, file, {
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        return null;
+      }
+
+      const { data } = supabase.storage
+        .from('id-photos')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadIdPhoto:', error);
+      return null;
     }
   };
 
@@ -83,19 +132,65 @@ const Auth = () => {
       return;
     }
 
-    if (!fullName.trim()) {
+    // Validate required fields
+    if (!firstName.trim() || !lastName.trim()) {
       toast({
         title: "Error",
-        description: "Full name is required",
+        description: "First name and last name are required",
         variant: "destructive",
       });
       return;
     }
 
-    if (!phone.trim()) {
+    if (!contactNumber.trim()) {
       toast({
         title: "Error",
-        description: "Phone number is required",
+        description: "Contact number is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!birthdate) {
+      toast({
+        title: "Error",
+        description: "Birthdate is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!birthplace.trim()) {
+      toast({
+        title: "Error",
+        description: "Birthplace is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!address.trim()) {
+      toast({
+        title: "Error",
+        description: "Address is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validGovernmentId.trim()) {
+      toast({
+        title: "Error",
+        description: "Valid government ID is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!idPhoto) {
+      toast({
+        title: "Error",
+        description: "ID photo is required",
         variant: "destructive",
       });
       return;
@@ -109,8 +204,14 @@ const Auth = () => {
         password,
         options: {
           data: {
-            full_name: fullName,
-            phone: phone,
+            first_name: firstName,
+            middle_name: middleName,
+            last_name: lastName,
+            contact_number: contactNumber,
+            birthdate: birthdate,
+            birthplace: birthplace,
+            address: address,
+            valid_government_id: validGovernmentId,
           }
         }
       });
@@ -129,17 +230,41 @@ const Auth = () => {
             variant: "destructive",
           });
         }
-      } else {
+      } else if (data.user) {
+        // Upload ID photo and update customer record
+        const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
+        
+        if (idPhotoUrl) {
+          // Update the customer record with the photo URL
+          const { error: updateError } = await supabase
+            .from('customers')
+            .update({ id_photo_link: idPhotoUrl })
+            .eq('user_id', data.user.id);
+            
+          if (updateError) {
+            console.error('Error updating customer with photo URL:', updateError);
+          }
+        }
+
         toast({
           title: "Success!",
           description: "Account created successfully. Please check your email to verify your account.",
         });
+        
         // Clear form
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        setFullName('');
-        setPhone('');
+        setFirstName('');
+        setMiddleName('');
+        setLastName('');
+        setContactNumber('');
+        setBirthdate('');
+        setBirthplace('');
+        setAddress('');
+        setValidGovernmentId('');
+        setIdPhoto(null);
+        setIdPhotoPreview(null);
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -204,7 +329,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2 mb-4">
             <img 
@@ -233,20 +358,45 @@ const Auth = () => {
               
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="John Doe"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name *</Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="John"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="middleName">Middle Name</Label>
+                      <Input
+                        id="middleName"
+                        type="text"
+                        placeholder="Michael"
+                        value={middleName}
+                        onChange={(e) => setMiddleName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name *</Label>
+                      <Input
+                        id="lastName"
+                        type="text"
+                        placeholder="Doe"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -258,41 +408,125 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="contactNumber">Contact Number *</Label>
                     <Input
-                      id="phone"
+                      id="contactNumber"
                       type="tel"
                       placeholder="+1 (555) 123-4567"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      value={contactNumber}
+                      onChange={(e) => setContactNumber(e.target.value)}
                       required
                     />
                   </div>
-                  
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="birthdate">Birthdate *</Label>
+                      <Input
+                        id="birthdate"
+                        type="date"
+                        value={birthdate}
+                        onChange={(e) => setBirthdate(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="birthplace">Birthplace *</Label>
+                      <Input
+                        id="birthplace"
+                        type="text"
+                        placeholder="City, Country"
+                        value={birthplace}
+                        onChange={(e) => setBirthplace(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="address">Address *</Label>
                     <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      id="address"
+                      type="text"
+                      placeholder="Complete address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                       required
-                      minLength={6}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Label htmlFor="validGovernmentId">Valid Government ID *</Label>
                     <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      id="validGovernmentId"
+                      type="text"
+                      placeholder="Driver's License, Passport, etc."
+                      value={validGovernmentId}
+                      onChange={(e) => setValidGovernmentId(e.target.value)}
                       required
-                      minLength={6}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="idPhoto">ID Photo *</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <input
+                        id="idPhoto"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleIdPhotoChange}
+                        className="hidden"
+                        required
+                      />
+                      <label
+                        htmlFor="idPhoto"
+                        className="flex flex-col items-center justify-center cursor-pointer"
+                      >
+                        {idPhotoPreview ? (
+                          <img
+                            src={idPhotoPreview}
+                            alt="ID Preview"
+                            className="max-w-32 max-h-32 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-500">
+                              Click to upload your ID photo
+                            </p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                    </div>
                   </div>
                   
                   <Button 

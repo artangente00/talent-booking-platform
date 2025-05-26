@@ -11,9 +11,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddCustomerFormData {
-  full_name: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
+  birthdate: string;
+  birthplace: string;
+  address: string;
+  valid_government_id: string;
 }
 
 interface AddCustomerDialogProps {
@@ -27,9 +33,15 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
   
   const form = useForm<AddCustomerFormData>({
     defaultValues: {
-      full_name: '',
+      first_name: '',
+      middle_name: '',
+      last_name: '',
       email: '',
-      phone: '',
+      contact_number: '',
+      birthdate: '',
+      birthplace: '',
+      address: '',
+      valid_government_id: '',
     },
   });
 
@@ -44,9 +56,15 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
       const { data: newCustomer, error } = await supabase
         .from('customers')
         .insert({
-          full_name: data.full_name,
+          first_name: data.first_name,
+          middle_name: data.middle_name || null,
+          last_name: data.last_name,
           email: data.email,
-          phone: data.phone,
+          contact_number: data.contact_number,
+          birthdate: data.birthdate,
+          birthplace: data.birthplace,
+          address: data.address,
+          valid_government_id: data.valid_government_id,
           user_id: '00000000-0000-0000-0000-000000000000', // Placeholder for admin-created customers
         })
         .select()
@@ -93,7 +111,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
           <DialogDescription>
@@ -102,24 +120,63 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="full_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter customer's full name" 
-                      {...field}
-                      disabled={loading}
-                      required
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="John" 
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="middle_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Middle Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Michael" 
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Doe" 
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <FormField
               control={form.control}
@@ -130,7 +187,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
                   <FormControl>
                     <Input 
                       type="email"
-                      placeholder="Enter customer's email" 
+                      placeholder="john@example.com" 
                       {...field}
                       disabled={loading}
                       required
@@ -143,14 +200,92 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
             
             <FormField
               control={form.control}
-              name="phone"
+              name="contact_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Contact Number</FormLabel>
                   <FormControl>
                     <Input 
                       type="tel"
-                      placeholder="Enter customer's phone number" 
+                      placeholder="+1 (555) 123-4567" 
+                      {...field}
+                      disabled={loading}
+                      required
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="birthdate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Birthdate</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date"
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="birthplace"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Birthplace</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="City, Country" 
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Complete address" 
+                      {...field}
+                      disabled={loading}
+                      required
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="valid_government_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valid Government ID</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Driver's License, Passport, etc." 
                       {...field}
                       disabled={loading}
                       required

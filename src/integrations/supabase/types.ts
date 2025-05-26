@@ -13,22 +13,37 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          email: string | null
+          first_name: string | null
           id: string
           is_active: boolean
+          last_name: string | null
+          middle_name: string | null
+          password_hash: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
+          middle_name?: string | null
+          password_hash?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          email?: string | null
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
+          middle_name?: string | null
+          password_hash?: string | null
           user_id?: string
         }
         Relationships: []
@@ -118,31 +133,58 @@ export type Database = {
       }
       customers: {
         Row: {
+          address: string | null
+          birthdate: string | null
+          birthplace: string | null
+          contact_number: string | null
           created_at: string
           email: string
-          full_name: string
+          first_name: string | null
+          full_name: string | null
           id: string
-          phone: string
+          id_photo_link: string | null
+          last_name: string | null
+          middle_name: string | null
+          phone: string | null
           updated_at: string
           user_id: string
+          valid_government_id: string | null
         }
         Insert: {
+          address?: string | null
+          birthdate?: string | null
+          birthplace?: string | null
+          contact_number?: string | null
           created_at?: string
           email: string
-          full_name: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
-          phone: string
+          id_photo_link?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          phone?: string | null
           updated_at?: string
           user_id: string
+          valid_government_id?: string | null
         }
         Update: {
+          address?: string | null
+          birthdate?: string | null
+          birthplace?: string | null
+          contact_number?: string | null
           created_at?: string
           email?: string
-          full_name?: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
-          phone?: string
+          id_photo_link?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
+          valid_government_id?: string | null
         }
         Relationships: []
       }
