@@ -152,29 +152,41 @@ const BookingsManagement = () => {
       const dateMatch = isSameDay(bookingDate, date);
       
       // Extract hour from booking_time and timeSlot for comparison
-      const bookingHour = booking.booking_time.split(':')[0];
-      const slotHour = timeSlot.split(' ')[0];
+      const bookingTime = booking.booking_time.toLowerCase();
+      const slotTime = timeSlot.toLowerCase();
       
-      // Convert 12-hour format to 24-hour for comparison
-      let bookingHour24 = parseInt(bookingHour);
-      let slotHour24 = parseInt(slotHour);
+      // Parse booking time (e.g., "08:00 am" or "2:30 pm")
+      const bookingTimeMatch = bookingTime.match(/(\d{1,2}):?(\d{0,2})\s*(am|pm)/);
+      const slotTimeMatch = slotTime.match(/(\d{1,2})\s*(am|pm)/);
       
-      if (booking.booking_time.includes('PM') && bookingHour24 !== 12) {
-        bookingHour24 += 12;
-      }
-      if (timeSlot.includes('PM') && slotHour24 !== 12) {
-        slotHour24 += 12;
-      }
-      if (booking.booking_time.includes('AM') && bookingHour24 === 12) {
-        bookingHour24 = 0;
-      }
-      if (timeSlot.includes('AM') && slotHour24 === 12) {
-        slotHour24 = 0;
+      if (!bookingTimeMatch || !slotTimeMatch) {
+        console.log(`Time parsing failed - Booking: ${bookingTime}, Slot: ${slotTime}`);
+        return false;
       }
       
-      const timeMatch = bookingHour24 === slotHour24;
+      let bookingHour = parseInt(bookingTimeMatch[1]);
+      let slotHour = parseInt(slotTimeMatch[1]);
+      const bookingPeriod = bookingTimeMatch[3];
+      const slotPeriod = slotTimeMatch[2];
       
-      console.log(`Booking: ${booking.booking_date} ${booking.booking_time}, Date match: ${dateMatch}, Time match: ${timeMatch}`);
+      // Convert to 24-hour format
+      if (bookingPeriod === 'pm' && bookingHour !== 12) {
+        bookingHour += 12;
+      }
+      if (bookingPeriod === 'am' && bookingHour === 12) {
+        bookingHour = 0;
+      }
+      
+      if (slotPeriod === 'pm' && slotHour !== 12) {
+        slotHour += 12;
+      }
+      if (slotPeriod === 'am' && slotHour === 12) {
+        slotHour = 0;
+      }
+      
+      const timeMatch = bookingHour === slotHour;
+      
+      console.log(`Booking: ${booking.booking_date} ${booking.booking_time}, Date match: ${dateMatch}, Time match: ${timeMatch}, Booking hour: ${bookingHour}, Slot hour: ${slotHour}`);
       
       return dateMatch && timeMatch;
     });
