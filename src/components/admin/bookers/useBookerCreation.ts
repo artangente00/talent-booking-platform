@@ -58,53 +58,37 @@ export const useBookerCreation = (onSuccess: () => void) => {
         throw authError;
       }
 
-      if (authData.user) {
+       if (authData.user) {
         console.log('User created successfully, now creating booker record for user:', authData.user.id);
-        
-        // Wait a moment to ensure any triggers have completed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Delete any customer record that might have been auto-created
-        try {
-          const { error: deleteError } = await supabase
-            .from('customers')
-            .delete()
-            .eq('user_id', authData.user.id);
-          
-          if (deleteError) {
-            console.log('No customer record to delete or deletion failed:', deleteError);
-          } else {
-            console.log('Successfully removed auto-created customer record');
-          }
-        } catch (deleteError) {
-          console.log('Could not delete customer record:', deleteError);
-        }
-        
-        // Create the booker record
-        const { data: bookerRecord, error: bookerError } = await supabase
-          .from('bookers')
-          .insert([{
+      
+        // ✅ Insert into bookers table
+        const { error: insertError } = await supabase.from('bookers').insert([
+          {
             user_id: authData.user.id,
             full_name: bookerData.full_name,
             email: bookerData.email,
             phone: bookerData.phone,
-            is_active: true
-          }])
-          .select();
-
-        console.log('Booker insert result:', { bookerRecord, bookerError });
-
-        if (bookerError) {
-          console.error('Booker insert error:', bookerError);
-          throw bookerError;
+          }
+        ]);
+      
+        if (insertError) {
+          console.error('Error inserting into bookers table:', insertError);
+          toast({
+            title: "Database Error",
+            description: "Failed to save booker data.",
+            variant: "destructive",
+          });
+          return false;
         }
-
+      
         toast({
           title: "Success",
-          description: "Booker added successfully.",
+          description: "Booker account created successfully!",
         });
+      
+        onSuccess(); // trigger success callback
+      }
 
-        onSuccess();
         return true;
       } else {
         throw new Error('User creation failed - no user returned');
