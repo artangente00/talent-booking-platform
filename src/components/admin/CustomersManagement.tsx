@@ -11,9 +11,11 @@ import AddCustomerDialog from './customers/AddCustomerDialog';
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
   created_at: string;
   bookingsCount: number;
   lastBooking: string | null;

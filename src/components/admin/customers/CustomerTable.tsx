@@ -5,9 +5,11 @@ import CustomerTableRow from './CustomerTableRow';
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
   created_at: string;
   bookingsCount: number;
   lastBooking: string | null;
@@ -19,11 +21,12 @@ interface CustomerTableProps {
 }
 
 const CustomerTable = ({ customers, searchTerm }: CustomerTableProps) => {
-  const filteredCustomers = customers.filter(customer =>
-    customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
-  );
+  const filteredCustomers = customers.filter(customer => {
+    const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+    return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           customer.contact_number.includes(searchTerm);
+  });
 
   return (
     <div className="rounded-md border">

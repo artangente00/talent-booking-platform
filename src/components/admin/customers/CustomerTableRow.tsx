@@ -6,9 +6,11 @@ import { Mail, Phone, Calendar } from 'lucide-react';
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
   created_at: string;
   bookingsCount: number;
   lastBooking: string | null;
@@ -27,11 +29,15 @@ const CustomerTableRow = ({ customer }: CustomerTableRowProps) => {
     });
   };
 
+  const getFullName = (customer: Customer) => {
+    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  };
+
   return (
     <TableRow key={customer.id}>
       <TableCell>
         <div>
-          <div className="font-medium">{customer.full_name}</div>
+          <div className="font-medium">{getFullName(customer)}</div>
         </div>
       </TableCell>
       <TableCell>
@@ -42,7 +48,7 @@ const CustomerTableRow = ({ customer }: CustomerTableRowProps) => {
           </div>
           <div className="flex items-center gap-1 text-sm text-gray-600">
             <Phone className="w-3 h-3" />
-            {customer.phone}
+            {customer.contact_number}
           </div>
         </div>
       </TableCell>

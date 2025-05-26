@@ -20,7 +20,7 @@ export type Database = {
           last_name: string | null
           middle_name: string | null
           password_hash: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -32,7 +32,7 @@ export type Database = {
           last_name?: string | null
           middle_name?: string | null
           password_hash?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -44,7 +44,7 @@ export type Database = {
           last_name?: string | null
           middle_name?: string | null
           password_hash?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -140,12 +140,10 @@ export type Database = {
           created_at: string
           email: string
           first_name: string | null
-          full_name: string | null
           id: string
           id_photo_link: string | null
           last_name: string | null
           middle_name: string | null
-          phone: string | null
           updated_at: string
           user_id: string
           valid_government_id: string | null
@@ -158,12 +156,10 @@ export type Database = {
           created_at?: string
           email: string
           first_name?: string | null
-          full_name?: string | null
           id?: string
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
-          phone?: string | null
           updated_at?: string
           user_id: string
           valid_government_id?: string | null
@@ -176,12 +172,10 @@ export type Database = {
           created_at?: string
           email?: string
           first_name?: string | null
-          full_name?: string | null
           id?: string
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
-          phone?: string | null
           updated_at?: string
           user_id?: string
           valid_government_id?: string | null
