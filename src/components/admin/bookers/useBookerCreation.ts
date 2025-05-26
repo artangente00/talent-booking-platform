@@ -61,7 +61,26 @@ export const useBookerCreation = (onSuccess: () => void) => {
       if (authData.user) {
         console.log('User created successfully, now creating booker record for user:', authData.user.id);
         
-        // Create the booker record directly
+        // Wait a moment to ensure any triggers have completed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Delete any customer record that might have been auto-created
+        try {
+          const { error: deleteError } = await supabase
+            .from('customers')
+            .delete()
+            .eq('user_id', authData.user.id);
+          
+          if (deleteError) {
+            console.log('No customer record to delete or deletion failed:', deleteError);
+          } else {
+            console.log('Successfully removed auto-created customer record');
+          }
+        } catch (deleteError) {
+          console.log('Could not delete customer record:', deleteError);
+        }
+        
+        // Create the booker record
         const { data: bookerRecord, error: bookerError } = await supabase
           .from('bookers')
           .insert([{
@@ -78,22 +97,6 @@ export const useBookerCreation = (onSuccess: () => void) => {
         if (bookerError) {
           console.error('Booker insert error:', bookerError);
           throw bookerError;
-        }
-
-        // If there's a customer record that was auto-created, remove it
-        try {
-          const { error: deleteError } = await supabase
-            .from('customers')
-            .delete()
-            .eq('user_id', authData.user.id);
-          
-          if (deleteError) {
-            console.log('No customer record to delete or deletion failed:', deleteError);
-          } else {
-            console.log('Successfully removed auto-created customer record');
-          }
-        } catch (deleteError) {
-          console.log('Could not delete customer record:', deleteError);
         }
 
         toast({
