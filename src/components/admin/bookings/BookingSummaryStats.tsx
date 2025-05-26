@@ -1,20 +1,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-
-interface Booking {
-  id: string;
-  booking_date: string;
-  booking_time: string;
-  service_address: string;
-  status: string;
-  customer: {
-    first_name: string;
-    middle_name: string | null;
-    last_name: string;
-  };
-  talent_name?: string;
-}
+import { Booking } from './types';
 
 interface BookingSummaryStatsProps {
   serviceBookings: Booking[];

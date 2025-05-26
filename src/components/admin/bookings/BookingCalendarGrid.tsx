@@ -1,28 +1,14 @@
 
 import React from 'react';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import BookingCard from './BookingCard';
-
-interface Booking {
-  id: string;
-  booking_date: string;
-  booking_time: string;
-  service_address: string;
-  service_type: string;
-  status: string;
-  customer: {
-    first_name: string;
-    middle_name: string | null;
-    last_name: string;
-  };
-  talent_name?: string;
-}
+import { Booking } from './types';
 
 interface BookingCalendarGridProps {
   weekDays: Date[];
   timeSlots: string[];
   serviceId: string;
-  getBookingForTimeSlot: (date: Date, timeSlot: string, serviceId: string) => Booking | undefined;
+  getBookingForTimeSlot: (date: Date, timeSlot: string) => Booking | undefined;
   getStatusColor: (status: string) => string;
 }
 
@@ -51,13 +37,13 @@ const BookingCalendarGrid = ({
       </div>
 
       {/* Time slots grid */}
-      {timeSlots.map((timeSlot, timeIndex) => (
+      {timeSlots.map((timeSlot) => (
         <div key={timeSlot} className="grid grid-cols-8 border-t">
           <div className="p-3 text-sm font-medium text-gray-600 border-r bg-gray-50">
             {timeSlot}
           </div>
           {weekDays.map((day, dayIndex) => {
-            const booking = getBookingForTimeSlot(day, timeSlot, serviceId);
+            const booking = getBookingForTimeSlot(day, timeSlot);
             return (
               <div key={dayIndex} className="border-r last:border-r-0 min-h-[80px] p-1">
                 {booking && (
