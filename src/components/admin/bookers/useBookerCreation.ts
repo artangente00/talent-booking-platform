@@ -58,10 +58,28 @@ export const useBookerCreation = (onSuccess: () => void) => {
         throw authError;
       }
 
-       if (authData.user) {
+      if (authData.user) {
         console.log('User created successfully, now creating booker record for user:', authData.user.id);
+        
+        // Wait a moment to ensure any triggers have completed
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Check if a customer record was auto-created and delete it
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('user_id', authData.user.id)
+          .single();
+          
+        if (existingCustomer) {
+          console.log('Deleting auto-created customer record:', existingCustomer.id);
+          await supabase
+            .from('customers')
+            .delete()
+            .eq('id', existingCustomer.id);
+        }
       
-        // ✅ Insert into bookers table
+        // Insert into bookers table
         const { error: insertError } = await supabase.from('bookers').insert([
           {
             user_id: authData.user.id,
@@ -87,8 +105,6 @@ export const useBookerCreation = (onSuccess: () => void) => {
         });
       
         onSuccess(); // trigger success callback
-      }
-
         return true;
       } else {
         throw new Error('User creation failed - no user returned');
