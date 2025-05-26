@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -18,9 +19,11 @@ interface BookingFormProps {
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService }) => {
@@ -79,11 +82,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
       setCustomer(customerData);
       // Pre-fill form with customer data
+      const fullName = `${customerData.first_name || ''} ${customerData.middle_name || ''} ${customerData.last_name || ''}`.trim();
       setFormData(prev => ({
         ...prev,
-        name: customerData.full_name,
+        name: fullName,
         email: customerData.email,
-        phone: customerData.phone
+        phone: customerData.contact_number
       }));
     } catch (error) {
       console.error('Error fetching customer data:', error);
@@ -176,11 +180,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
       });
 
       // Reset form and close modal
+      const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
       setFormData({
         service: preselectedService || '',
-        name: customer.full_name,
+        name: fullName,
         email: customer.email,
-        phone: customer.phone,
+        phone: customer.contact_number,
         address: '',
         date: '',
         time: '',

@@ -17,12 +17,16 @@ interface Admin {
   created_at: string;
   created_by: string | null;
   customer: {
-    full_name: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
     email: string;
-    phone: string;
+    contact_number: string;
   } | null;
   creator: {
-    full_name: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
     email: string;
   } | null;
 }
@@ -74,7 +78,7 @@ const AdminsManagement = () => {
           // Get customer data for the admin user
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
-            .select('full_name, email, phone')
+            .select('first_name, middle_name, last_name, email, contact_number')
             .eq('user_id', admin.user_id)
             .single();
 
@@ -87,7 +91,7 @@ const AdminsManagement = () => {
           if (admin.created_by) {
             const { data: creator, error: creatorError } = await supabase
               .from('customers')
-              .select('full_name, email')
+              .select('first_name, middle_name, last_name, email')
               .eq('user_id', admin.created_by)
               .single();
             
@@ -230,10 +234,11 @@ const AdminsManagement = () => {
     }
   };
 
-  const availableCustomers = customers.filter(customer => 
-    !admins.some(admin => admin.user_id === customer.user_id && admin.is_active) &&
-    customer.full_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const availableCustomers = customers.filter(customer => {
+    const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+    return !admins.some(admin => admin.user_id === customer.user_id && admin.is_active) &&
+           fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -241,6 +246,10 @@ const AdminsManagement = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const getCustomerDisplayName = (customer: any) => {
+    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
   };
 
   if (loading) {
@@ -302,7 +311,7 @@ const AdminsManagement = () => {
                       }`}
                       onClick={() => setSelectedCustomerId(customer.user_id)}
                     >
-                      <div className="font-medium">{customer.full_name}</div>
+                      <div className="font-medium">{getCustomerDisplayName(customer)}</div>
                       <div className="text-sm text-gray-600">{customer.email}</div>
                     </div>
                   ))}
@@ -353,7 +362,7 @@ const AdminsManagement = () => {
                         <User className="w-4 h-4 text-gray-400" />
                         <div>
                           <div className="font-medium">
-                            {admin.customer?.full_name || 'Unknown User'}
+                            {admin.customer ? getCustomerDisplayName(admin.customer) : 'Unknown User'}
                           </div>
                         </div>
                       </div>
@@ -368,7 +377,7 @@ const AdminsManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {admin.creator?.full_name || 'System'}
+                        {admin.creator ? getCustomerDisplayName(admin.creator) : 'System'}
                       </div>
                     </TableCell>
                     <TableCell>

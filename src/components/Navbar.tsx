@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -10,9 +9,11 @@ import BookingForm from './BookingForm';
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
 }
 
 const Navbar = () => {
@@ -84,6 +85,10 @@ const Navbar = () => {
     }
   };
 
+  const getCustomerDisplayName = (customer: Customer) => {
+    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-100">
       <div className="container flex items-center justify-between h-16 mx-auto px-4 md:px-6">
@@ -121,7 +126,7 @@ const Navbar = () => {
             <>
               <span className="text-sm text-gray-600 flex items-center space-x-1">
                 <User size={16} />
-                <span>Welcome, {customer?.full_name || 'Customer'}!</span>
+                <span>Welcome, {customer ? getCustomerDisplayName(customer) : 'Customer'}!</span>
               </span>
               {!isAdminPage && (
                 <>
@@ -222,7 +227,7 @@ const Navbar = () => {
                   <>
                     <span className="text-sm text-gray-600 flex items-center space-x-1 py-2">
                       <User size={16} />
-                      <span>Welcome, {customer?.full_name || 'Customer'}!</span>
+                      <span>Welcome, {customer ? getCustomerDisplayName(customer) : 'Customer'}!</span>
                     </span>
                     {!isAdminPage && (
                       <>

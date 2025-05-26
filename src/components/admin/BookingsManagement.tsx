@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +24,9 @@ interface Booking {
   service_type: string;
   status: string;
   customer: {
-    full_name: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
   };
   talent_name?: string;
 }
@@ -71,7 +72,9 @@ const BookingsManagement = () => {
         .select(`
           *,
           customers (
-            full_name
+            first_name,
+            middle_name,
+            last_name
           )
         `)
         .order('booking_date', { ascending: true });

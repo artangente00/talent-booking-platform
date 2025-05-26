@@ -32,9 +32,11 @@ interface Booking {
 
 interface Customer {
   id: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
   email: string;
-  phone: string;
+  contact_number: string;
 }
 
 const Dashboard = () => {
@@ -209,6 +211,10 @@ const Dashboard = () => {
     });
   };
 
+  const getCustomerDisplayName = (customer: Customer) => {
+    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -231,7 +237,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {customer?.full_name}!
+              Welcome back, {customer ? getCustomerDisplayName(customer) : 'Customer'}!
             </h1>
             <p className="text-gray-600">Manage your bookings and track service history.</p>
           </div>
