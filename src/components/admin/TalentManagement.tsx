@@ -191,7 +191,7 @@ const TalentManagement = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Talent Management
+              Freelancers Management
             </CardTitle>
             <CardDescription>
               Manage service providers and their applications
@@ -201,12 +201,12 @@ const TalentManagement = () => {
             <DialogTrigger asChild>
               <Button className="bg-kwikie-orange hover:bg-kwikie-red">
                 <UserPlus className="w-4 h-4 mr-2" />
-                Add Talent
+                Add Freelancer
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add New Talent</DialogTitle>
+                <DialogTitle>Add New Freelancer</DialogTitle>
                 <DialogDescription>
                   Add a new service provider to your team.
                 </DialogDescription>
@@ -245,7 +245,7 @@ const TalentManagement = () => {
                   Cancel
                 </Button>
                 <Button onClick={addTalent}>
-                  Add Talent
+                  Add Freelancer
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -269,7 +269,7 @@ const TalentManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Talent</TableHead>
+                <TableHead>Freelancer</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Services</TableHead>
                 <TableHead>Experience</TableHead>
