@@ -206,19 +206,20 @@ const TalentManagement = () => {
                 Add Freelancer
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Freelancer</DialogTitle>
                 <DialogDescription>Add a new service provider to your team.</DialogDescription>
               </DialogHeader>
-
+            
               <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
-
-              <DialogFooter>
+            
+              <DialogFooter className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                 <Button onClick={addTalent}>Add Freelancer</Button>
               </DialogFooter>
             </DialogContent>
+
           </Dialog>
         </div>
       </CardHeader>
