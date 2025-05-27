@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,27 +5,46 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Service {
+  title: string;
+  price_range: string;
+}
+
 interface TalentFormFieldsProps {
   formData: any;
   setFormData: (val: any) => void;
 }
 
 const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
-  const [serviceOptions, setServiceOptions] = useState<string[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
     const fetchServices = async () => {
-      const { data, error } = await supabase.from('services').select('title');
+      const { data, error } = await supabase
+        .from('services')
+        .select('title, price_range');
+
       if (error) {
         console.error('Error fetching services:', error);
         return;
       }
-      const serviceNames = data.map((service: { title: string }) => service.title);
-      setServiceOptions(serviceNames);
+
+      setServices(data || []);
     };
 
     fetchServices();
   }, []);
+
+  const handleServiceChange = (selectedTitle: string) => {
+    const selected = services.find(service => service.title === selectedTitle);
+    if (selected) {
+      setFormData((prev: any) => ({
+        ...prev,
+        services: [selected.title],
+        hourly_rate: selected.price_range ? parseFloat(selected.price_range.replace(/[^\d.]/g, '')) : ''
+      }));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -60,15 +78,15 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
       <div>
         <Label htmlFor="service">Service *</Label>
         <Select
-          onValueChange={(value) => setFormData((prev: any) => ({ ...prev, services: [value] }))}
+          onValueChange={handleServiceChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a service" />
           </SelectTrigger>
           <SelectContent>
-            {serviceOptions.map((service) => (
-              <SelectItem key={service} value={service}>
-                {service}
+            {services.map((service) => (
+              <SelectItem key={service.title} value={service.title}>
+                {service.title}
               </SelectItem>
             ))}
           </SelectContent>
@@ -98,7 +116,9 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
           type="number"
           min="300"
           value={formData.hourly_rate || ''}
-          onChange={(e) => setFormData((prev: any) => ({ ...prev, hourly_rate: parseFloat(e.target.value) }))}
+          onChange={(e) =>
+            setFormData((prev: any) => ({ ...prev, hourly_rate: parseFloat(e.target.value) }))
+          }
         />
       </div>
       <div>
@@ -122,7 +142,9 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
         <Textarea
           id="description"
           value={formData.description || ''}
-          onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+          onChange={(e) =>
+            setFormData((prev: any) => ({ ...prev, description: e.target.value }))
+          }
         />
       </div>
     </div>
