@@ -36,15 +36,16 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
   }, []);
 
   const handleServiceChange = (selectedTitle: string) => {
-    const selected = services.find(service => service.title === selectedTitle);
-    if (selected) {
-      setFormData((prev: any) => ({
-        ...prev,
-        services: [selected.title],
-        hourly_rate: selected.price_range ? parseFloat(selected.price_range.replace(/[^\d.]/g, '')) : ''
-      }));
-    }
-  };
+      const selected = services.find(service => service.title === selectedTitle);
+      if (selected) {
+        setFormData((prev: any) => ({
+          ...prev,
+          services: [selected.title],
+          hourly_rate: selected.price_range || ''
+        }));
+      }
+    };
+
 
   return (
     <div className="space-y-4">
@@ -113,13 +114,11 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
         <Label htmlFor="hourly_rate">Preferred Daily Rate (PHP)</Label>
         <Input
           id="hourly_rate"
-          type="number"
-          min="300"
+          type="text"
           value={formData.hourly_rate || ''}
-          onChange={(e) =>
-            setFormData((prev: any) => ({ ...prev, hourly_rate: parseFloat(e.target.value) }))
-          }
+          readOnly
         />
+
       </div>
       <div>
         <Label htmlFor="availability">Availability</Label>
