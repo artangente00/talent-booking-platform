@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,12 +16,12 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
 
   useEffect(() => {
     const fetchServices = async () => {
-      const { data, error } = await supabase.from('services').select('name');
+      const { data, error } = await supabase.from('services').select('title');
       if (error) {
         console.error('Error fetching services:', error);
         return;
       }
-      const serviceNames = data.map((service: { name: string }) => service.name);
+      const serviceNames = data.map((service: { title: string }) => service.title);
       setServiceOptions(serviceNames);
     };
 
