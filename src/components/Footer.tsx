@@ -20,7 +20,7 @@ const Footer = () => {
               variant="outline"
               className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-orange hover:text-white h-11 px-6"
             >
-              Become a Talent
+              Become a Freelancer
             </Button>
           </Link>
         </div>
