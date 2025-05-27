@@ -36,6 +36,10 @@ const TalentManagement = () => {
     phone: '',
     address: '',
     services: [] as string[],
+    experience: '',
+    availability: '',
+    hourly_rate: null as number | null,
+    description: ''
   });
   const { toast } = useToast();
 
@@ -99,13 +103,21 @@ const TalentManagement = () => {
   
       toast({ title: "Success", description: "Talent added successfully." });
       setIsDialogOpen(false);
-      setNewTalent({ full_name: '', phone: '', address: '', services: [], experience: '', availability: '', hourly_rate: null, description: '' });
+      setNewTalent({ 
+        full_name: '', 
+        phone: '', 
+        address: '', 
+        services: [], 
+        experience: '', 
+        availability: '', 
+        hourly_rate: null, 
+        description: '' 
+      });
       fetchTalents();
     } catch (error) {
       toast({ title: "Error", description: "Failed to add talent.", variant: "destructive" });
     }
   };
-
 
   const updateTalentStatus = async (talentId: string, newStatus: string) => {
     try {
@@ -195,18 +207,18 @@ const TalentManagement = () => {
               </Button>
             </DialogTrigger>
             <DialogContent>
-  <DialogHeader>
-    <DialogTitle>Add New Freelancer</DialogTitle>
-    <DialogDescription>Add a new service provider to your team.</DialogDescription>
-  </DialogHeader>
+              <DialogHeader>
+                <DialogTitle>Add New Freelancer</DialogTitle>
+                <DialogDescription>Add a new service provider to your team.</DialogDescription>
+              </DialogHeader>
 
-  <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
+              <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
 
-  <DialogFooter>
-    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-    <Button onClick={addTalent}>Add Freelancer</Button>
-  </DialogFooter>
-</DialogContent>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                <Button onClick={addTalent}>Add Freelancer</Button>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
         </div>
       </CardHeader>
