@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, UserPlus, Mail, Phone, Calendar, Star, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import TalentFormFields from './TalentFormFields'; // Adjust path
+import TalentFormFields from '@/components/admin/TalentFormFields';
 
 interface Talent {
   id: string;
