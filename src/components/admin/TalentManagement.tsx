@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, UserPlus, Mail, Phone, Calendar, Star, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import TalentFormFields from './TalentFormFields'; // Adjust path
 
 interface Talent {
   id: string;
@@ -68,7 +69,9 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    if (!newTalent.full_name || !newTalent.phone || !newTalent.address) {
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description } = newTalent;
+  
+    if (!full_name || !phone || !address || services.length === 0) {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -76,46 +79,33 @@ const TalentManagement = () => {
       });
       return;
     }
-
+  
     try {
       const { error } = await supabase
         .from('talents')
         .insert({
-          full_name: newTalent.full_name,
-          phone: newTalent.phone,
-          address: newTalent.address,
-          services: newTalent.services,
+          full_name,
+          phone,
+          address,
+          services,
+          experience,
+          hourly_rate,
+          availability,
+          description,
+          status: 'pending'
         });
-
-      if (error) {
-        console.error('Error adding talent:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Talent added successfully.",
-      });
-
+  
+      if (error) throw error;
+  
+      toast({ title: "Success", description: "Talent added successfully." });
       setIsDialogOpen(false);
-      setNewTalent({
-        full_name: '',
-        phone: '',
-        address: '',
-        services: [],
-      });
-      
-      // Refresh the list
+      setNewTalent({ full_name: '', phone: '', address: '', services: [], experience: '', availability: '', hourly_rate: null, description: '' });
       fetchTalents();
     } catch (error) {
-      console.error('Error adding talent:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add talent.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to add talent.", variant: "destructive" });
     }
   };
+
 
   const updateTalentStatus = async (talentId: string, newStatus: string) => {
     try {
@@ -205,50 +195,18 @@ const TalentManagement = () => {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Freelancer</DialogTitle>
-                <DialogDescription>
-                  Add a new service provider to your team.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter full name"
-                    value={newTalent.full_name}
-                    onChange={(e) => setNewTalent(prev => ({ ...prev, full_name: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    placeholder="Enter phone number"
-                    value={newTalent.phone}
-                    onChange={(e) => setNewTalent(prev => ({ ...prev, phone: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    placeholder="Enter address"
-                    value={newTalent.address}
-                    onChange={(e) => setNewTalent(prev => ({ ...prev, address: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={addTalent}>
-                  Add Freelancer
-                </Button>
-              </DialogFooter>
-            </DialogContent>
+  <DialogHeader>
+    <DialogTitle>Add New Freelancer</DialogTitle>
+    <DialogDescription>Add a new service provider to your team.</DialogDescription>
+  </DialogHeader>
+
+  <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
+
+  <DialogFooter>
+    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+    <Button onClick={addTalent}>Add Freelancer</Button>
+  </DialogFooter>
+</DialogContent>
           </Dialog>
         </div>
       </CardHeader>
