@@ -304,7 +304,7 @@ export type Database = {
           description: string | null
           experience: string | null
           full_name: string
-          hourly_rate: number | null
+          hourly_rate: string | null
           id: string
           phone: string
           services: string[]
@@ -318,7 +318,7 @@ export type Database = {
           description?: string | null
           experience?: string | null
           full_name: string
-          hourly_rate?: number | null
+          hourly_rate?: string | null
           id?: string
           phone: string
           services: string[]
@@ -332,7 +332,7 @@ export type Database = {
           description?: string | null
           experience?: string | null
           full_name?: string
-          hourly_rate?: number | null
+          hourly_rate?: string | null
           id?: string
           phone?: string
           services?: string[]
