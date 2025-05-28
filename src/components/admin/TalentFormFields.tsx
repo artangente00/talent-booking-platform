@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import ImageUpload from './ImageUpload';
 
 interface Service {
   title: string;
@@ -36,19 +37,30 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
   }, []);
 
   const handleServiceChange = (selectedTitle: string) => {
-      const selected = services.find(service => service.title === selectedTitle);
-      if (selected) {
-        setFormData((prev: any) => ({
-          ...prev,
-          services: [selected.title],
-          hourly_rate: selected.price_range || ''
-        }));
-      }
-    };
+    const selected = services.find(service => service.title === selectedTitle);
+    if (selected) {
+      setFormData((prev: any) => ({
+        ...prev,
+        services: [selected.title],
+        hourly_rate: selected.price_range || ''
+      }));
+    }
+  };
 
+  const handleImageUpload = (url: string | null) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      profile_photo_url: url
+    }));
+  };
 
   return (
     <div className="space-y-4">
+      <ImageUpload
+        value={formData.profile_photo_url || null}
+        onImageUpload={handleImageUpload}
+      />
+      
       <div>
         <Label htmlFor="fullName">Full Name *</Label>
         <Input

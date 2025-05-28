@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, UserPlus, Mail, Phone, Calendar, Star, Users } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import TalentFormFields from '@/components/admin/TalentFormFields';
@@ -24,6 +25,7 @@ interface Talent {
   status: string;
   created_at: string;
   description: string | null;
+  profile_photo_url: string | null;
 }
 
 const TalentManagement = () => {
@@ -39,7 +41,8 @@ const TalentManagement = () => {
     experience: '',
     availability: '',
     hourly_rate: null as string | null,
-    description: ''
+    description: '',
+    profile_photo_url: null as string | null
   });
   const { toast } = useToast();
 
@@ -73,7 +76,7 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    const { full_name, phone, address, services, experience, hourly_rate, availability, description } = newTalent;
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url } = newTalent;
   
     if (!full_name || !phone || !address || services.length === 0) {
       toast({
@@ -96,6 +99,7 @@ const TalentManagement = () => {
           hourly_rate,
           availability,
           description,
+          profile_photo_url,
           status: 'pending'
         });
   
@@ -111,7 +115,8 @@ const TalentManagement = () => {
         experience: '', 
         availability: '', 
         hourly_rate: null, 
-        description: '' 
+        description: '',
+        profile_photo_url: null
       });
       fetchTalents();
     } catch (error) {
@@ -260,9 +265,19 @@ const TalentManagement = () => {
                 filteredTalents.map((talent) => (
                   <TableRow key={talent.id}>
                     <TableCell>
-                      <div className="font-medium">{talent.full_name}</div>
-                      <div className="text-sm text-gray-600">
-                        Applied {formatDate(talent.created_at)}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={talent.profile_photo_url || undefined} />
+                          <AvatarFallback>
+                            <User className="w-4 h-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{talent.full_name}</div>
+                          <div className="text-sm text-gray-600">
+                            Applied {formatDate(talent.created_at)}
+                          </div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
