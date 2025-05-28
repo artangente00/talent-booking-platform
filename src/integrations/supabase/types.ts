@@ -307,6 +307,7 @@ export type Database = {
           hourly_rate: string | null
           id: string
           phone: string
+          profile_photo_url: string | null
           services: string[]
           status: string
           updated_at: string
@@ -321,6 +322,7 @@ export type Database = {
           hourly_rate?: string | null
           id?: string
           phone: string
+          profile_photo_url?: string | null
           services: string[]
           status?: string
           updated_at?: string
@@ -335,6 +337,7 @@ export type Database = {
           hourly_rate?: string | null
           id?: string
           phone?: string
+          profile_photo_url?: string | null
           services?: string[]
           status?: string
           updated_at?: string
