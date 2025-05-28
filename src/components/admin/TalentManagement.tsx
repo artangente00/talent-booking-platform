@@ -20,7 +20,7 @@ interface Talent {
   services: string[];
   experience: string | null;
   availability: string | null;
-  hourly_rate: number | null;
+  hourly_rate: string | null;
   status: string;
   created_at: string;
   description: string | null;
@@ -38,7 +38,7 @@ const TalentManagement = () => {
     services: [] as string[],
     experience: '',
     availability: '',
-    hourly_rate: null as number | null,
+    hourly_rate: null as string | null,
     description: ''
   });
   const { toast } = useToast();

@@ -69,7 +69,7 @@ const TalentApplication = () => {
           services: [formData.service], // Convert single service to array for database
           description: formData.description || null,
           availability: formData.availability || null,
-          hourly_rate: formData.dailyRate ? parseFloat(formData.dailyRate) : null,
+          hourly_rate: formData.dailyRate || null, // Keep as string since database expects string
         });
 
       if (error) {
