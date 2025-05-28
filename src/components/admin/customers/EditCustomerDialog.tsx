@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -98,7 +97,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
           setIdPhotoPreview(customer.id_photo_link);
         } else {
           // If it's a relative path, construct the full URL
-          const { data } = supabase.storage.from('customer-documents').getPublicUrl(customer.id_photo_link);
+          const { data } = supabase.storage.from('id-photos').getPublicUrl(customer.id_photo_link);
           setIdPhotoPreview(data.publicUrl);
         }
       } else {
@@ -121,7 +120,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         if (customer.id_photo_link.includes('supabase')) {
           setIdPhotoPreview(customer.id_photo_link);
         } else {
-          const { data } = supabase.storage.from('customer-documents').getPublicUrl(customer.id_photo_link);
+          const { data } = supabase.storage.from('id-photos').getPublicUrl(customer.id_photo_link);
           setIdPhotoPreview(data.publicUrl);
         }
       } else {
@@ -136,7 +135,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       const fileName = `${customerId}/id-photo.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('customer-documents')
+        .from('id-photos')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) {
@@ -145,7 +144,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       }
 
       const { data } = supabase.storage
-        .from('customer-documents')
+        .from('id-photos')
         .getPublicUrl(fileName);
 
       return data.publicUrl;
