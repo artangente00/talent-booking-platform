@@ -25,6 +25,7 @@ interface Customer {
   address: string | null;
   valid_government_id: string | null;
   status: string;
+  id_photo_link: string | null;
 }
 
 interface EditCustomerFormData {
@@ -89,7 +90,8 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         status: customer.status || 'pending',
       });
       setIdPhoto(null);
-      setIdPhotoPreview(null);
+      // Set the existing ID photo preview if it exists
+      setIdPhotoPreview(customer.id_photo_link || null);
     }
   }, [customer, form]);
 
@@ -102,7 +104,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       };
       reader.readAsDataURL(file);
     } else {
-      setIdPhotoPreview(null);
+      setIdPhotoPreview(customer?.id_photo_link || null);
     }
   };
 
