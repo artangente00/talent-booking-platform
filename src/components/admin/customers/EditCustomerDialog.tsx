@@ -1,16 +1,32 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface AddCustomerFormData {
+interface Customer {
+  id: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  email: string;
+  contact_number: string;
+  created_at: string;
+  bookingsCount: number;
+  lastBooking: string | null;
+  birthdate: string | null;
+  birthplace: string | null;
+  address: string | null;
+  valid_government_id: string | null;
+  status: string;
+}
+
+interface EditCustomerFormData {
   first_name: string;
   middle_name: string;
   last_name: string;
@@ -23,41 +39,60 @@ interface AddCustomerFormData {
   status: string;
 }
 
-interface AddCustomerDialogProps {
-  onCustomerAdded: () => void;
+interface EditCustomerDialogProps {
+  customer: Customer | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCustomerUpdated: () => void;
 }
 
-const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
-  const [open, setOpen] = useState(false);
+const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }: EditCustomerDialogProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  const form = useForm<AddCustomerFormData>({
+  const form = useForm<EditCustomerFormData>({
     defaultValues: {
-      first_name: '',
-      middle_name: '',
-      last_name: '',
-      email: '',
-      contact_number: '',
-      birthdate: '',
-      birthplace: '',
-      address: '',
-      valid_government_id: '',
-      status: 'pending',
+      first_name: customer?.first_name || '',
+      middle_name: customer?.middle_name || '',
+      last_name: customer?.last_name || '',
+      email: customer?.email || '',
+      contact_number: customer?.contact_number || '',
+      birthdate: customer?.birthdate || '',
+      birthplace: customer?.birthplace || '',
+      address: customer?.address || '',
+      valid_government_id: customer?.valid_government_id || '',
+      status: customer?.status || 'pending',
     },
   });
 
-  const onSubmit = async (data: AddCustomerFormData) => {
+  React.useEffect(() => {
+    if (customer) {
+      form.reset({
+        first_name: customer.first_name || '',
+        middle_name: customer.middle_name || '',
+        last_name: customer.last_name || '',
+        email: customer.email || '',
+        contact_number: customer.contact_number || '',
+        birthdate: customer.birthdate || '',
+        birthplace: customer.birthplace || '',
+        address: customer.address || '',
+        valid_government_id: customer.valid_government_id || '',
+        status: customer.status || 'pending',
+      });
+    }
+  }, [customer, form]);
+
+  const onSubmit = async (data: EditCustomerFormData) => {
+    if (!customer) return;
+    
     setLoading(true);
     
     try {
-      console.log('Adding new customer:', data);
+      console.log('Updating customer:', data);
       
-      // For admin-created customers, we'll create them without a user_id
-      // This means they exist in the system but haven't registered yet
-      const { data: newCustomer, error } = await supabase
+      const { error } = await supabase
         .from('customers')
-        .insert({
+        .update({
           first_name: data.first_name,
           middle_name: data.middle_name || null,
           last_name: data.last_name,
@@ -68,37 +103,34 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
           address: data.address,
           valid_government_id: data.valid_government_id,
           status: data.status,
-          user_id: '00000000-0000-0000-0000-000000000000', // Placeholder for admin-created customers
         })
-        .select()
-        .single();
+        .eq('id', customer.id);
 
       if (error) {
-        console.error('Error adding customer:', error);
+        console.error('Error updating customer:', error);
         toast({
           title: "Error",
-          description: `Failed to add customer: ${error.message}`,
+          description: `Failed to update customer: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Customer added successfully:', newCustomer);
+      console.log('Customer updated successfully');
       
       toast({
         title: "Success",
-        description: "Customer added successfully!",
+        description: "Customer updated successfully!",
       });
       
-      form.reset();
-      setOpen(false);
-      onCustomerAdded();
+      onOpenChange(false);
+      onCustomerUpdated();
       
     } catch (error) {
-      console.error('Error adding customer:', error);
+      console.error('Error updating customer:', error);
       toast({
         title: "Error",
-        description: "Failed to add customer. Please try again.",
+        description: "Failed to update customer. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -107,18 +139,12 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
-          <UserPlus className="w-4 h-4" />
-          Add Customer
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Customer</DialogTitle>
+          <DialogTitle>Edit Customer</DialogTitle>
           <DialogDescription>
-            Add a new customer to the system manually.
+            Update customer information and status.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -326,13 +352,13 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => setOpen(false)}
+                onClick={() => onOpenChange(false)}
                 disabled={loading}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Customer'}
+                {loading ? 'Updating...' : 'Update Customer'}
               </Button>
             </DialogFooter>
           </form>
@@ -342,4 +368,4 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
   );
 };
 
-export default AddCustomerDialog;
+export default EditCustomerDialog;

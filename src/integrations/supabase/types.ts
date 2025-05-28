@@ -144,6 +144,7 @@ export type Database = {
           id_photo_link: string | null
           last_name: string | null
           middle_name: string | null
+          status: string
           updated_at: string
           user_id: string
           valid_government_id: string | null
@@ -160,6 +161,7 @@ export type Database = {
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
+          status?: string
           updated_at?: string
           user_id: string
           valid_government_id?: string | null
@@ -176,6 +178,7 @@ export type Database = {
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
           valid_government_id?: string | null

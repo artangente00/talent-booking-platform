@@ -8,6 +8,7 @@ import CustomerSearch from './customers/CustomerSearch';
 import CustomerTable from './customers/CustomerTable';
 import CustomersLoadingState from './customers/CustomersLoadingState';
 import AddCustomerDialog from './customers/AddCustomerDialog';
+import EditCustomerDialog from './customers/EditCustomerDialog';
 
 interface Customer {
   id: string;
@@ -19,12 +20,19 @@ interface Customer {
   created_at: string;
   bookingsCount: number;
   lastBooking: string | null;
+  birthdate: string | null;
+  birthplace: string | null;
+  address: string | null;
+  valid_government_id: string | null;
+  status: string;
 }
 
 const CustomersManagement = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -110,31 +118,49 @@ const CustomersManagement = () => {
     }
   };
 
+  const handleEditCustomer = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setIsEditDialogOpen(true);
+  };
+
   if (loading) {
     return <CustomersLoadingState />;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Customers Management
-            </CardTitle>
-            <CardDescription>
-              View and manage all registered customers ({customers.length} total)
-            </CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Customers Management
+              </CardTitle>
+              <CardDescription>
+                View and manage all registered customers ({customers.length} total)
+              </CardDescription>
+            </div>
+            <AddCustomerDialog onCustomerAdded={fetchCustomers} />
           </div>
-          <AddCustomerDialog onCustomerAdded={fetchCustomers} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <CustomerSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        <CustomerTable customers={customers} searchTerm={searchTerm} />
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          <CustomerSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          <CustomerTable 
+            customers={customers} 
+            searchTerm={searchTerm} 
+            onEditCustomer={handleEditCustomer}
+          />
+        </CardContent>
+      </Card>
+
+      <EditCustomerDialog
+        customer={editingCustomer}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onCustomerUpdated={fetchCustomers}
+      />
+    </>
   );
 };
 
