@@ -90,8 +90,20 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         status: customer.status || 'pending',
       });
       setIdPhoto(null);
+      
       // Set the existing ID photo preview if it exists
-      setIdPhotoPreview(customer.id_photo_link || null);
+      if (customer.id_photo_link) {
+        // If it's a Supabase storage URL, use it directly
+        if (customer.id_photo_link.includes('supabase')) {
+          setIdPhotoPreview(customer.id_photo_link);
+        } else {
+          // If it's a relative path, construct the full URL
+          const { data } = supabase.storage.from('customer-documents').getPublicUrl(customer.id_photo_link);
+          setIdPhotoPreview(data.publicUrl);
+        }
+      } else {
+        setIdPhotoPreview(null);
+      }
     }
   }, [customer, form]);
 
@@ -104,7 +116,42 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       };
       reader.readAsDataURL(file);
     } else {
-      setIdPhotoPreview(customer?.id_photo_link || null);
+      // Reset to existing photo if removing new upload
+      if (customer?.id_photo_link) {
+        if (customer.id_photo_link.includes('supabase')) {
+          setIdPhotoPreview(customer.id_photo_link);
+        } else {
+          const { data } = supabase.storage.from('customer-documents').getPublicUrl(customer.id_photo_link);
+          setIdPhotoPreview(data.publicUrl);
+        }
+      } else {
+        setIdPhotoPreview(null);
+      }
+    }
+  };
+
+  const uploadIdPhoto = async (file: File, customerId: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${customerId}/id-photo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('customer-documents')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error('Error uploading ID photo:', uploadError);
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('customer-documents')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadIdPhoto:', error);
+      return null;
     }
   };
 
@@ -126,6 +173,22 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
     try {
       console.log('Updating customer:', data);
       
+      let idPhotoUrl = customer.id_photo_link;
+      
+      // Upload new ID photo if one was selected
+      if (idPhoto) {
+        const uploadedUrl = await uploadIdPhoto(idPhoto, customer.id);
+        if (uploadedUrl) {
+          idPhotoUrl = uploadedUrl;
+        } else {
+          toast({
+            title: "Warning",
+            description: "Failed to upload ID photo, but customer info will be updated.",
+            variant: "destructive",
+          });
+        }
+      }
+
       const { error } = await supabase
         .from('customers')
         .update({
@@ -139,6 +202,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
           address: data.address,
           valid_government_id: data.valid_government_id,
           status: data.status,
+          id_photo_link: idPhotoUrl,
         })
         .eq('id', customer.id);
 
