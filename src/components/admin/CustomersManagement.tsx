@@ -25,6 +25,7 @@ interface Customer {
   address: string | null;
   valid_government_id: string | null;
   status: string;
+  id_photo_link: string | null;
 }
 
 const CustomersManagement = () => {
