@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import IdPhotoUpload from '@/components/auth/IdPhotoUpload';
 
 interface Customer {
   id: string;
@@ -36,6 +37,8 @@ interface EditCustomerFormData {
   birthplace: string;
   address: string;
   valid_government_id: string;
+  password: string;
+  confirm_password: string;
   status: string;
 }
 
@@ -48,6 +51,8 @@ interface EditCustomerDialogProps {
 
 const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }: EditCustomerDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [idPhoto, setIdPhoto] = useState<File | null>(null);
+  const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
   
   const form = useForm<EditCustomerFormData>({
@@ -61,6 +66,8 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       birthplace: customer?.birthplace || '',
       address: customer?.address || '',
       valid_government_id: customer?.valid_government_id || '',
+      password: '',
+      confirm_password: '',
       status: customer?.status || 'pending',
     },
   });
@@ -77,13 +84,40 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         birthplace: customer.birthplace || '',
         address: customer.address || '',
         valid_government_id: customer.valid_government_id || '',
+        password: '',
+        confirm_password: '',
         status: customer.status || 'pending',
       });
+      setIdPhoto(null);
+      setIdPhotoPreview(null);
     }
   }, [customer, form]);
 
+  const handleIdPhotoChange = (file: File | null) => {
+    setIdPhoto(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setIdPhotoPreview(null);
+    }
+  };
+
   const onSubmit = async (data: EditCustomerFormData) => {
     if (!customer) return;
+    
+    // Check password confirmation only if password is provided
+    if (data.password && data.password !== data.confirm_password) {
+      toast({
+        title: "Error",
+        description: "Passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setLoading(true);
     
@@ -155,7 +189,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>First Name *</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="John" 
@@ -192,7 +226,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Last Name *</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Doe" 
@@ -212,7 +246,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email *</FormLabel>
                   <FormControl>
                     <Input 
                       type="email"
@@ -232,7 +266,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               name="contact_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact Number</FormLabel>
+                  <FormLabel>Contact Number *</FormLabel>
                   <FormControl>
                     <Input 
                       type="tel"
@@ -253,7 +287,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                 name="birthdate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birthdate</FormLabel>
+                    <FormLabel>Birthdate *</FormLabel>
                     <FormControl>
                       <Input 
                         type="date"
@@ -272,7 +306,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                 name="birthplace"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birthplace</FormLabel>
+                    <FormLabel>Birthplace *</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="City, Country" 
@@ -292,7 +326,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>Address *</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Complete address" 
@@ -311,7 +345,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               name="valid_government_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valid Government ID</FormLabel>
+                  <FormLabel>Valid Government ID *</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Driver's License, Passport, etc." 
@@ -324,6 +358,55 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                 </FormItem>
               )}
             />
+
+            <IdPhotoUpload
+              idPhoto={idPhoto}
+              idPhotoPreview={idPhotoPreview}
+              onPhotoChange={handleIdPhotoChange}
+              disabled={loading}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password (optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={loading}
+                        minLength={6}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="confirm_password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={loading}
+                        minLength={6}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
