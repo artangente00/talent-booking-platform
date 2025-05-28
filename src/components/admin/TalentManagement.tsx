@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ const TalentManagement = () => {
     try {
       const { data, error } = await supabase
         .from('talents')
-        .select('*')
+        .select('*, profile_photo_url')
         .order('created_at', { ascending: false });
 
       if (error) {
