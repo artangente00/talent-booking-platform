@@ -8,7 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User } from 'lucide-react';
+import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import TalentFormFields from '@/components/admin/TalentFormFields';
@@ -32,8 +34,22 @@ const TalentManagement = () => {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
   const [newTalent, setNewTalent] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    services: [] as string[],
+    experience: '',
+    availability: '',
+    hourly_rate: null as string | null,
+    description: '',
+    profile_photo_url: null as string | null
+  });
+  const [editTalent, setEditTalent] = useState({
     full_name: '',
     phone: '',
     address: '',
@@ -106,7 +122,7 @@ const TalentManagement = () => {
       if (error) throw error;
   
       toast({ title: "Success", description: "Talent added successfully." });
-      setIsDialogOpen(false);
+      setIsAddDialogOpen(false);
       setNewTalent({ 
         full_name: '', 
         phone: '', 
@@ -122,6 +138,88 @@ const TalentManagement = () => {
     } catch (error) {
       toast({ title: "Error", description: "Failed to add talent.", variant: "destructive" });
     }
+  };
+
+  const updateTalent = async () => {
+    if (!selectedTalent) return;
+
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url } = editTalent;
+  
+    if (!full_name || !phone || !address || services.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    try {
+      const { error } = await supabase
+        .from('talents')
+        .update({
+          full_name,
+          phone,
+          address,
+          services,
+          experience,
+          hourly_rate,
+          availability,
+          description,
+          profile_photo_url
+        })
+        .eq('id', selectedTalent.id);
+  
+      if (error) throw error;
+  
+      toast({ title: "Success", description: "Talent updated successfully." });
+      setIsEditDialogOpen(false);
+      setSelectedTalent(null);
+      fetchTalents();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update talent.", variant: "destructive" });
+    }
+  };
+
+  const deleteTalent = async () => {
+    if (!selectedTalent) return;
+
+    try {
+      const { error } = await supabase
+        .from('talents')
+        .delete()
+        .eq('id', selectedTalent.id);
+
+      if (error) throw error;
+
+      toast({ title: "Success", description: "Talent deleted successfully." });
+      setIsDeleteDialogOpen(false);
+      setSelectedTalent(null);
+      fetchTalents();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete talent.", variant: "destructive" });
+    }
+  };
+
+  const handleEditClick = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setEditTalent({
+      full_name: talent.full_name,
+      phone: talent.phone,
+      address: talent.address,
+      services: talent.services,
+      experience: talent.experience || '',
+      availability: talent.availability || '',
+      hourly_rate: talent.hourly_rate,
+      description: talent.description || '',
+      profile_photo_url: talent.profile_photo_url
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setIsDeleteDialogOpen(true);
   };
 
   const updateTalentStatus = async (talentId: string, newStatus: string) => {
@@ -204,7 +302,7 @@ const TalentManagement = () => {
               Manage service providers and their applications
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-kwikie-orange hover:bg-kwikie-red">
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -220,11 +318,10 @@ const TalentManagement = () => {
               <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
             
               <DialogFooter className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
                 <Button onClick={addTalent}>Add Freelancer</Button>
               </DialogFooter>
             </DialogContent>
-
           </Dialog>
         </div>
       </CardHeader>
@@ -316,19 +413,41 @@ const TalentManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={talent.status}
-                        onValueChange={(value) => updateTalentStatus(talent.id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={talent.status}
+                          onValueChange={(value) => updateTalentStatus(talent.id, value)}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleEditClick(talent)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(talent)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -337,6 +456,41 @@ const TalentManagement = () => {
           </Table>
         </div>
       </CardContent>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Freelancer</DialogTitle>
+            <DialogDescription>Update freelancer information.</DialogDescription>
+          </DialogHeader>
+        
+          <TalentFormFields formData={editTalent} setFormData={setEditTalent} />
+        
+          <DialogFooter className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={updateTalent}>Update Freelancer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {selectedTalent?.full_name}'s profile and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteTalent} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
