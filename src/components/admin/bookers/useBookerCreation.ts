@@ -103,15 +103,12 @@ export const useBookerCreation = (onSuccess: () => void) => {
           return false;
         }
 
-        // Restore the original admin session if it existed
-        if (currentUser) {
-          console.log('Restoring admin session');
-          // Sign out the newly created user
-          await supabase.auth.signOut();
-          
-          // We don't need to restore the session manually since the auth state
-          // listener will handle maintaining the admin session
-        }
+        // Important: Sign out the newly created user to prevent login
+        console.log('Signing out newly created user to maintain admin session');
+        await supabase.auth.signOut();
+        
+        // Small delay to ensure signout completes
+        await new Promise(resolve => setTimeout(resolve, 500));
       
         toast({
           title: "Success",
