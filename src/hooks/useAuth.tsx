@@ -9,7 +9,9 @@ export const useAuth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const checkUserRoleAndRedirect = async (userId: string) => {
+  const checkUserRoleAndRedirect = async (userId: string, skipRedirect = false) => {
+    if (skipRedirect) return;
+    
     try {
       // Check if user is admin
       const { data: isAdminData, error: adminError } = await supabase.rpc('is_admin', { user_uuid: userId });

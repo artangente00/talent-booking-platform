@@ -38,23 +38,24 @@ export const useBookerCreation = (onSuccess: () => void) => {
     try {
       console.log('Creating booker with data:', bookerData);
       
-      // Get the current session to restore it later
+      // Store current session before creating new user
       const { data: currentSession } = await supabase.auth.getSession();
+      const currentUser = currentSession?.session?.user;
       
-      // Create the user account using the Admin API instead of signUp
-      // This prevents triggering auth state changes for the current session
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Create the user account with specific metadata to identify as booker
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: bookerData.email,
         password: bookerData.password,
-        user_metadata: {
-          full_name: bookerData.full_name,
-          phone: bookerData.phone,
-          user_type: 'booker'
-        },
-        email_confirm: true // Auto-confirm the email
+        options: {
+          data: {
+            full_name: bookerData.full_name,
+            phone: bookerData.phone,
+            user_type: 'booker'
+          }
+        }
       });
 
-      console.log('Auth admin createUser result:', { authData, authError });
+      console.log('Auth signup result:', { authData, authError });
 
       if (authError) {
         console.error('Auth error:', authError);
@@ -100,6 +101,16 @@ export const useBookerCreation = (onSuccess: () => void) => {
             variant: "destructive",
           });
           return false;
+        }
+
+        // Restore the original admin session if it existed
+        if (currentUser) {
+          console.log('Restoring admin session');
+          // Sign out the newly created user
+          await supabase.auth.signOut();
+          
+          // We don't need to restore the session manually since the auth state
+          // listener will handle maintaining the admin session
         }
       
         toast({
