@@ -168,7 +168,7 @@ const TalentApplication = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Our Talent Network</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Our Freelancer Network</h1>
             <p className="text-gray-600">
               Become a trusted service provider and start earning by helping others in your community
             </p>
@@ -176,7 +176,7 @@ const TalentApplication = () => {
 
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl">Talent Application Form</CardTitle>
+              <CardTitle className="text-2xl">Freelancer Application Form</CardTitle>
               <CardDescription>
                 Tell us about yourself and the service you'd like to offer
               </CardDescription>
@@ -193,7 +193,7 @@ const TalentApplication = () => {
                       <Input
                         id="fullName"
                         type="text"
-                        placeholder="John Doe"
+                        placeholder="Full Name"
                         value={formData.fullName}
                         onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                         required
