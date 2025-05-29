@@ -17,10 +17,10 @@ const TalentApplication = () => {
     phone: '',
     address: '',
     experience: '',
-    service: '', // Changed from services array to single service string
+    service: '',
+    customService: '',
     description: '',
-    availability: '',
-    dailyRate: ''
+    availability: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -41,16 +41,19 @@ const TalentApplication = () => {
     'Medical Assistance',
     'Laundry Service',
     'Ironing',
-    'Dry Cleaning Pickup'
+    'Dry Cleaning Pickup',
+    'Others'
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.service) {
+    const finalService = formData.service === 'Others' ? formData.customService : formData.service;
+    
+    if (!finalService) {
       toast({
         title: "Error",
-        description: "Please select a service you can provide.",
+        description: "Please select a service you can provide or specify your custom service.",
         variant: "destructive",
       });
       return;
@@ -66,10 +69,10 @@ const TalentApplication = () => {
           phone: formData.phone,
           address: formData.address,
           experience: formData.experience || null,
-          services: [formData.service], // Convert single service to array for database
+          services: [finalService],
           description: formData.description || null,
           availability: formData.availability || null,
-          hourly_rate: formData.dailyRate || null, // Keep as string since database expects string
+          hourly_rate: null, // Remove hourly_rate since we're not collecting it anymore
         });
 
       if (error) {
@@ -89,9 +92,9 @@ const TalentApplication = () => {
         address: '',
         experience: '',
         service: '',
+        customService: '',
         description: '',
-        availability: '',
-        dailyRate: ''
+        availability: ''
       });
       
     } catch (error) {
@@ -104,6 +107,14 @@ const TalentApplication = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleServiceChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      service: value,
+      customService: value === 'Others' ? prev.customService : ''
+    }));
   };
 
   return (
@@ -199,7 +210,7 @@ const TalentApplication = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="service">Service Type</Label>
-                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, service: value }))}>
+                    <Select onValueChange={handleServiceChange} value={formData.service}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
@@ -212,9 +223,23 @@ const TalentApplication = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {formData.service === 'Others' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="customService">Please specify your service *</Label>
+                      <Input
+                        id="customService"
+                        type="text"
+                        placeholder="Enter your service type"
+                        value={formData.customService}
+                        onChange={(e) => setFormData(prev => ({ ...prev, customService: e.target.value }))}
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Experience and Rates */}
+                {/* Experience and Availability */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Professional Details</h3>
                   
@@ -234,33 +259,19 @@ const TalentApplication = () => {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dailyRate">Preferred Daily Rate (PHP)</Label>
-                      <Input
-                        id="dailyRate"
-                        type="number"
-                        placeholder="1500"
-                        min="300"
-                        value={formData.dailyRate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, dailyRate: e.target.value }))}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="availability">Availability</Label>
-                      <Select onValueChange={(value) => setFormData(prev => ({ ...prev, availability: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your availability" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="full-time">Full-time</SelectItem>
-                          <SelectItem value="part-time">Part-time</SelectItem>
-                          <SelectItem value="weekends">Weekends only</SelectItem>
-                          <SelectItem value="flexible">Flexible schedule</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="availability">Availability</Label>
+                    <Select onValueChange={(value) => setFormData(prev => ({ ...prev, availability: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full-time">Full-time</SelectItem>
+                        <SelectItem value="part-time">Part-time</SelectItem>
+                        <SelectItem value="weekends">Weekends only</SelectItem>
+                        <SelectItem value="flexible">Flexible schedule</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
