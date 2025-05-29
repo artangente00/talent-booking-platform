@@ -38,10 +38,6 @@ export const useBookerCreation = (onSuccess: () => void) => {
     try {
       console.log('Creating booker with data:', bookerData);
       
-      // Store current session before creating new user
-      const { data: currentSession } = await supabase.auth.getSession();
-      const currentUser = currentSession?.session?.user;
-      
       // Create the user account with specific metadata to identify as booker
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: bookerData.email,
@@ -67,21 +63,6 @@ export const useBookerCreation = (onSuccess: () => void) => {
         
         // Wait a moment to ensure any triggers have completed
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Check if a customer record was auto-created and delete it
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('user_id', authData.user.id)
-          .single();
-          
-        if (existingCustomer) {
-          console.log('Deleting auto-created customer record:', existingCustomer.id);
-          await supabase
-            .from('customers')
-            .delete()
-            .eq('id', existingCustomer.id);
-        }
       
         // Insert into bookers table
         const { error: insertError } = await supabase.from('bookers').insert([
