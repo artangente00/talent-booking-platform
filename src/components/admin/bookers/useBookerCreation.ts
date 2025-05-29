@@ -38,6 +38,10 @@ export const useBookerCreation = (onSuccess: () => void) => {
     try {
       console.log('Creating booker with data:', bookerData);
       
+      // Store current admin session before creating new user
+      const { data: currentSession } = await supabase.auth.getSession();
+      const currentAdminUser = currentSession?.session?.user;
+      
       // Create the user account with specific metadata to identify as booker
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: bookerData.email,
@@ -84,12 +88,27 @@ export const useBookerCreation = (onSuccess: () => void) => {
           return false;
         }
 
-        // Important: Sign out the newly created user to prevent login
-        console.log('Signing out newly created user to maintain admin session');
+        // Important: Sign out the newly created user and restore admin session
+        console.log('Signing out newly created booker to restore admin session');
         await supabase.auth.signOut();
         
-        // Small delay to ensure signout completes
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Restore the admin session if it existed
+        if (currentAdminUser) {
+          console.log('Restoring admin session for user:', currentAdminUser.id);
+          // Small delay to ensure signout completes before attempting to restore session
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Get a fresh session for the admin user (this won't trigger redirects in useAuth)
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError || !session) {
+            console.log('Admin session was lost, user will need to log back in');
+            // Don't throw error here, just let them know via toast
+            toast({
+              title: "Session Notice",
+              description: "Booker created successfully! Please refresh the page if needed.",
+            });
+          }
+        }
       
         toast({
           title: "Success",

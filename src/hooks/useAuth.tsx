@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,12 @@ export const useAuth = () => {
 
   const checkUserRoleAndRedirect = async (userId: string, skipRedirect = false) => {
     if (skipRedirect) return;
+    
+    // Don't redirect if we're already on an admin page
+    if (window.location.pathname.startsWith('/admin')) {
+      console.log('Already on admin page, skipping redirect');
+      return;
+    }
     
     try {
       // Check if user is admin
