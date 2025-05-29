@@ -38,60 +38,42 @@ export const useBookerCreation = (onSuccess: () => void) => {
     try {
       console.log('Creating booker with data:', bookerData);
       
-      // Use admin API to create user without auto-signin
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: bookerData.email,
-        password: bookerData.password,
-        user_metadata: {
-          full_name: bookerData.full_name,
-          phone: bookerData.phone,
-          user_type: 'booker'
-        },
-        email_confirm: true // Auto-confirm email
-      });
-
-      console.log('Auth admin createUser result:', { authData, authError });
-
-      if (authError) {
-        console.error('Auth error:', authError);
-        throw authError;
+      // Get the current session to include auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
       }
 
-      if (authData.user) {
-        console.log('User created successfully, now creating booker record for user:', authData.user.id);
-        
-        // Wait a moment to ensure any triggers have completed
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      
-        // Insert into bookers table
-        const { error: insertError } = await supabase.from('bookers').insert([
-          {
-            user_id: authData.user.id,
-            full_name: bookerData.full_name,
-            email: bookerData.email,
-            phone: bookerData.phone,
-          }
-        ]);
-      
-        if (insertError) {
-          console.error('Error inserting into bookers table:', insertError);
-          toast({
-            title: "Database Error",
-            description: "Failed to save booker data.",
-            variant: "destructive",
-          });
-          return false;
-        }
-      
+      // Call the edge function to create the booker
+      const { data, error } = await supabase.functions.invoke('create-booker', {
+        body: bookerData,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      console.log('Edge function result:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.success) {
         toast({
           title: "Success",
           description: "Booker account created successfully!",
         });
-      
+        
         onSuccess(); // trigger success callback
         return true;
       } else {
-        throw new Error('User creation failed - no user returned');
+        throw new Error('Unexpected response from server');
       }
     } catch (error: any) {
       console.error('Error adding booker:', error);
