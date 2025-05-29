@@ -38,20 +38,23 @@ export const useBookerCreation = (onSuccess: () => void) => {
     try {
       console.log('Creating booker with data:', bookerData);
       
-      // Create the user account with specific metadata to identify as booker
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Get the current session to restore it later
+      const { data: currentSession } = await supabase.auth.getSession();
+      
+      // Create the user account using the Admin API instead of signUp
+      // This prevents triggering auth state changes for the current session
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: bookerData.email,
         password: bookerData.password,
-        options: {
-          data: {
-            full_name: bookerData.full_name,
-            phone: bookerData.phone,
-            user_type: 'booker' // Mark this user as a booker
-          }
-        }
+        user_metadata: {
+          full_name: bookerData.full_name,
+          phone: bookerData.phone,
+          user_type: 'booker'
+        },
+        email_confirm: true // Auto-confirm the email
       });
 
-      console.log('Auth signup result:', { authData, authError });
+      console.log('Auth admin createUser result:', { authData, authError });
 
       if (authError) {
         console.error('Auth error:', authError);
