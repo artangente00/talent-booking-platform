@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+
+interface Service {
+  id: string;
+  title: string;
+}
 
 const TalentApplication = () => {
   const [formData, setFormData] = useState({
@@ -22,28 +27,46 @@ const TalentApplication = () => {
     description: '',
     availability: ''
   });
+  const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const serviceOptions = [
-    'House Cleaning',
-    'Deep Cleaning',
-    'Office Cleaning',
-    'Personal Driver',
-    'Delivery Driver',
-    'Airport Transport',
-    'Babysitting',
-    'Child Care',
-    'Tutoring',
-    'Elderly Care',
-    'Companion Care',
-    'Medical Assistance',
-    'Laundry Service',
-    'Ironing',
-    'Dry Cleaning Pickup',
-    'Others'
-  ];
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, title')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching services:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load services. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load services. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingServices(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +95,7 @@ const TalentApplication = () => {
           services: [finalService],
           description: formData.description || null,
           availability: formData.availability || null,
-          hourly_rate: null, // Remove hourly_rate since we're not collecting it anymore
+          hourly_rate: null,
         });
 
       if (error) {
@@ -210,16 +233,17 @@ const TalentApplication = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="service">Service Type</Label>
-                    <Select onValueChange={handleServiceChange} value={formData.service}>
+                    <Select onValueChange={handleServiceChange} value={formData.service} disabled={isLoadingServices}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a service" />
+                        <SelectValue placeholder={isLoadingServices ? "Loading services..." : "Select a service"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {serviceOptions.map((service) => (
-                          <SelectItem key={service} value={service}>
-                            {service}
+                        {services.map((service) => (
+                          <SelectItem key={service.id} value={service.title}>
+                            {service.title}
                           </SelectItem>
                         ))}
+                        <SelectItem value="Others">Others</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -289,7 +313,7 @@ const TalentApplication = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-kwikie-orange hover:bg-kwikie-red text-white py-3"
-                  disabled={isLoading}
+                  disabled={isLoading || isLoadingServices}
                 >
                   {isLoading ? "Submitting Application..." : "Submit Application"}
                 </Button>
