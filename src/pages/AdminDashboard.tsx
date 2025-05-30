@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -107,40 +106,42 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="customers" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Customers
-              </TabsTrigger>
-              <TabsTrigger value="bookings" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Bookings
-              </TabsTrigger>
-              <TabsTrigger value="bookers" className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4" />
-                Bookers
-              </TabsTrigger>
-              <TabsTrigger value="services" className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Services
-              </TabsTrigger>
-              <TabsTrigger value="talents" className="flex items-center gap-2">
-                <Star className="w-4 h-4" />
-                Freelancers
-              </TabsTrigger>
-              <TabsTrigger value="content" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Content
-              </TabsTrigger>
-              <TabsTrigger value="admins" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Admins
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="grid grid-cols-8 min-w-max md:w-full">
+                <TabsTrigger value="overview" className="flex items-center gap-2 px-2 md:px-3">
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="hidden sm:inline">Overview</span>
+                </TabsTrigger>
+                <TabsTrigger value="customers" className="flex items-center gap-2 px-2 md:px-3">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Customers</span>
+                </TabsTrigger>
+                <TabsTrigger value="bookings" className="flex items-center gap-2 px-2 md:px-3">
+                  <Calendar className="w-4 h-4" />
+                  <span className="hidden sm:inline">Bookings</span>
+                </TabsTrigger>
+                <TabsTrigger value="bookers" className="flex items-center gap-2 px-2 md:px-3">
+                  <UserCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Bookers</span>
+                </TabsTrigger>
+                <TabsTrigger value="services" className="flex items-center gap-2 px-2 md:px-3">
+                  <Package className="w-4 h-4" />
+                  <span className="hidden sm:inline">Services</span>
+                </TabsTrigger>
+                <TabsTrigger value="talents" className="flex items-center gap-2 px-2 md:px-3">
+                  <Star className="w-4 h-4" />
+                  <span className="hidden sm:inline">Freelancers</span>
+                </TabsTrigger>
+                <TabsTrigger value="content" className="flex items-center gap-2 px-2 md:px-3">
+                  <FileText className="w-4 h-4" />
+                  <span className="hidden sm:inline">Content</span>
+                </TabsTrigger>
+                <TabsTrigger value="admins" className="flex items-center gap-2 px-2 md:px-3">
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Admins</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="overview">
               <AdminStats />
