@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,8 @@ const TalentApplication = () => {
     fullName: '',
     phone: '',
     address: '',
+    birthdate: '',
+    age: '',
     experience: '',
     service: '',
     customService: '',
@@ -91,6 +92,8 @@ const TalentApplication = () => {
           full_name: formData.fullName,
           phone: formData.phone,
           address: formData.address,
+          birthdate: formData.birthdate || null,
+          age: formData.age ? parseInt(formData.age) : null,
           experience: formData.experience || null,
           services: [finalService],
           description: formData.description || null,
@@ -113,6 +116,8 @@ const TalentApplication = () => {
         fullName: '',
         phone: '',
         address: '',
+        birthdate: '',
+        age: '',
         experience: '',
         service: '',
         customService: '',
@@ -223,6 +228,31 @@ const TalentApplication = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                       required
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="birthdate">Birthdate</Label>
+                      <Input
+                        id="birthdate"
+                        type="date"
+                        value={formData.birthdate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, birthdate: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="age">Age</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        placeholder="Age"
+                        min="18"
+                        max="100"
+                        value={formData.age}
+                        onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                      />
+                    </div>
                   </div>
                 </div>
 

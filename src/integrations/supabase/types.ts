@@ -302,7 +302,9 @@ export type Database = {
       talents: {
         Row: {
           address: string
+          age: number | null
           availability: string | null
+          birthdate: string | null
           created_at: string
           description: string | null
           experience: string | null
@@ -317,7 +319,9 @@ export type Database = {
         }
         Insert: {
           address: string
+          age?: number | null
           availability?: string | null
+          birthdate?: string | null
           created_at?: string
           description?: string | null
           experience?: string | null
@@ -332,7 +336,9 @@ export type Database = {
         }
         Update: {
           address?: string
+          age?: number | null
           availability?: string | null
+          birthdate?: string | null
           created_at?: string
           description?: string | null
           experience?: string | null
