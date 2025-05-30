@@ -28,6 +28,8 @@ interface Talent {
   created_at: string;
   description: string | null;
   profile_photo_url: string | null;
+  birthdate: string | null;
+  age: number | null;
 }
 
 const TalentManagement = () => {
@@ -47,7 +49,9 @@ const TalentManagement = () => {
     availability: '',
     hourly_rate: null as string | null,
     description: '',
-    profile_photo_url: null as string | null
+    profile_photo_url: null as string | null,
+    birthdate: '',
+    age: ''
   });
   const [editTalent, setEditTalent] = useState({
     full_name: '',
@@ -58,7 +62,9 @@ const TalentManagement = () => {
     availability: '',
     hourly_rate: null as string | null,
     description: '',
-    profile_photo_url: null as string | null
+    profile_photo_url: null as string | null,
+    birthdate: '',
+    age: ''
   });
   const { toast } = useToast();
 
@@ -92,7 +98,7 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url } = newTalent;
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age } = newTalent;
   
     if (!full_name || !phone || !address || services.length === 0) {
       toast({
@@ -116,6 +122,8 @@ const TalentManagement = () => {
           availability,
           description,
           profile_photo_url,
+          birthdate: birthdate || null,
+          age: age ? parseInt(age) : null,
           status: 'pending'
         });
   
@@ -132,7 +140,9 @@ const TalentManagement = () => {
         availability: '', 
         hourly_rate: null, 
         description: '',
-        profile_photo_url: null
+        profile_photo_url: null,
+        birthdate: '',
+        age: ''
       });
       fetchTalents();
     } catch (error) {
@@ -143,7 +153,7 @@ const TalentManagement = () => {
   const updateTalent = async () => {
     if (!selectedTalent) return;
 
-    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url } = editTalent;
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age } = editTalent;
   
     if (!full_name || !phone || !address || services.length === 0) {
       toast({
@@ -166,7 +176,9 @@ const TalentManagement = () => {
           hourly_rate,
           availability,
           description,
-          profile_photo_url
+          profile_photo_url,
+          birthdate: birthdate || null,
+          age: age ? parseInt(age) : null
         })
         .eq('id', selectedTalent.id);
   
@@ -212,7 +224,9 @@ const TalentManagement = () => {
       availability: talent.availability || '',
       hourly_rate: talent.hourly_rate,
       description: talent.description || '',
-      profile_photo_url: talent.profile_photo_url
+      profile_photo_url: talent.profile_photo_url,
+      birthdate: talent.birthdate || '',
+      age: talent.age ? talent.age.toString() : ''
     });
     setIsEditDialogOpen(true);
   };

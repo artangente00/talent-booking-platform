@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -88,6 +89,32 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
           required
         />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="birthdate">Birthdate</Label>
+          <Input
+            id="birthdate"
+            type="date"
+            value={formData.birthdate || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, birthdate: e.target.value }))}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="age">Age</Label>
+          <Input
+            id="age"
+            type="number"
+            placeholder="Age"
+            min="18"
+            max="100"
+            value={formData.age || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, age: e.target.value }))}
+          />
+        </div>
+      </div>
+
       <div>
         <Label htmlFor="service">Service *</Label>
         <Select
