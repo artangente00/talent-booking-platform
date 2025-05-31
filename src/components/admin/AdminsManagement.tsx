@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -240,55 +239,36 @@ const AdminsManagement = () => {
     }
 
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      console.log('Creating admin with auth user:', manualAdminData);
+      console.log('Creating admin via Edge Function:', manualAdminData);
 
-      // First, create the authentication user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: manualAdminData.email,
-        password: manualAdminData.password,
-        email_confirm: true // Auto-confirm email for admin users
+      // Call the Edge Function to create admin
+      const { data, error } = await supabase.functions.invoke('create-admin', {
+        body: {
+          firstName: manualAdminData.firstName,
+          middleName: manualAdminData.middleName,
+          lastName: manualAdminData.lastName,
+          email: manualAdminData.email,
+          password: manualAdminData.password
+        }
       });
 
-      if (authError) {
-        console.error('Auth user creation error:', authError);
-        throw new Error(`Failed to create auth user: ${authError.message}`);
+      if (error) {
+        console.error('Edge Function error:', error);
+        throw new Error(`Failed to create admin: ${error.message}`);
       }
 
-      if (!authData.user) {
-        throw new Error('No user data returned from auth creation');
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create admin');
       }
 
-      console.log('Auth user created successfully:', authData.user.id);
-
-      // Then, create the admin record with the auth user's ID
-      const { data: adminData, error: adminError } = await supabase
-        .from('admins')
-        .insert({
-          user_id: authData.user.id, // Link to the created auth user
-          first_name: manualAdminData.firstName,
-          middle_name: manualAdminData.middleName || null,
-          last_name: manualAdminData.lastName,
-          email: manualAdminData.email,
-          created_by: currentUser.id,
-          is_active: true
-        })
-        .select();
-
-      if (adminError) {
-        console.error('Admin creation error:', adminError);
-        // If admin creation fails, we should clean up the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        throw new Error(`Failed to create admin record: ${adminError.message}`);
-      }
-
-      console.log('Admin created successfully:', adminData);
+      console.log('Admin created successfully via Edge Function:', data.admin);
 
       toast({
         title: "Success",
-        description: "Admin user created successfully with authentication access.",
+        description: data.message || "Admin user created successfully with authentication access.",
       });
 
       setIsDialogOpen(false);
