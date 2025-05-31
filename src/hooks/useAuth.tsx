@@ -247,7 +247,7 @@ export const useAuth = () => {
 
         toast({
           title: "Success!",
-          description: You've signed up successfully! You can now log in and book our services.",
+          description: You have signed up successfully! You can now log in and book our services.",
         });
         
         return true;
