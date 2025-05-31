@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -246,9 +247,16 @@ export const useAuth = () => {
         }
 
         toast({
-          title: "Success!",
-          description: "You've signed up successfully! You can now log in and book our services.",
+          title: "Welcome!",
+          description: "Your account has been created successfully! You are now logged in.",
         });
+        
+        // Check user role and redirect accordingly - the user is already logged in at this point
+        if (data.user) {
+          await checkUserRoleAndRedirect(data.user.id);
+        } else {
+          navigate('/');
+        }
         
         return true;
       }
