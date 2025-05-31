@@ -279,7 +279,7 @@ const SignUpForm = () => {
           <Input
             id="birthplace"
             type="text"
-            placeholder="City, Country"
+            placeholder="City, Province"
             value={birthplace}
             onChange={(e) => setBirthplace(e.target.value)}
             required
