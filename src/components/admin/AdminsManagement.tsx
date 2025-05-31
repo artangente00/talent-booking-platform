@@ -13,10 +13,14 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Admin {
   id: string;
-  user_id: string;
+  user_id: string | null;
   is_active: boolean;
   created_at: string;
   created_by: string | null;
+  first_name: string | null;
+  middle_name: string | null;
+  last_name: string | null;
+  email: string | null;
   customer: {
     first_name: string;
     middle_name: string | null;
@@ -81,20 +85,26 @@ const AdminsManagement = () => {
 
       console.log('Found admins:', adminsData.length);
 
-      // Then get customer data for each admin
+      // Then get customer data for each admin (only for those with user_id)
       const adminsWithCustomers = await Promise.all(
         adminsData.map(async (admin) => {
-          console.log('Fetching customer data for admin:', admin.user_id);
+          let customerData = null;
           
-          // Get customer data for the admin user
-          const { data: customerData, error: customerError } = await supabase
-            .from('customers')
-            .select('first_name, middle_name, last_name, email, contact_number')
-            .eq('user_id', admin.user_id)
-            .single();
+          // Only fetch customer data if admin has a user_id (linked to customers table)
+          if (admin.user_id) {
+            console.log('Fetching customer data for admin:', admin.user_id);
+            
+            const { data: customer, error: customerError } = await supabase
+              .from('customers')
+              .select('first_name, middle_name, last_name, email, contact_number')
+              .eq('user_id', admin.user_id)
+              .single();
 
-          if (customerError) {
-            console.error('Error fetching customer for admin:', admin.user_id, customerError);
+            if (customerError) {
+              console.error('Error fetching customer for admin:', admin.user_id, customerError);
+            } else {
+              customerData = customer;
+            }
           }
 
           // Get creator data if exists
@@ -313,8 +323,25 @@ const AdminsManagement = () => {
     });
   };
 
-  const getCustomerDisplayName = (customer: any) => {
-    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  const getDisplayName = (admin: Admin) => {
+    // For admins linked to customers, use customer data
+    if (admin.customer) {
+      return `${admin.customer.first_name || ''} ${admin.customer.middle_name || ''} ${admin.customer.last_name || ''}`.trim();
+    }
+    // For manually created admins, use admin table data
+    if (admin.first_name || admin.last_name) {
+      return `${admin.first_name || ''} ${admin.middle_name || ''} ${admin.last_name || ''}`.trim();
+    }
+    return 'Unknown User';
+  };
+
+  const getDisplayEmail = (admin: Admin) => {
+    // For admins linked to customers, use customer email
+    if (admin.customer?.email) {
+      return admin.customer.email;
+    }
+    // For manually created admins, use admin table email
+    return admin.email || 'N/A';
   };
 
   if (loading) {
@@ -520,8 +547,7 @@ const AdminsManagement = () => {
                         <User className="w-4 h-4 text-gray-400" />
                         <div>
                           <div className="font-medium">
-                            {admin.customer ? getCustomerDisplayName(admin.customer) : 
-                             admin.first_name ? `${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim() : 'Unknown User'}
+                            {getDisplayName(admin)}
                           </div>
                         </div>
                       </div>
@@ -530,7 +556,7 @@ const AdminsManagement = () => {
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm">
                           <Mail className="w-3 h-3" />
-                          {admin.customer?.email || admin.email || 'N/A'}
+                          {getDisplayEmail(admin)}
                         </div>
                       </div>
                     </TableCell>
