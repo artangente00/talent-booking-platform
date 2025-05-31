@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ const AdminsManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('existing');
   
   // New state for manual admin creation
   const [manualAdminData, setManualAdminData] = useState({
@@ -241,8 +243,10 @@ const AdminsManagement = () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) throw new Error('Not authenticated');
 
+      console.log('Adding manual admin:', manualAdminData);
+
       // Insert directly into admins table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('admins')
         .insert({
           first_name: manualAdminData.firstName,
@@ -252,9 +256,15 @@ const AdminsManagement = () => {
           password_hash: manualAdminData.password, // Note: In production, this should be properly hashed
           created_by: currentUser.id,
           is_active: true
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Admin created successfully:', data);
 
       toast({
         title: "Success",
@@ -274,9 +284,28 @@ const AdminsManagement = () => {
       console.error('Error adding manual admin:', error);
       toast({
         title: "Error",
-        description: "Failed to add admin.",
+        description: `Failed to add admin: ${error.message}`,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleSubmit = () => {
+    if (activeTab === 'manual') {
+      addManualAdmin();
+    } else {
+      addAdmin();
+    }
+  };
+
+  const isSubmitDisabled = () => {
+    if (activeTab === 'manual') {
+      return !manualAdminData.firstName.trim() || 
+             !manualAdminData.lastName.trim() || 
+             !manualAdminData.email.trim() || 
+             !manualAdminData.password.trim();
+    } else {
+      return !selectedCustomerId;
     }
   };
 
@@ -389,7 +418,7 @@ const AdminsManagement = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <Tabs defaultValue="existing" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="existing">From Existing Customers</TabsTrigger>
                   <TabsTrigger value="manual">Manual Entry</TabsTrigger>
@@ -485,38 +514,11 @@ const AdminsManagement = () => {
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Tabs defaultValue="existing" className="hidden">
-                  <TabsContent value="existing">
-                    <Button onClick={addAdmin} disabled={!selectedCustomerId}>
-                      Add Admin
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="manual">
-                    <Button onClick={addManualAdmin}>
-                      Create Admin
-                    </Button>
-                  </TabsContent>
-                </Tabs>
                 <Button 
-                  onClick={() => {
-                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
-                    if (activeTab === 'manual') {
-                      addManualAdmin();
-                    } else {
-                      addAdmin();
-                    }
-                  }}
-                  disabled={(() => {
-                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
-                    return activeTab === 'manual' 
-                      ? !manualAdminData.firstName.trim() || !manualAdminData.lastName.trim() || !manualAdminData.email.trim() || !manualAdminData.password.trim()
-                      : !selectedCustomerId;
-                  })()}
+                  onClick={handleSubmit}
+                  disabled={isSubmitDisabled()}
                 >
-                  {(() => {
-                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
-                    return activeTab === 'manual' ? 'Create Admin' : 'Add Admin';
-                  })()}
+                  {activeTab === 'manual' ? 'Create Admin' : 'Add Admin'}
                 </Button>
               </DialogFooter>
             </DialogContent>
