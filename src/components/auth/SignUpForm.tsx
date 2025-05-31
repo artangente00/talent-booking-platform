@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +16,7 @@ const SignUpForm = () => {
   const [lastName, setLastName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [age, setAge] = useState<number | null>(null);
   const [birthplace, setBirthplace] = useState('');
   const [cityMunicipality, setCityMunicipality] = useState('');
   const [completeAddress, setCompleteAddress] = useState('');
@@ -26,6 +26,24 @@ const SignUpForm = () => {
   
   const { toast } = useToast();
   const { isLoading, signUp } = useAuth();
+
+  // Calculate age automatically when birthdate changes
+  useEffect(() => {
+    if (birthdate) {
+      const today = new Date();
+      const birth = new Date(birthdate);
+      let calculatedAge = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        calculatedAge--;
+      }
+      
+      setAge(calculatedAge);
+    } else {
+      setAge(null);
+    }
+  }, [birthdate]);
 
   const handleIdPhotoChange = (file: File | null) => {
     setIdPhoto(file);
@@ -143,6 +161,7 @@ const SignUpForm = () => {
     setLastName('');
     setContactNumber('');
     setBirthdate('');
+    setAge(null);
     setBirthplace('');
     setCityMunicipality('');
     setCompleteAddress('');
@@ -166,6 +185,7 @@ const SignUpForm = () => {
       lastName,
       contactNumber,
       birthdate,
+      age,
       birthplace,
       address: `${completeAddress}, ${cityMunicipality}`,
       city_municipality: cityMunicipality,

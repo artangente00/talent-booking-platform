@@ -134,6 +134,7 @@ export type Database = {
       customers: {
         Row: {
           address: string | null
+          age: number | null
           birthdate: string | null
           birthplace: string | null
           city_municipality: string | null
@@ -153,6 +154,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          age?: number | null
           birthdate?: string | null
           birthplace?: string | null
           city_municipality?: string | null
@@ -172,6 +174,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          age?: number | null
           birthdate?: string | null
           birthplace?: string | null
           city_municipality?: string | null

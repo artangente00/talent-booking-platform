@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -106,6 +105,7 @@ export const useAuth = () => {
             last_name: formData.lastName,
             contact_number: formData.contactNumber,
             birthdate: formData.birthdate,
+            age: formData.age,
             birthplace: formData.birthplace,
             address: formData.address,
             city_municipality: formData.city_municipality,
@@ -221,6 +221,7 @@ export const useAuth = () => {
                 email: formData.email,
                 contact_number: formData.contactNumber,
                 birthdate: formData.birthdate,
+                age: formData.age,
                 birthplace: formData.birthplace,
                 address: formData.address,
                 city_municipality: formData.city_municipality,
