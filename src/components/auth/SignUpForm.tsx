@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import IdPhotoUpload from './IdPhotoUpload';
@@ -17,7 +18,8 @@ const SignUpForm = () => {
   const [contactNumber, setContactNumber] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [birthplace, setBirthplace] = useState('');
-  const [address, setAddress] = useState('');
+  const [cityMunicipality, setCityMunicipality] = useState('');
+  const [completeAddress, setCompleteAddress] = useState('');
   const [validGovernmentId, setValidGovernmentId] = useState('');
   const [idPhoto, setIdPhoto] = useState<File | null>(null);
   const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null);
@@ -93,10 +95,19 @@ const SignUpForm = () => {
       return false;
     }
 
-    if (!address.trim()) {
+    if (!cityMunicipality) {
       toast({
         title: "Error",
-        description: "Address is required",
+        description: "City or Municipality is required",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!completeAddress.trim()) {
+      toast({
+        title: "Error",
+        description: "Complete address is required",
         variant: "destructive",
       });
       return false;
@@ -133,7 +144,8 @@ const SignUpForm = () => {
     setContactNumber('');
     setBirthdate('');
     setBirthplace('');
-    setAddress('');
+    setCityMunicipality('');
+    setCompleteAddress('');
     setValidGovernmentId('');
     setIdPhoto(null);
     setIdPhotoPreview(null);
@@ -155,7 +167,7 @@ const SignUpForm = () => {
       contactNumber,
       birthdate,
       birthplace,
-      address,
+      address: `${completeAddress}, ${cityMunicipality}`,
       validGovernmentId,
     };
 
@@ -253,16 +265,34 @@ const SignUpForm = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="address">Address *</Label>
-        <Input
-          id="address"
-          type="text"
-          placeholder="Complete address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          required
-        />
+      <div className="space-y-4">
+        <Label className="text-base font-semibold">Current Address *</Label>
+        
+        <div className="space-y-2">
+          <Label htmlFor="cityMunicipality">City or Municipality *</Label>
+          <Select value={cityMunicipality} onValueChange={setCityMunicipality}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select city or municipality" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+              <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+              <SelectItem value="Basay">Basay</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="completeAddress">Complete Address *</Label>
+          <Input
+            id="completeAddress"
+            type="text"
+            placeholder="Street, Barangay"
+            value={completeAddress}
+            onChange={(e) => setCompleteAddress(e.target.value)}
+            required
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
