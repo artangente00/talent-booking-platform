@@ -77,6 +77,22 @@ export const useAuth = () => {
     setIsLoading(true);
     
     try {
+      // First check if user already exists
+      const { data: existingUser } = await supabase
+        .from('customers')
+        .select('user_id')
+        .eq('email', formData.email)
+        .single();
+
+      if (existingUser) {
+        toast({
+          title: "Account exists",
+          description: "This email is already registered. Please try logging in instead.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -95,6 +111,7 @@ export const useAuth = () => {
       });
 
       if (error) {
+        console.error('Signup error:', error);
         if (error.message.includes('already registered')) {
           toast({
             title: "Account exists",
@@ -108,19 +125,60 @@ export const useAuth = () => {
             variant: "destructive",
           });
         }
-      } else if (data.user) {
-        // Upload ID photo and update customer record
-        const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
-        
-        if (idPhotoUrl) {
-          // Update the customer record with the photo URL
-          const { error: updateError } = await supabase
+        return false;
+      } 
+
+      if (data.user) {
+        // Check if customer record already exists before creating
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (!existingCustomer) {
+          // Upload ID photo first
+          const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
+          
+          // Create customer record with photo URL
+          const { error: insertError } = await supabase
             .from('customers')
-            .update({ id_photo_link: idPhotoUrl })
-            .eq('user_id', data.user.id);
-            
-          if (updateError) {
-            console.error('Error updating customer with photo URL:', updateError);
+            .insert({
+              user_id: data.user.id,
+              first_name: formData.firstName,
+              middle_name: formData.middleName,
+              last_name: formData.lastName,
+              email: formData.email,
+              contact_number: formData.contactNumber,
+              birthdate: formData.birthdate,
+              birthplace: formData.birthplace,
+              address: formData.address,
+              valid_government_id: formData.validGovernmentId,
+              id_photo_link: idPhotoUrl
+            });
+
+          if (insertError) {
+            console.error('Error creating customer record:', insertError);
+            toast({
+              title: "Error",
+              description: "There was an error creating your account. Please try again.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        } else {
+          // Update existing customer record with photo if needed
+          const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
+          
+          if (idPhotoUrl) {
+            const { error: updateError } = await supabase
+              .from('customers')
+              .update({ id_photo_link: idPhotoUrl })
+              .eq('user_id', data.user.id);
+              
+            if (updateError) {
+              console.error('Error updating customer with photo URL:', updateError);
+            }
           }
         }
 
