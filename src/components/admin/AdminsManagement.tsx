@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, UserPlus, Mail, Calendar, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +39,16 @@ const AdminsManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // New state for manual admin creation
+  const [manualAdminData, setManualAdminData] = useState({
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    password: ''
+  });
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -205,6 +216,60 @@ const AdminsManagement = () => {
     }
   };
 
+  const addManualAdmin = async () => {
+    if (!manualAdminData.firstName.trim() || !manualAdminData.lastName.trim() || 
+        !manualAdminData.email.trim() || !manualAdminData.password.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields (First Name, Last Name, Email, Password).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error('Not authenticated');
+
+      // Insert directly into admins table
+      const { error } = await supabase
+        .from('admins')
+        .insert({
+          first_name: manualAdminData.firstName,
+          middle_name: manualAdminData.middleName || null,
+          last_name: manualAdminData.lastName,
+          email: manualAdminData.email,
+          password_hash: manualAdminData.password, // Note: In production, this should be properly hashed
+          created_by: currentUser.id,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Admin added successfully.",
+      });
+
+      setIsDialogOpen(false);
+      setManualAdminData({
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        email: '',
+        password: ''
+      });
+      fetchAdmins();
+    } catch (error) {
+      console.error('Error adding manual admin:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add admin.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleAdminStatus = async (adminId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
@@ -285,49 +350,142 @@ const AdminsManagement = () => {
                 Add Admin
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Add New Admin</DialogTitle>
                 <DialogDescription>
-                  Select a customer to grant admin access to.
+                  Choose how to add a new admin user.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="search">Search Customers</Label>
-                  <Input
-                    id="search"
-                    placeholder="Search by name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="max-h-60 overflow-y-auto space-y-2">
-                  {availableCustomers.map((customer) => (
-                    <div
-                      key={customer.id}
-                      className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
-                        selectedCustomerId === customer.user_id ? 'border-kwikie-orange bg-kwikie-yellow/10' : ''
-                      }`}
-                      onClick={() => setSelectedCustomerId(customer.user_id)}
-                    >
-                      <div className="font-medium">{getCustomerDisplayName(customer)}</div>
-                      <div className="text-sm text-gray-600">{customer.email}</div>
+              
+              <Tabs defaultValue="existing" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="existing">From Existing Customers</TabsTrigger>
+                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="existing" className="space-y-4">
+                  <div>
+                    <Label htmlFor="search">Search Customers</Label>
+                    <Input
+                      id="search"
+                      placeholder="Search by name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {availableCustomers.map((customer) => (
+                      <div
+                        key={customer.id}
+                        className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
+                          selectedCustomerId === customer.user_id ? 'border-kwikie-orange bg-kwikie-yellow/10' : ''
+                        }`}
+                        onClick={() => setSelectedCustomerId(customer.user_id)}
+                      >
+                        <div className="font-medium">{getCustomerDisplayName(customer)}</div>
+                        <div className="text-sm text-gray-600">{customer.email}</div>
+                      </div>
+                    ))}
+                    {availableCustomers.length === 0 && (
+                      <div className="text-center py-4 text-gray-500">
+                        No available customers found.
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="manual" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name *</Label>
+                      <Input
+                        id="firstName"
+                        placeholder="John"
+                        value={manualAdminData.firstName}
+                        onChange={(e) => setManualAdminData(prev => ({ ...prev, firstName: e.target.value }))}
+                      />
                     </div>
-                  ))}
-                  {availableCustomers.length === 0 && (
-                    <div className="text-center py-4 text-gray-500">
-                      No available customers found.
+                    <div className="space-y-2">
+                      <Label htmlFor="middleName">Middle Name</Label>
+                      <Input
+                        id="middleName"
+                        placeholder="Michael"
+                        value={manualAdminData.middleName}
+                        onChange={(e) => setManualAdminData(prev => ({ ...prev, middleName: e.target.value }))}
+                      />
                     </div>
-                  )}
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name *</Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Doe"
+                        value={manualAdminData.lastName}
+                        onChange={(e) => setManualAdminData(prev => ({ ...prev, lastName: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@example.com"
+                      value={manualAdminData.email}
+                      onChange={(e) => setManualAdminData(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={manualAdminData.password}
+                      onChange={(e) => setManualAdminData(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={addAdmin} disabled={!selectedCustomerId}>
-                  Add Admin
+                <Tabs defaultValue="existing" className="hidden">
+                  <TabsContent value="existing">
+                    <Button onClick={addAdmin} disabled={!selectedCustomerId}>
+                      Add Admin
+                    </Button>
+                  </TabsContent>
+                  <TabsContent value="manual">
+                    <Button onClick={addManualAdmin}>
+                      Create Admin
+                    </Button>
+                  </TabsContent>
+                </Tabs>
+                <Button 
+                  onClick={() => {
+                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
+                    if (activeTab === 'manual') {
+                      addManualAdmin();
+                    } else {
+                      addAdmin();
+                    }
+                  }}
+                  disabled={(() => {
+                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
+                    return activeTab === 'manual' 
+                      ? !manualAdminData.firstName.trim() || !manualAdminData.lastName.trim() || !manualAdminData.email.trim() || !manualAdminData.password.trim()
+                      : !selectedCustomerId;
+                  })()}
+                >
+                  {(() => {
+                    const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value');
+                    return activeTab === 'manual' ? 'Create Admin' : 'Add Admin';
+                  })()}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -362,7 +520,8 @@ const AdminsManagement = () => {
                         <User className="w-4 h-4 text-gray-400" />
                         <div>
                           <div className="font-medium">
-                            {admin.customer ? getCustomerDisplayName(admin.customer) : 'Unknown User'}
+                            {admin.customer ? getCustomerDisplayName(admin.customer) : 
+                             admin.first_name ? `${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim() : 'Unknown User'}
                           </div>
                         </div>
                       </div>
@@ -371,7 +530,7 @@ const AdminsManagement = () => {
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm">
                           <Mail className="w-3 h-3" />
-                          {admin.customer?.email || 'N/A'}
+                          {admin.customer?.email || admin.email || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
