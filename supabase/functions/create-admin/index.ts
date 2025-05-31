@@ -63,41 +63,86 @@ serve(async (req) => {
 
     console.log('Creating auth user for admin:', email)
 
-    // Check if user already exists first
-    const { data: existingUser, error: checkError } = await supabaseAdmin.auth.admin.getUserByEmail(email)
-    
-    let authUserId = null
-    
-    if (existingUser?.user) {
-      // User already exists, use existing user ID
-      authUserId = existingUser.user.id
-      console.log('Using existing auth user:', authUserId)
-    } else {
-      // Create new authentication user using service role
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true // Auto-confirm email for admin users
-      })
+    // Try to create the authentication user first
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true // Auto-confirm email for admin users
+    })
 
-      if (authError) {
+    // If user already exists, we'll get a specific error
+    if (authError) {
+      if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+        // User exists, let's try to get their user ID from our customers table
+        const { data: existingCustomer } = await supabaseAdmin
+          .from('customers')
+          .select('user_id')
+          .eq('email', email)
+          .single()
+
+        if (existingCustomer?.user_id) {
+          // Check if this user is already an admin
+          const { data: existingAdmin } = await supabaseAdmin
+            .from('admins')
+            .select('id')
+            .eq('user_id', existingCustomer.user_id)
+            .eq('is_active', true)
+            .single()
+
+          if (existingAdmin) {
+            throw new Error('This user is already an admin')
+          }
+
+          // Create admin record for existing user
+          const { data: adminData, error: adminError } = await supabaseAdmin
+            .from('admins')
+            .insert({
+              user_id: existingCustomer.user_id,
+              first_name: firstName,
+              middle_name: middleName || null,
+              last_name: lastName,
+              email: email,
+              created_by: user.id,
+              is_active: true
+            })
+            .select()
+
+          if (adminError) {
+            console.error('Admin creation error:', adminError)
+            throw new Error(`Failed to create admin record: ${adminError.message}`)
+          }
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              admin: adminData[0],
+              message: 'Admin privileges granted to existing user'
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200 
+            }
+          )
+        } else {
+          throw new Error('User with this email exists but is not in our system')
+        }
+      } else {
         console.error('Auth user creation error:', authError)
         throw new Error(`Failed to create auth user: ${authError.message}`)
       }
-
-      if (!authData.user) {
-        throw new Error('No user data returned from auth creation')
-      }
-
-      authUserId = authData.user.id
-      console.log('Auth user created successfully:', authUserId)
     }
 
-    // Check if admin record already exists
-    const { data: existingAdmin, error: adminCheckError } = await supabaseAdmin
+    if (!authData.user) {
+      throw new Error('No user data returned from auth creation')
+    }
+
+    console.log('Auth user created successfully:', authData.user.id)
+
+    // Check if admin record already exists (shouldn't happen for new users, but just in case)
+    const { data: existingAdmin } = await supabaseAdmin
       .from('admins')
       .select('id')
-      .eq('user_id', authUserId)
+      .eq('user_id', authData.user.id)
       .eq('is_active', true)
       .single()
 
@@ -105,16 +150,11 @@ serve(async (req) => {
       throw new Error('This user is already an admin')
     }
 
-    if (adminCheckError && adminCheckError.code !== 'PGRST116') {
-      console.error('Admin check error:', adminCheckError)
-      throw new Error(`Failed to check existing admin: ${adminCheckError.message}`)
-    }
-
     // Create the admin record
     const { data: adminData, error: adminError } = await supabaseAdmin
       .from('admins')
       .insert({
-        user_id: authUserId,
+        user_id: authData.user.id,
         first_name: firstName,
         middle_name: middleName || null,
         last_name: lastName,
@@ -135,9 +175,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         admin: adminData[0],
-        message: authUserId === existingUser?.user?.id 
-          ? 'Admin privileges granted to existing user' 
-          : 'Admin user created successfully with authentication access'
+        message: 'Admin user created successfully with authentication access'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
