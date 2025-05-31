@@ -243,32 +243,52 @@ const AdminsManagement = () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) throw new Error('Not authenticated');
 
-      console.log('Adding manual admin:', manualAdminData);
+      console.log('Creating admin with auth user:', manualAdminData);
 
-      // Insert directly into admins table
-      const { data, error } = await supabase
+      // First, create the authentication user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: manualAdminData.email,
+        password: manualAdminData.password,
+        email_confirm: true // Auto-confirm email for admin users
+      });
+
+      if (authError) {
+        console.error('Auth user creation error:', authError);
+        throw new Error(`Failed to create auth user: ${authError.message}`);
+      }
+
+      if (!authData.user) {
+        throw new Error('No user data returned from auth creation');
+      }
+
+      console.log('Auth user created successfully:', authData.user.id);
+
+      // Then, create the admin record with the auth user's ID
+      const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .insert({
+          user_id: authData.user.id, // Link to the created auth user
           first_name: manualAdminData.firstName,
           middle_name: manualAdminData.middleName || null,
           last_name: manualAdminData.lastName,
           email: manualAdminData.email,
-          password_hash: manualAdminData.password, // Note: In production, this should be properly hashed
           created_by: currentUser.id,
           is_active: true
         })
         .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (adminError) {
+        console.error('Admin creation error:', adminError);
+        // If admin creation fails, we should clean up the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw new Error(`Failed to create admin record: ${adminError.message}`);
       }
 
-      console.log('Admin created successfully:', data);
+      console.log('Admin created successfully:', adminData);
 
       toast({
         title: "Success",
-        description: "Admin added successfully.",
+        description: "Admin user created successfully with authentication access.",
       });
 
       setIsDialogOpen(false);
