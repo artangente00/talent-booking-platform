@@ -108,6 +108,8 @@ export const useAuth = () => {
             birthdate: formData.birthdate,
             birthplace: formData.birthplace,
             address: formData.address,
+            city_municipality: formData.city_municipality,
+            street_barangay: formData.street_barangay,
             valid_government_id: formData.validGovernmentId,
           }
         }
@@ -221,6 +223,8 @@ export const useAuth = () => {
                 birthdate: formData.birthdate,
                 birthplace: formData.birthplace,
                 address: formData.address,
+                city_municipality: formData.city_municipality,
+                street_barangay: formData.street_barangay,
                 valid_government_id: formData.validGovernmentId,
                 id_photo_link: finalPhotoUrl
               });

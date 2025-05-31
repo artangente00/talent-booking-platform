@@ -107,7 +107,7 @@ const SignUpForm = () => {
     if (!completeAddress.trim()) {
       toast({
         title: "Error",
-        description: "Complete address is required",
+        description: "Street and Barangay is required",
         variant: "destructive",
       });
       return false;
@@ -168,6 +168,8 @@ const SignUpForm = () => {
       birthdate,
       birthplace,
       address: `${completeAddress}, ${cityMunicipality}`,
+      city_municipality: cityMunicipality,
+      street_barangay: completeAddress,
       validGovernmentId,
     };
 
@@ -283,7 +285,7 @@ const SignUpForm = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="completeAddress">Complete Address *</Label>
+          <Label htmlFor="completeAddress">Street and Barangay *</Label>
           <Input
             id="completeAddress"
             type="text"

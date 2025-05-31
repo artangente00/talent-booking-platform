@@ -136,6 +136,7 @@ export type Database = {
           address: string | null
           birthdate: string | null
           birthplace: string | null
+          city_municipality: string | null
           contact_number: string | null
           created_at: string
           email: string
@@ -145,6 +146,7 @@ export type Database = {
           last_name: string | null
           middle_name: string | null
           status: string
+          street_barangay: string | null
           updated_at: string
           user_id: string
           valid_government_id: string | null
@@ -153,6 +155,7 @@ export type Database = {
           address?: string | null
           birthdate?: string | null
           birthplace?: string | null
+          city_municipality?: string | null
           contact_number?: string | null
           created_at?: string
           email: string
@@ -162,6 +165,7 @@ export type Database = {
           last_name?: string | null
           middle_name?: string | null
           status?: string
+          street_barangay?: string | null
           updated_at?: string
           user_id: string
           valid_government_id?: string | null
@@ -170,6 +174,7 @@ export type Database = {
           address?: string | null
           birthdate?: string | null
           birthplace?: string | null
+          city_municipality?: string | null
           contact_number?: string | null
           created_at?: string
           email?: string
@@ -179,6 +184,7 @@ export type Database = {
           last_name?: string | null
           middle_name?: string | null
           status?: string
+          street_barangay?: string | null
           updated_at?: string
           user_id?: string
           valid_government_id?: string | null
