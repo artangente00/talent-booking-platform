@@ -63,11 +63,17 @@ serve(async (req) => {
 
     console.log('Creating auth user for admin:', email)
 
-    // Try to create the authentication user first
+    // Try to create the authentication user first with metadata
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true // Auto-confirm email for admin users
+      email_confirm: true, // Auto-confirm email for admin users
+      user_metadata: {
+        first_name: firstName,
+        middle_name: middleName || null,
+        last_name: lastName,
+        full_name: `${firstName} ${middleName ? middleName + ' ' : ''}${lastName}`.trim()
+      }
     })
 
     // If user already exists, we'll get a specific error
