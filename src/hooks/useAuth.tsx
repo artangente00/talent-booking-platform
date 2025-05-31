@@ -77,21 +77,7 @@ export const useAuth = () => {
     setIsLoading(true);
     
     try {
-      // First check if user already exists
-      const { data: existingUser } = await supabase
-        .from('customers')
-        .select('user_id')
-        .eq('email', formData.email)
-        .single();
-
-      if (existingUser) {
-        toast({
-          title: "Account exists",
-          description: "This email is already registered. Please try logging in instead.",
-          variant: "destructive",
-        });
-        return false;
-      }
+      console.log('Starting signup process for:', formData.email);
 
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -111,8 +97,8 @@ export const useAuth = () => {
       });
 
       if (error) {
-        console.error('Signup error:', error);
-        if (error.message.includes('already registered')) {
+        console.error('Auth signup error:', error);
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           toast({
             title: "Account exists",
             description: "This email is already registered. Please try logging in instead.",
@@ -129,48 +115,29 @@ export const useAuth = () => {
       } 
 
       if (data.user) {
-        // Check if customer record already exists before creating
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('user_id', data.user.id)
-          .single();
-
-        if (!existingCustomer) {
-          // Upload ID photo first
-          const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
-          
-          // Create customer record with photo URL
-          const { error: insertError } = await supabase
+        console.log('User created successfully:', data.user.id);
+        
+        // Wait a moment for the trigger to complete, then check if customer record exists
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        try {
+          const { data: existingCustomer, error: checkError } = await supabase
             .from('customers')
-            .insert({
-              user_id: data.user.id,
-              first_name: formData.firstName,
-              middle_name: formData.middleName,
-              last_name: formData.lastName,
-              email: formData.email,
-              contact_number: formData.contactNumber,
-              birthdate: formData.birthdate,
-              birthplace: formData.birthplace,
-              address: formData.address,
-              valid_government_id: formData.validGovernmentId,
-              id_photo_link: idPhotoUrl
-            });
+            .select('id, id_photo_link')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
 
-          if (insertError) {
-            console.error('Error creating customer record:', insertError);
-            toast({
-              title: "Error",
-              description: "There was an error creating your account. Please try again.",
-              variant: "destructive",
-            });
-            return false;
+          if (checkError) {
+            console.error('Error checking existing customer:', checkError);
           }
-        } else {
-          // Update existing customer record with photo if needed
+
+          // Upload ID photo
+          console.log('Uploading ID photo...');
           const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
           
-          if (idPhotoUrl) {
+          if (existingCustomer) {
+            // Update existing customer record with photo URL
+            console.log('Updating existing customer with photo...');
             const { error: updateError } = await supabase
               .from('customers')
               .update({ id_photo_link: idPhotoUrl })
@@ -178,8 +145,40 @@ export const useAuth = () => {
               
             if (updateError) {
               console.error('Error updating customer with photo URL:', updateError);
+              // Don't fail the signup for photo upload issues
+            }
+          } else {
+            // Create customer record manually if trigger didn't create it
+            console.log('Creating customer record manually...');
+            const { error: insertError } = await supabase
+              .from('customers')
+              .insert({
+                user_id: data.user.id,
+                first_name: formData.firstName,
+                middle_name: formData.middleName,
+                last_name: formData.lastName,
+                email: formData.email,
+                contact_number: formData.contactNumber,
+                birthdate: formData.birthdate,
+                birthplace: formData.birthplace,
+                address: formData.address,
+                valid_government_id: formData.validGovernmentId,
+                id_photo_link: idPhotoUrl
+              });
+
+            if (insertError) {
+              console.error('Error creating customer record:', insertError);
+              // Don't fail the signup completely, the user account was created
+              toast({
+                title: "Warning",
+                description: "Account created but there was an issue saving profile data. Please contact support.",
+                variant: "destructive",
+              });
             }
           }
+        } catch (profileError) {
+          console.error('Error handling customer profile:', profileError);
+          // Don't fail the signup completely
         }
 
         toast({
@@ -190,7 +189,7 @@ export const useAuth = () => {
         return true;
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Unexpected signup error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
