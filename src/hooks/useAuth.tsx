@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -79,6 +80,22 @@ export const useAuth = () => {
     try {
       console.log('Starting signup process for:', formData.email);
 
+      // First, upload the ID photo before creating the user
+      console.log('Uploading ID photo first...');
+      
+      // Create a temporary user ID for the photo upload
+      const tempUserId = crypto.randomUUID();
+      const idPhotoUrl = await uploadIdPhoto(tempUserId, idPhoto);
+      
+      if (!idPhotoUrl) {
+        toast({
+          title: "Error",
+          description: "Failed to upload ID photo. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -117,39 +134,81 @@ export const useAuth = () => {
       if (data.user) {
         console.log('User created successfully:', data.user.id);
         
-        // Wait a moment for the trigger to complete, then check if customer record exists
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for the database trigger to potentially create the customer record
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         try {
+          // Check if customer record was created by trigger
           const { data: existingCustomer, error: checkError } = await supabase
             .from('customers')
             .select('id, id_photo_link')
             .eq('user_id', data.user.id)
             .maybeSingle();
 
-          if (checkError) {
+          if (checkError && checkError.code !== 'PGRST116') {
             console.error('Error checking existing customer:', checkError);
           }
 
-          // Upload ID photo
-          console.log('Uploading ID photo...');
-          const idPhotoUrl = await uploadIdPhoto(data.user.id, idPhoto);
-          
           if (existingCustomer) {
-            // Update existing customer record with photo URL
+            // Update existing customer record with photo URL and move photo to correct location
             console.log('Updating existing customer with photo...');
-            const { error: updateError } = await supabase
-              .from('customers')
-              .update({ id_photo_link: idPhotoUrl })
-              .eq('user_id', data.user.id);
+            
+            // Move photo from temp location to actual user location
+            const fileExt = idPhoto.name.split('.').pop();
+            const newFileName = `${data.user.id}/id-photo.${fileExt}`;
+            
+            // Copy the file to the new location
+            const { error: copyError } = await supabase.storage
+              .from('id-photos')
+              .copy(`${tempUserId}/id-photo.${fileExt}`, newFileName);
               
-            if (updateError) {
-              console.error('Error updating customer with photo URL:', updateError);
-              // Don't fail the signup for photo upload issues
+            if (!copyError) {
+              // Delete the temporary file
+              await supabase.storage
+                .from('id-photos')
+                .remove([`${tempUserId}/id-photo.${fileExt}`]);
+                
+              // Get the new public URL
+              const { data: urlData } = supabase.storage
+                .from('id-photos')
+                .getPublicUrl(newFileName);
+                
+              // Update customer record with new photo URL
+              const { error: updateError } = await supabase
+                .from('customers')
+                .update({ id_photo_link: urlData.publicUrl })
+                .eq('user_id', data.user.id);
+                
+              if (updateError) {
+                console.error('Error updating customer with photo URL:', updateError);
+              }
             }
           } else {
-            // Create customer record manually if trigger didn't create it
+            // No customer record exists, create one manually
             console.log('Creating customer record manually...');
+            
+            // Move photo from temp location to actual user location
+            const fileExt = idPhoto.name.split('.').pop();
+            const newFileName = `${data.user.id}/id-photo.${fileExt}`;
+            
+            const { error: copyError } = await supabase.storage
+              .from('id-photos')
+              .copy(`${tempUserId}/id-photo.${fileExt}`, newFileName);
+              
+            let finalPhotoUrl = idPhotoUrl;
+            if (!copyError) {
+              // Delete the temporary file
+              await supabase.storage
+                .from('id-photos')
+                .remove([`${tempUserId}/id-photo.${fileExt}`]);
+                
+              // Get the new public URL
+              const { data: urlData } = supabase.storage
+                .from('id-photos')
+                .getPublicUrl(newFileName);
+              finalPhotoUrl = urlData.publicUrl;
+            }
+
             const { error: insertError } = await supabase
               .from('customers')
               .insert({
@@ -163,12 +222,12 @@ export const useAuth = () => {
                 birthplace: formData.birthplace,
                 address: formData.address,
                 valid_government_id: formData.validGovernmentId,
-                id_photo_link: idPhotoUrl
+                id_photo_link: finalPhotoUrl
               });
 
             if (insertError) {
               console.error('Error creating customer record:', insertError);
-              // Don't fail the signup completely, the user account was created
+              // Don't fail completely if customer creation fails
               toast({
                 title: "Warning",
                 description: "Account created but there was an issue saving profile data. Please contact support.",
