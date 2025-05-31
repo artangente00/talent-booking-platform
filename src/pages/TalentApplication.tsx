@@ -236,14 +236,20 @@ const TalentApplication = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="address">Address *</Label>
-                    <Input
-                      id="address"
-                      type="text"
-                      placeholder="City, Province"
+                    <Select 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, address: value }))} 
                       value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                       required
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="City or Municipality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+                        <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+                        <SelectItem value="Basay">Basay</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
