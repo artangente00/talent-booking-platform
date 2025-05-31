@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,6 @@ const TalentApplication = () => {
     phone: '',
     address: '',
     birthdate: '',
-    age: '',
     experience: '',
     service: '',
     customService: '',
@@ -69,6 +69,21 @@ const TalentApplication = () => {
     }
   };
 
+  const calculateAge = (birthdate: string): number | null => {
+    if (!birthdate) return null;
+    
+    const birth = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -86,6 +101,8 @@ const TalentApplication = () => {
     setIsLoading(true);
     
     try {
+      const calculatedAge = calculateAge(formData.birthdate);
+      
       const { error } = await supabase
         .from('talents')
         .insert({
@@ -93,7 +110,7 @@ const TalentApplication = () => {
           phone: formData.phone,
           address: formData.address,
           birthdate: formData.birthdate || null,
-          age: formData.age ? parseInt(formData.age) : null,
+          age: calculatedAge,
           experience: formData.experience || null,
           services: [finalService],
           description: formData.description || null,
@@ -117,7 +134,6 @@ const TalentApplication = () => {
         phone: '',
         address: '',
         birthdate: '',
-        age: '',
         experience: '',
         service: '',
         customService: '',
@@ -230,29 +246,14 @@ const TalentApplication = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="birthdate">Birthdate</Label>
-                      <Input
-                        id="birthdate"
-                        type="date"
-                        value={formData.birthdate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, birthdate: e.target.value }))}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="age">Age</Label>
-                      <Input
-                        id="age"
-                        type="number"
-                        placeholder="Age"
-                        min="18"
-                        max="100"
-                        value={formData.age}
-                        onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="birthdate">Birthdate</Label>
+                    <Input
+                      id="birthdate"
+                      type="date"
+                      value={formData.birthdate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, birthdate: e.target.value }))}
+                    />
                   </div>
                 </div>
 
