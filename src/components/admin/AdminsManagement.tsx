@@ -344,6 +344,10 @@ const AdminsManagement = () => {
     return admin.email || 'N/A';
   };
 
+  const getCustomerDisplayName = (customer: any) => {
+    return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  };
+
   if (loading) {
     return (
       <Card>
