@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 interface Service {
   id: string;
@@ -26,7 +27,8 @@ const TalentApplication = () => {
     service: '',
     customService: '',
     description: '',
-    availability: ''
+    availability: '',
+    profilePhotoUrl: null as string | null
   });
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +86,10 @@ const TalentApplication = () => {
     return age;
   };
 
+  const handleImageUpload = (url: string | null) => {
+    setFormData(prev => ({ ...prev, profilePhotoUrl: url }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -116,6 +122,7 @@ const TalentApplication = () => {
           description: formData.description || null,
           availability: formData.availability || null,
           hourly_rate: null,
+          profile_photo_url: formData.profilePhotoUrl,
         });
 
       if (error) {
@@ -138,7 +145,8 @@ const TalentApplication = () => {
         service: '',
         customService: '',
         description: '',
-        availability: ''
+        availability: '',
+        profilePhotoUrl: null
       });
       
     } catch (error) {
@@ -204,6 +212,16 @@ const TalentApplication = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Profile Photo */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
+                  <ImageUpload
+                    value={formData.profilePhotoUrl}
+                    onImageUpload={handleImageUpload}
+                    disabled={isLoading}
+                  />
+                </div>
+
                 {/* Personal Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
@@ -234,32 +252,34 @@ const TalentApplication = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address *</Label>
-                    <Select 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, address: value }))} 
-                      value={formData.address}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="City or Municipality" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bayawan City">Bayawan City</SelectItem>
-                        <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
-                        <SelectItem value="Basay">Basay</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="birthdate">Birthdate</Label>
+                      <Input
+                        id="birthdate"
+                        type="date"
+                        value={formData.birthdate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, birthdate: e.target.value }))}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="birthdate">Birthdate</Label>
-                    <Input
-                      id="birthdate"
-                      type="date"
-                      value={formData.birthdate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, birthdate: e.target.value }))}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address *</Label>
+                      <Select 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, address: value }))} 
+                        value={formData.address}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="City or Municipality" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+                          <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+                          <SelectItem value="Basay">Basay</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
