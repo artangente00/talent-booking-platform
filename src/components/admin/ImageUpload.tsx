@@ -24,8 +24,12 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
       
       console.log('Starting upload process for file:', file.name);
       
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session ? 'authenticated' : 'not authenticated');
+      
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = fileName;
 
       console.log('Uploading to path:', filePath);
@@ -34,7 +38,8 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
         .from('freelancer-profiles')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          duplex: 'half'
         });
 
       if (uploadError) {
@@ -56,7 +61,7 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
         title: "Success",
         description: "Profile photo uploaded successfully.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
