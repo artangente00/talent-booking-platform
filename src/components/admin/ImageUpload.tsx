@@ -22,23 +22,35 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
     try {
       setUploading(true);
       
+      console.log('Starting upload process for file:', file.name);
+      
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+      const filePath = fileName;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading to path:', filePath);
+
+      const { data, error: uploadError } = await supabase.storage
         .from('freelancer-profiles')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw uploadError;
       }
 
-      const { data } = supabase.storage
+      console.log('Upload successful, data:', data);
+
+      const { data: urlData } = supabase.storage
         .from('freelancer-profiles')
         .getPublicUrl(filePath);
 
-      onImageUpload(data.publicUrl);
+      console.log('Public URL:', urlData.publicUrl);
+
+      onImageUpload(urlData.publicUrl);
       
       toast({
         title: "Success",
@@ -48,7 +60,7 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
-        description: "Failed to upload profile photo.",
+        description: `Failed to upload profile photo: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -59,14 +71,22 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
   const removeImage = async () => {
     if (value) {
       try {
-        const fileName = value.split('/').pop();
-        if (fileName) {
-          await supabase.storage
-            .from('freelancer-profiles')
-            .remove([fileName]);
+        // Extract filename from URL
+        const url = new URL(value);
+        const pathParts = url.pathname.split('/');
+        const fileName = pathParts[pathParts.length - 1];
+        
+        console.log('Removing file:', fileName);
+        
+        const { error } = await supabase.storage
+          .from('freelancer-profiles')
+          .remove([fileName]);
+          
+        if (error) {
+          console.error('Error removing file:', error);
         }
       } catch (error) {
-        console.error('Error removing image:', error);
+        console.error('Error parsing URL for removal:', error);
       }
     }
     onImageUpload(null);
@@ -75,6 +95,12 @@ const ImageUpload = ({ value, onImageUpload, disabled = false }: ImageUploadProp
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "Error",
