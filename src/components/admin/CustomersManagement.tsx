@@ -29,6 +29,7 @@ interface Customer {
   has_assigned_booking: boolean;
   city_municipality: string | null;
   street_barangay: string | null;
+  payment_status: string;
 }
 
 const CustomersManagement = () => {
@@ -105,6 +106,7 @@ const CustomersManagement = () => {
           ...customer,
           bookingsCount: bookings.length,
           lastBooking,
+          payment_status: customer.payment_status || 'pending',
         };
       });
 
@@ -125,6 +127,45 @@ const CustomersManagement = () => {
   const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer(customer);
     setIsEditDialogOpen(true);
+  };
+
+  const handleUpdatePaymentStatus = async (customerId: string, paymentStatus: string) => {
+    try {
+      console.log('Updating payment status for customer:', customerId, 'to:', paymentStatus);
+      
+      const { error } = await supabase
+        .from('customers')
+        .update({ payment_status: paymentStatus })
+        .eq('id', customerId);
+
+      if (error) {
+        console.error('Error updating payment status:', error);
+        toast({
+          title: "Error",
+          description: `Failed to update payment status: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Payment status updated successfully');
+      
+      toast({
+        title: "Success",
+        description: "Payment status updated successfully!",
+      });
+      
+      // Refresh customers data
+      fetchCustomers();
+      
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update payment status. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -154,6 +195,7 @@ const CustomersManagement = () => {
             customers={customers} 
             searchTerm={searchTerm} 
             onEditCustomer={handleEditCustomer}
+            onUpdatePaymentStatus={handleUpdatePaymentStatus}
           />
         </CardContent>
       </Card>

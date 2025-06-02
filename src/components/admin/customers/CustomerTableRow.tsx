@@ -4,7 +4,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, MoreHorizontal, CheckCircle, XCircle, CreditCard, Clock } from 'lucide-react';
 
 interface Customer {
   id: string;
@@ -23,14 +23,16 @@ interface Customer {
   status: string;
   id_photo_link: string | null;
   has_assigned_booking: boolean;
+  payment_status: string;
 }
 
 interface CustomerTableRowProps {
   customer: Customer;
   onEditCustomer: (customer: Customer) => void;
+  onUpdatePaymentStatus: (customerId: string, paymentStatus: string) => void;
 }
 
-const CustomerTableRow = ({ customer, onEditCustomer }: CustomerTableRowProps) => {
+const CustomerTableRow = ({ customer, onEditCustomer, onUpdatePaymentStatus }: CustomerTableRowProps) => {
   const getFullName = (customer: Customer) => {
     const parts = [customer.first_name, customer.middle_name, customer.last_name].filter(Boolean);
     return parts.join(' ') || 'Unknown';
@@ -50,6 +52,24 @@ const CustomerTableRow = ({ customer, onEditCustomer }: CustomerTableRowProps) =
       case 'rejected': return 'bg-red-100 text-red-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusColor = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'not_paid': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusIcon = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case 'paid': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'not_paid': return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
+      default: return <CreditCard className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -94,6 +114,34 @@ const CustomerTableRow = ({ customer, onEditCustomer }: CustomerTableRowProps) =
               </Badge>
             </>
           )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-1">
+          {getPaymentStatusIcon(customer.payment_status || 'pending')}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0">
+                <Badge className={`${getPaymentStatusColor(customer.payment_status || 'pending')} border-0 cursor-pointer`}>
+                  {(customer.payment_status || 'pending').replace('_', ' ').toUpperCase()}
+                </Badge>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => onUpdatePaymentStatus(customer.id, 'paid')}>
+                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                Mark as Paid
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpdatePaymentStatus(customer.id, 'not_paid')}>
+                <XCircle className="w-4 h-4 mr-2 text-red-600" />
+                Mark as Not Paid
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpdatePaymentStatus(customer.id, 'pending')}>
+                <Clock className="w-4 h-4 mr-2 text-yellow-600" />
+                Mark as Pending
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </TableCell>
       <TableCell>

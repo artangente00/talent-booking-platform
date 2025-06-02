@@ -20,15 +20,17 @@ interface Customer {
   status: string;
   id_photo_link: string | null;
   has_assigned_booking: boolean;
+  payment_status: string;
 }
 
 interface CustomerTableProps {
   customers: Customer[];
   searchTerm: string;
   onEditCustomer: (customer: Customer) => void;
+  onUpdatePaymentStatus: (customerId: string, paymentStatus: string) => void;
 }
 
-const CustomerTable = ({ customers, searchTerm, onEditCustomer }: CustomerTableProps) => {
+const CustomerTable = ({ customers, searchTerm, onEditCustomer, onUpdatePaymentStatus }: CustomerTableProps) => {
   const filteredCustomers = customers.filter(customer => {
     const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
@@ -48,6 +50,7 @@ const CustomerTable = ({ customers, searchTerm, onEditCustomer }: CustomerTableP
             <TableHead>Address</TableHead>
             <TableHead>Bookings</TableHead>
             <TableHead>Assignment Status</TableHead>
+            <TableHead>Payment Status</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Joined</TableHead>
             <TableHead>Actions</TableHead>
@@ -56,7 +59,7 @@ const CustomerTable = ({ customers, searchTerm, onEditCustomer }: CustomerTableP
         <TableBody>
           {filteredCustomers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                 {searchTerm ? 'No customers found matching your search.' : 'No customers found.'}
               </TableCell>
             </TableRow>
@@ -66,6 +69,7 @@ const CustomerTable = ({ customers, searchTerm, onEditCustomer }: CustomerTableP
                 key={customer.id}
                 customer={customer}
                 onEditCustomer={onEditCustomer}
+                onUpdatePaymentStatus={onUpdatePaymentStatus}
               />
             ))
           )}
