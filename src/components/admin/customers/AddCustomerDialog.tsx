@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,8 @@ interface AddCustomerFormData {
   contact_number: string;
   birthdate: string;
   birthplace: string;
-  address: string;
+  city_municipality: string;
+  street_barangay: string;
   valid_government_id: string;
   password: string;
   confirm_password: string;
@@ -35,6 +36,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [idPhoto, setIdPhoto] = useState<File | null>(null);
   const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null);
+  const [age, setAge] = useState<number | null>(null);
   const { toast } = useToast();
   
   const form = useForm<AddCustomerFormData>({
@@ -46,13 +48,34 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
       contact_number: '',
       birthdate: '',
       birthplace: '',
-      address: '',
+      city_municipality: '',
+      street_barangay: '',
       valid_government_id: '',
       password: '',
       confirm_password: '',
       status: 'pending',
     },
   });
+
+  const birthdate = form.watch('birthdate');
+
+  // Calculate age automatically when birthdate changes
+  useEffect(() => {
+    if (birthdate) {
+      const today = new Date();
+      const birth = new Date(birthdate);
+      let calculatedAge = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        calculatedAge--;
+      }
+      
+      setAge(calculatedAge);
+    } else {
+      setAge(null);
+    }
+  }, [birthdate]);
 
   const handleIdPhotoChange = (file: File | null) => {
     setIdPhoto(file);
@@ -91,6 +114,9 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
     try {
       console.log('Adding new customer:', data);
       
+      // Combine street_barangay and city_municipality for the address field
+      const completeAddress = `${data.street_barangay}, ${data.city_municipality}`;
+      
       // For admin-created customers, we'll create them without a user_id
       // This means they exist in the system but haven't registered yet
       const { data: newCustomer, error } = await supabase
@@ -103,7 +129,9 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
           contact_number: data.contact_number,
           birthdate: data.birthdate,
           birthplace: data.birthplace,
-          address: data.address,
+          address: completeAddress,
+          city_municipality: data.city_municipality,
+          street_barangay: data.street_barangay,
           valid_government_id: data.valid_government_id,
           status: data.status,
           user_id: '00000000-0000-0000-0000-000000000000', // Placeholder for admin-created customers
@@ -131,6 +159,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
       form.reset();
       setIdPhoto(null);
       setIdPhotoPreview(null);
+      setAge(null);
       setOpen(false);
       onCustomerAdded();
       
@@ -250,7 +279,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
                   <FormControl>
                     <Input 
                       type="tel"
-                      placeholder="+1 (555) 123-4567" 
+                      placeholder="+63 917 123 4567" 
                       {...field}
                       disabled={loading}
                       required
@@ -289,7 +318,7 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
                     <FormLabel>Birthplace *</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="City, Country" 
+                        placeholder="City, Province" 
                         {...field}
                         disabled={loading}
                         required
@@ -301,24 +330,57 @@ const AddCustomerDialog = ({ onCustomerAdded }: AddCustomerDialogProps) => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Complete address" 
-                      {...field}
-                      disabled={loading}
-                      required
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {age !== null && (
+              <div className="text-sm text-gray-600">
+                Age: {age} years old
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="text-base font-semibold">Current Address *</div>
+              
+              <FormField
+                control={form.control}
+                name="city_municipality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City or Municipality *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select city or municipality" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+                        <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+                        <SelectItem value="Basay">Basay</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="street_barangay"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Street and Barangay *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Street, Barangay" 
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
