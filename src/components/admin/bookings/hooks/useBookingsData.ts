@@ -32,7 +32,7 @@ export const useBookingsData = () => {
 
       setServices(transformedServices);
 
-      // Fetch bookings
+      // Fetch bookings with customer details
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -61,7 +61,9 @@ export const useBookingsData = () => {
           middle_name: booking.customers?.middle_name || null,
           last_name: booking.customers?.last_name || ''
         },
-        talent_name: booking.assigned_talent_id ? 'Assigned Talent' : undefined
+        talent_name: booking.assigned_talent_id ? 'Assigned Talent' : undefined,
+        cancelled_at: booking.cancelled_at,
+        cancellation_reason: booking.cancellation_reason
       }));
 
       setBookings(transformedBookings);

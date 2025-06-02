@@ -18,4 +18,6 @@ export interface Booking {
     last_name: string;
   };
   talent_name?: string;
+  cancelled_at?: string | null;
+  cancellation_reason?: string | null;
 }

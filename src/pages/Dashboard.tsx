@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import CancelBookingDialog from '@/components/CancelBookingDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Calendar, Clock, MapPin, FileText } from 'lucide-react';
+import { Star, Calendar, Clock, MapPin, FileText, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -23,6 +24,8 @@ interface Booking {
   special_instructions: string | null;
   status: BookingStatus;
   created_at: string;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
   ratings: {
     id: string;
     rating: number;
@@ -192,6 +195,13 @@ const Dashboard = () => {
     }
   };
 
+  const handleBookingCancelled = () => {
+    // Refresh the bookings data after cancellation
+    if (user) {
+      fetchCustomerData(user.id);
+    }
+  };
+
   const getStatusColor = (status: BookingStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -213,6 +223,10 @@ const Dashboard = () => {
 
   const getCustomerDisplayName = (customer: Customer) => {
     return `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+  };
+
+  const canCancelBooking = (status: BookingStatus) => {
+    return status === 'pending' || status === 'confirmed';
   };
 
   if (loading) {
@@ -273,9 +287,26 @@ const Dashboard = () => {
                             {formatDate(booking.booking_date)} at {booking.booking_time}
                           </CardDescription>
                         </div>
-                        <Badge className={`${getStatusColor(booking.status)} border-0`}>
-                          {booking.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${getStatusColor(booking.status)} border-0`}>
+                            {booking.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                          {canCancelBooking(booking.status) && (
+                            <CancelBookingDialog 
+                              bookingId={booking.id}
+                              onBookingCancelled={handleBookingCancelled}
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Cancel
+                              </Button>
+                            </CancelBookingDialog>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -304,6 +335,21 @@ const Dashboard = () => {
                           <div>
                             <p className="font-medium">Special Instructions</p>
                             <p className="text-gray-600">{booking.special_instructions}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Show cancellation details if booking is cancelled */}
+                      {booking.status === 'cancelled' && booking.cancellation_reason && (
+                        <div className="border-t pt-4">
+                          <div className="bg-red-50 p-3 rounded-lg">
+                            <h4 className="font-medium text-red-800 mb-1">Cancellation Reason</h4>
+                            <p className="text-red-700 text-sm">{booking.cancellation_reason}</p>
+                            {booking.cancelled_at && (
+                              <p className="text-red-600 text-xs mt-1">
+                                Cancelled on {formatDate(booking.cancelled_at)}
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}

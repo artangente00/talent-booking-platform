@@ -88,6 +88,9 @@ export type Database = {
           assigned_talent_id: string | null
           booking_date: string
           booking_time: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           customer_id: string
           duration: string | null
@@ -104,6 +107,9 @@ export type Database = {
           assigned_talent_id?: string | null
           booking_date: string
           booking_time: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           customer_id: string
           duration?: string | null
@@ -120,6 +126,9 @@ export type Database = {
           assigned_talent_id?: string | null
           booking_date?: string
           booking_time?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           customer_id?: string
           duration?: string | null
