@@ -129,23 +129,50 @@ export const useAssignmentsData = () => {
 
   const assignTalent = async (bookingId: string, talentId: string) => {
     try {
+      console.log('=== ASSIGNMENT DEBUG START ===');
       console.log('Assigning talent:', { bookingId, talentId });
+      console.log('BookingId type:', typeof bookingId);
+      console.log('TalentId type:', typeof talentId);
+      
+      // First, let's verify the booking exists
+      const { data: existingBooking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', bookingId)
+        .single();
+      
+      console.log('Existing booking check:', { existingBooking, fetchError });
+      
+      if (fetchError) {
+        console.error('Error fetching existing booking:', fetchError);
+        throw new Error(`Booking not found: ${fetchError.message}`);
+      }
+      
+      if (!existingBooking) {
+        throw new Error(`No booking found with ID: ${bookingId}`);
+      }
       
       const { data: { user } } = await supabase.auth.getUser();
       console.log('Current user:', user?.id);
       
+      // Now try the update
+      const updateData = {
+        assigned_talent_id: talentId,
+        assigned_at: new Date().toISOString(),
+        assigned_by: user?.id,
+        status: 'assigned'
+      };
+      
+      console.log('Update data:', updateData);
+      
       const { data, error } = await supabase
         .from('bookings')
-        .update({
-          assigned_talent_id: talentId,
-          assigned_at: new Date().toISOString(),
-          assigned_by: user?.id,
-          status: 'assigned'
-        })
+        .update(updateData)
         .eq('id', bookingId)
         .select();
 
       console.log('Update result:', { data, error });
+      console.log('=== ASSIGNMENT DEBUG END ===');
 
       if (error) {
         console.error('Assignment error:', error);
