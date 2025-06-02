@@ -27,6 +27,8 @@ interface Customer {
   status: string;
   id_photo_link: string | null;
   has_assigned_booking: boolean;
+  city_municipality: string | null;
+  street_barangay: string | null;
 }
 
 const CustomersManagement = () => {
