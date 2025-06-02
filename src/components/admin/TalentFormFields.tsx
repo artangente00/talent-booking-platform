@@ -37,6 +37,25 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
     fetchServices();
   }, []);
 
+  // Calculate age when birthdate changes
+  useEffect(() => {
+    if (formData.birthdate) {
+      const birthDate = new Date(formData.birthdate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      setFormData((prev: any) => ({
+        ...prev,
+        age: age.toString()
+      }));
+    }
+  }, [formData.birthdate, setFormData]);
+
   const handleServiceChange = (selectedTitle: string) => {
     const selected = services.find(service => service.title === selectedTitle);
     if (selected) {
@@ -117,7 +136,8 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
             min="18"
             max="100"
             value={formData.age || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, age: e.target.value }))}
+            readOnly
+            className="bg-gray-50"
           />
         </div>
       </div>
