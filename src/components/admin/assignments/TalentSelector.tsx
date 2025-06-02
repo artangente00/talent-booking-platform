@@ -77,7 +77,7 @@ const TalentSelector = ({ suggestedTalents, onSelectTalent, loading = false }: T
                       {talent.hourly_rate && (
                         <div className="flex items-center gap-1">
                           <DollarSign className="w-3 h-3" />
-                          <span>₱{talent.hourly_rate}/day</span>
+                          <span>{talent.hourly_rate}/day</span>
                         </div>
                       )}
                       
