@@ -62,12 +62,31 @@ export const useAssignmentsData = () => {
 
   const getSuggestedTalents = async (customerCity: string, serviceType: string): Promise<SuggestedTalent[]> => {
     try {
+      console.log('Getting suggested talents for:', { customerCity, serviceType });
+      
+      // First, let's check if we have any talents at all
+      const { data: allTalents, error: allTalentsError } = await supabase
+        .from('talents')
+        .select('*');
+      
+      console.log('All talents in database:', allTalents);
+      
+      if (allTalentsError) {
+        console.error('Error fetching all talents:', allTalentsError);
+      }
+
       const { data, error } = await supabase.rpc('get_suggested_talents', {
         customer_city: customerCity,
         service_type: serviceType
       });
 
-      if (error) throw error;
+      console.log('RPC call result:', { data, error });
+
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
+      
       return data || [];
     } catch (error) {
       console.error('Error getting suggested talents:', error);

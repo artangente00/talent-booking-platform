@@ -55,7 +55,15 @@ const BookingAssignmentCard = ({
     setLoading(true);
     
     const customerCity = booking.customers?.city_municipality || '';
+    console.log('Opening dialog for booking:', {
+      bookingId: booking.id,
+      serviceType: booking.service_type,
+      customerCity,
+      customerData: booking.customers
+    });
+    
     const talents = await onGetSuggestedTalents(customerCity, booking.service_type);
+    console.log('Received talents:', talents);
     setSuggestedTalents(talents);
     setLoading(false);
   };
