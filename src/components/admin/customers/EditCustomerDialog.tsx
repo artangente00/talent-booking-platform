@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,8 @@ interface Customer {
   valid_government_id: string | null;
   status: string;
   id_photo_link: string | null;
+  city_municipality: string | null;
+  street_barangay: string | null;
 }
 
 interface EditCustomerFormData {
@@ -35,7 +38,8 @@ interface EditCustomerFormData {
   contact_number: string;
   birthdate: string;
   birthplace: string;
-  address: string;
+  city_municipality: string;
+  street_barangay: string;
   valid_government_id: string;
   password: string;
   confirm_password: string;
@@ -53,26 +57,48 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
   const [loading, setLoading] = useState(false);
   const [idPhoto, setIdPhoto] = useState<File | null>(null);
   const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null);
+  const [age, setAge] = useState<number | null>(null);
   const { toast } = useToast();
   
   const form = useForm<EditCustomerFormData>({
     defaultValues: {
-      first_name: customer?.first_name || '',
-      middle_name: customer?.middle_name || '',
-      last_name: customer?.last_name || '',
-      email: customer?.email || '',
-      contact_number: customer?.contact_number || '',
-      birthdate: customer?.birthdate || '',
-      birthplace: customer?.birthplace || '',
-      address: customer?.address || '',
-      valid_government_id: customer?.valid_government_id || '',
+      first_name: '',
+      middle_name: '',
+      last_name: '',
+      email: '',
+      contact_number: '',
+      birthdate: '',
+      birthplace: '',
+      city_municipality: '',
+      street_barangay: '',
+      valid_government_id: '',
       password: '',
       confirm_password: '',
-      status: customer?.status || 'pending',
+      status: 'pending',
     },
   });
 
-  React.useEffect(() => {
+  const birthdate = form.watch('birthdate');
+
+  // Calculate age automatically when birthdate changes
+  useEffect(() => {
+    if (birthdate) {
+      const today = new Date();
+      const birth = new Date(birthdate);
+      let calculatedAge = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        calculatedAge--;
+      }
+      
+      setAge(calculatedAge);
+    } else {
+      setAge(null);
+    }
+  }, [birthdate]);
+
+  useEffect(() => {
     if (customer) {
       form.reset({
         first_name: customer.first_name || '',
@@ -82,13 +108,30 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         contact_number: customer.contact_number || '',
         birthdate: customer.birthdate || '',
         birthplace: customer.birthplace || '',
-        address: customer.address || '',
+        city_municipality: customer.city_municipality || '',
+        street_barangay: customer.street_barangay || '',
         valid_government_id: customer.valid_government_id || '',
         password: '',
         confirm_password: '',
         status: customer.status || 'pending',
       });
       setIdPhoto(null);
+      
+      // Calculate age from existing birthdate
+      if (customer.birthdate) {
+        const today = new Date();
+        const birth = new Date(customer.birthdate);
+        let calculatedAge = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+          calculatedAge--;
+        }
+        
+        setAge(calculatedAge);
+      } else {
+        setAge(null);
+      }
       
       // Set the existing ID photo preview if it exists
       if (customer.id_photo_link) {
@@ -188,6 +231,9 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
         }
       }
 
+      // Combine street_barangay and city_municipality for the address field
+      const completeAddress = `${data.street_barangay}, ${data.city_municipality}`;
+
       const { error } = await supabase
         .from('customers')
         .update({
@@ -198,10 +244,13 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
           contact_number: data.contact_number,
           birthdate: data.birthdate,
           birthplace: data.birthplace,
-          address: data.address,
+          address: completeAddress,
+          city_municipality: data.city_municipality,
+          street_barangay: data.street_barangay,
           valid_government_id: data.valid_government_id,
           status: data.status,
           id_photo_link: idPhotoUrl,
+          age: age,
         })
         .eq('id', customer.id);
 
@@ -335,7 +384,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                   <FormControl>
                     <Input 
                       type="tel"
-                      placeholder="+1 (555) 123-4567" 
+                      placeholder="+63 917 123 4567" 
                       {...field}
                       disabled={loading}
                       required
@@ -374,7 +423,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                     <FormLabel>Birthplace *</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="City, Country" 
+                        placeholder="City, Province" 
                         {...field}
                         disabled={loading}
                         required
@@ -386,24 +435,57 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Complete address" 
-                      {...field}
-                      disabled={loading}
-                      required
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {age !== null && (
+              <div className="text-sm text-gray-600">
+                Age: {age} years old
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="text-base font-semibold">Current Address *</div>
+              
+              <FormField
+                control={form.control}
+                name="city_municipality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City or Municipality *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select city or municipality" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+                        <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+                        <SelectItem value="Basay">Basay</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="street_barangay"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Street and Barangay *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Street, Barangay" 
+                        {...field}
+                        disabled={loading}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
