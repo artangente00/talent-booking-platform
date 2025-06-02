@@ -158,6 +158,7 @@ export type Database = {
           created_at: string
           email: string
           first_name: string | null
+          has_assigned_booking: boolean
           id: string
           id_photo_link: string | null
           last_name: string | null
@@ -178,6 +179,7 @@ export type Database = {
           created_at?: string
           email: string
           first_name?: string | null
+          has_assigned_booking?: boolean
           id?: string
           id_photo_link?: string | null
           last_name?: string | null
@@ -198,6 +200,7 @@ export type Database = {
           created_at?: string
           email?: string
           first_name?: string | null
+          has_assigned_booking?: boolean
           id?: string
           id_photo_link?: string | null
           last_name?: string | null
@@ -336,6 +339,7 @@ export type Database = {
           full_name: string
           hourly_rate: string | null
           id: string
+          is_available: boolean
           phone: string
           profile_photo_url: string | null
           services: string[]
@@ -353,6 +357,7 @@ export type Database = {
           full_name: string
           hourly_rate?: string | null
           id?: string
+          is_available?: boolean
           phone: string
           profile_photo_url?: string | null
           services: string[]
@@ -370,6 +375,7 @@ export type Database = {
           full_name?: string
           hourly_rate?: string | null
           id?: string
+          is_available?: boolean
           phone?: string
           profile_photo_url?: string | null
           services?: string[]

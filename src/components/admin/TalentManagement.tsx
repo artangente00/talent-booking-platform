@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User, Edit, Trash2, MoreHorizontal, CheckCircle, XCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +30,7 @@ interface Talent {
   profile_photo_url: string | null;
   birthdate: string | null;
   age: number | null;
+  is_available: boolean;
 }
 
 const TalentManagement = () => {
@@ -361,6 +362,7 @@ const TalentManagement = () => {
                 <TableHead>Services</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Rate</TableHead>
+                <TableHead>Availability</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -368,7 +370,7 @@ const TalentManagement = () => {
             <TableBody>
               {filteredTalents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     {searchTerm ? 'No talents found matching your search.' : 'No talents found.'}
                   </TableCell>
                 </TableRow>
@@ -420,6 +422,25 @@ const TalentManagement = () => {
                       <span className="text-sm">
                         {talent.hourly_rate ? `₱${talent.hourly_rate}/day` : 'Not specified'}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {talent.is_available ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <Badge className="bg-green-100 text-green-800 border-0">
+                              Available
+                            </Badge>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-4 h-4 text-red-600" />
+                            <Badge className="bg-red-100 text-red-800 border-0">
+                              Assigned
+                            </Badge>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge className={`${getStatusColor(talent.status)} border-0`}>

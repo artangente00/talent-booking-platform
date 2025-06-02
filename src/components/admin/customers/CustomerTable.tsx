@@ -18,6 +18,8 @@ interface Customer {
   address: string | null;
   valid_government_id: string | null;
   status: string;
+  id_photo_link: string | null;
+  has_assigned_booking: boolean;
 }
 
 interface CustomerTableProps {
@@ -28,38 +30,41 @@ interface CustomerTableProps {
 
 const CustomerTable = ({ customers, searchTerm, onEditCustomer }: CustomerTableProps) => {
   const filteredCustomers = customers.filter(customer => {
-    const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
-    return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           customer.contact_number.includes(searchTerm);
+    const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    
+    return fullName.includes(searchLower) || 
+           customer.email.toLowerCase().includes(searchLower) ||
+           (customer.contact_number && customer.contact_number.includes(searchTerm));
   });
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border mt-4">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Customer</TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead>Joined</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead>Bookings</TableHead>
-            <TableHead>Last Booking</TableHead>
+            <TableHead>Assignment Status</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Joined</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredCustomers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+              <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                 {searchTerm ? 'No customers found matching your search.' : 'No customers found.'}
               </TableCell>
             </TableRow>
           ) : (
             filteredCustomers.map((customer) => (
-              <CustomerTableRow 
-                key={customer.id} 
-                customer={customer} 
+              <CustomerTableRow
+                key={customer.id}
+                customer={customer}
                 onEditCustomer={onEditCustomer}
               />
             ))
