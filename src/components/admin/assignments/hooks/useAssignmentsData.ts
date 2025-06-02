@@ -102,7 +102,7 @@ export const useAssignmentsData = () => {
       if (error) throw error;
 
       return (data || []).map((talent: any) => ({
-        id: talent.talent_id,
+        talent_id: talent.talent_id,
         full_name: talent.full_name,
         address: talent.address,
         services: talent.services,
