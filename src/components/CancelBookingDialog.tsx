@@ -48,7 +48,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
       console.log('User ID:', user.id);
       console.log('Cancellation reason:', cancellationReason.trim());
 
-      // First, let's check what the current user's customer ID is
+      // Get customer data to verify ownership
       const { data: customerData, error: customerError } = await supabase
         .from('customers')
         .select('id')
@@ -62,22 +62,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       console.log('Customer ID:', customerData.id);
 
-      // Check if the booking exists and belongs to this customer
-      const { data: existingBooking, error: fetchError } = await supabase
-        .from('bookings')
-        .select('id, customer_id, status, booking_status')
-        .eq('id', bookingId)
-        .eq('customer_id', customerData.id)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching booking:', fetchError);
-        throw new Error('Booking not found or you do not have permission to cancel it');
-      }
-
-      console.log('Existing booking:', existingBooking);
-
-      // Prepare the update data
+      // Use a more direct approach - update the booking with explicit conditions
       const updateData = {
         status: 'cancelled',
         booking_status: 'cancelled',
@@ -88,7 +73,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       console.log('Update data to be sent:', updateData);
 
-      // Perform the update
+      // Perform the update with explicit customer_id check
       const { data: updatedData, error: updateError } = await supabase
         .from('bookings')
         .update(updateData)
@@ -100,15 +85,29 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       if (updateError) {
         console.error('Supabase update error:', updateError);
-        throw new Error(`Failed to update booking: ${updateError.message}`);
+        throw new Error(`Failed to cancel booking: ${updateError.message}`);
       }
 
       if (!updatedData || updatedData.length === 0) {
         console.warn('No data returned from update operation');
-        throw new Error('Unable to cancel booking. The booking may not exist or you may not have permission.');
+        // Try a direct check to see if the booking exists for this customer
+        const { data: checkBooking } = await supabase
+          .from('bookings')
+          .select('id, customer_id, status')
+          .eq('id', bookingId)
+          .eq('customer_id', customerData.id)
+          .single();
+        
+        console.log('Booking check result:', checkBooking);
+        
+        if (!checkBooking) {
+          throw new Error('Booking not found. It may have already been cancelled or you may not have permission to cancel it.');
+        } else {
+          throw new Error('Unable to update booking status. Please try again or contact support.');
+        }
       }
 
-      console.log('Update successful!');
+      console.log('Cancellation successful!');
       console.log('Updated booking data:', updatedData);
 
       toast({
