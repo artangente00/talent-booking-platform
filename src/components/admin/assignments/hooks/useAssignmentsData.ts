@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -128,9 +129,12 @@ export const useAssignmentsData = () => {
 
   const assignTalent = async (bookingId: string, talentId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Assigning talent:', { bookingId, talentId });
       
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
+      
+      const { data, error } = await supabase
         .from('bookings')
         .update({
           assigned_talent_id: talentId,
@@ -138,22 +142,34 @@ export const useAssignmentsData = () => {
           assigned_by: user?.id,
           status: 'assigned'
         })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .select();
 
-      if (error) throw error;
+      console.log('Update result:', { data, error });
+
+      if (error) {
+        console.error('Assignment error:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error('No booking was updated. Check if the booking ID exists.');
+      }
+
+      console.log('Successfully updated booking:', data[0]);
 
       toast({
         title: "Success",
         description: "Freelancer assigned successfully.",
       });
 
-      // Refresh data
-      fetchBookings();
+      // Refresh data immediately
+      await fetchBookings();
     } catch (error) {
       console.error('Error assigning talent:', error);
       toast({
         title: "Error",
-        description: "Failed to assign freelancer.",
+        description: `Failed to assign freelancer: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -161,7 +177,9 @@ export const useAssignmentsData = () => {
 
   const unassignTalent = async (bookingId: string) => {
     try {
-      const { error } = await supabase
+      console.log('Unassigning talent from booking:', bookingId);
+      
+      const { data, error } = await supabase
         .from('bookings')
         .update({
           assigned_talent_id: null,
@@ -169,22 +187,32 @@ export const useAssignmentsData = () => {
           assigned_by: null,
           status: 'pending'
         })
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .select();
 
-      if (error) throw error;
+      console.log('Unassign result:', { data, error });
+
+      if (error) {
+        console.error('Unassignment error:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error('No booking was updated. Check if the booking ID exists.');
+      }
 
       toast({
         title: "Success",
         description: "Freelancer unassigned successfully.",
       });
 
-      // Refresh data
-      fetchBookings();
+      // Refresh data immediately
+      await fetchBookings();
     } catch (error) {
       console.error('Error unassigning talent:', error);
       toast({
         title: "Error",
-        description: "Failed to unassign freelancer.",
+        description: `Failed to unassign freelancer: ${error.message}`,
         variant: "destructive",
       });
     }
