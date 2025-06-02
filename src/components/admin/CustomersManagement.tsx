@@ -67,7 +67,23 @@ const CustomersManagement = () => {
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select(`
-          *,
+          id,
+          first_name,
+          middle_name,
+          last_name,
+          email,
+          contact_number,
+          created_at,
+          birthdate,
+          birthplace,
+          address,
+          valid_government_id,
+          status,
+          id_photo_link,
+          has_assigned_booking,
+          city_municipality,
+          street_barangay,
+          payment_status,
           bookings!bookings_customer_id_fkey (
             id,
             created_at
