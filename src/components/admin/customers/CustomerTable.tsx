@@ -28,9 +28,10 @@ interface CustomerTableProps {
   searchTerm: string;
   onEditCustomer: (customer: Customer) => void;
   onUpdatePaymentStatus: (customerId: string, paymentStatus: string) => void;
+  onUpdateStatus: (customerId: string, status: string) => void;
 }
 
-const CustomerTable = ({ customers, searchTerm, onEditCustomer, onUpdatePaymentStatus }: CustomerTableProps) => {
+const CustomerTable = ({ customers, searchTerm, onEditCustomer, onUpdatePaymentStatus, onUpdateStatus }: CustomerTableProps) => {
   const filteredCustomers = customers.filter(customer => {
     const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
@@ -70,6 +71,7 @@ const CustomerTable = ({ customers, searchTerm, onEditCustomer, onUpdatePaymentS
                 customer={customer}
                 onEditCustomer={onEditCustomer}
                 onUpdatePaymentStatus={onUpdatePaymentStatus}
+                onUpdateStatus={onUpdateStatus}
               />
             ))
           )}

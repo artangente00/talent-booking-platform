@@ -4,7 +4,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, CheckCircle, XCircle, CreditCard, Clock } from 'lucide-react';
+import { Edit, MoreHorizontal, CheckCircle, XCircle, CreditCard, Clock, UserCheck, UserX, AlertCircle } from 'lucide-react';
 
 interface Customer {
   id: string;
@@ -30,9 +30,10 @@ interface CustomerTableRowProps {
   customer: Customer;
   onEditCustomer: (customer: Customer) => void;
   onUpdatePaymentStatus: (customerId: string, paymentStatus: string) => void;
+  onUpdateStatus: (customerId: string, status: string) => void;
 }
 
-const CustomerTableRow = ({ customer, onEditCustomer, onUpdatePaymentStatus }: CustomerTableRowProps) => {
+const CustomerTableRow = ({ customer, onEditCustomer, onUpdatePaymentStatus, onUpdateStatus }: CustomerTableRowProps) => {
   const getFullName = (customer: Customer) => {
     const parts = [customer.first_name, customer.middle_name, customer.last_name].filter(Boolean);
     return parts.join(' ') || 'Unknown';
@@ -70,6 +71,15 @@ const CustomerTableRow = ({ customer, onEditCustomer, onUpdatePaymentStatus }: C
       case 'not_paid': return <XCircle className="w-4 h-4 text-red-600" />;
       case 'pending': return <Clock className="w-4 h-4 text-yellow-600" />;
       default: return <CreditCard className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved': return <UserCheck className="w-4 h-4 text-green-600" />;
+      case 'rejected': return <UserX className="w-4 h-4 text-red-600" />;
+      case 'pending': return <AlertCircle className="w-4 h-4 text-yellow-600" />;
+      default: return <AlertCircle className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -145,9 +155,32 @@ const CustomerTableRow = ({ customer, onEditCustomer, onUpdatePaymentStatus }: C
         </div>
       </TableCell>
       <TableCell>
-        <Badge className={`${getStatusColor(customer.status)} border-0`}>
-          {customer.status.toUpperCase()}
-        </Badge>
+        <div className="flex items-center gap-1">
+          {getStatusIcon(customer.status)}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0">
+                <Badge className={`${getStatusColor(customer.status)} border-0 cursor-pointer`}>
+                  {customer.status.toUpperCase()}
+                </Badge>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => onUpdateStatus(customer.id, 'approved')}>
+                <UserCheck className="w-4 h-4 mr-2 text-green-600" />
+                Mark as Approved
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpdateStatus(customer.id, 'rejected')}>
+                <UserX className="w-4 h-4 mr-2 text-red-600" />
+                Mark as Rejected
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpdateStatus(customer.id, 'pending')}>
+                <AlertCircle className="w-4 h-4 mr-2 text-yellow-600" />
+                Mark as Pending
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </TableCell>
       <TableCell>
         <div className="text-sm">{formatDate(customer.created_at)}</div>

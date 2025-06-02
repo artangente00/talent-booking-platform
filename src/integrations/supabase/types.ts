@@ -163,6 +163,7 @@ export type Database = {
           id_photo_link: string | null
           last_name: string | null
           middle_name: string | null
+          payment_status: string | null
           status: string
           street_barangay: string | null
           updated_at: string
@@ -184,6 +185,7 @@ export type Database = {
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
+          payment_status?: string | null
           status?: string
           street_barangay?: string | null
           updated_at?: string
@@ -205,6 +207,7 @@ export type Database = {
           id_photo_link?: string | null
           last_name?: string | null
           middle_name?: string | null
+          payment_status?: string | null
           status?: string
           street_barangay?: string | null
           updated_at?: string

@@ -199,6 +199,45 @@ const CustomersManagement = () => {
     }
   };
 
+  const handleUpdateStatus = async (customerId: string, status: string) => {
+    try {
+      console.log('Updating status for customer:', customerId, 'to:', status);
+      
+      const { error } = await supabase
+        .from('customers')
+        .update({ status: status })
+        .eq('id', customerId);
+
+      if (error) {
+        console.error('Error updating status:', error);
+        toast({
+          title: "Error",
+          description: `Failed to update status: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Status updated successfully');
+      
+      toast({
+        title: "Success",
+        description: "Customer status updated successfully!",
+      });
+      
+      // Refresh customers data
+      fetchCustomers();
+      
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update customer status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <CustomersLoadingState />;
   }
@@ -227,6 +266,7 @@ const CustomersManagement = () => {
             searchTerm={searchTerm} 
             onEditCustomer={handleEditCustomer}
             onUpdatePaymentStatus={handleUpdatePaymentStatus}
+            onUpdateStatus={handleUpdateStatus}
           />
         </CardContent>
       </Card>
