@@ -103,10 +103,25 @@ const CustomersManagement = () => {
           : null;
 
         return {
-          ...customer,
+          id: customer.id,
+          first_name: customer.first_name,
+          middle_name: customer.middle_name,
+          last_name: customer.last_name,
+          email: customer.email,
+          contact_number: customer.contact_number,
+          created_at: customer.created_at,
+          birthdate: customer.birthdate,
+          birthplace: customer.birthplace,
+          address: customer.address,
+          valid_government_id: customer.valid_government_id,
+          status: customer.status,
+          id_photo_link: customer.id_photo_link,
+          has_assigned_booking: customer.has_assigned_booking,
+          city_municipality: customer.city_municipality,
+          street_barangay: customer.street_barangay,
+          payment_status: customer.payment_status || 'pending',
           bookingsCount: bookings.length,
           lastBooking,
-          payment_status: customer.payment_status || 'pending',
         };
       });
 
