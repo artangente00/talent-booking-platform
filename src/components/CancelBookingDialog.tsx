@@ -48,6 +48,35 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
       console.log('User ID:', user.id);
       console.log('Cancellation reason:', cancellationReason.trim());
 
+      // First, let's check what the current user's customer ID is
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (customerError) {
+        console.error('Error fetching customer data:', customerError);
+        throw new Error('Unable to find customer profile');
+      }
+
+      console.log('Customer ID:', customerData.id);
+
+      // Check if the booking exists and belongs to this customer
+      const { data: existingBooking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('id, customer_id, status, booking_status')
+        .eq('id', bookingId)
+        .eq('customer_id', customerData.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching booking:', fetchError);
+        throw new Error('Booking not found or you do not have permission to cancel it');
+      }
+
+      console.log('Existing booking:', existingBooking);
+
       // Prepare the update data
       const updateData = {
         status: 'cancelled',
@@ -59,27 +88,24 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       console.log('Update data to be sent:', updateData);
 
-      // Perform the update with more specific error handling
+      // Perform the update
       const { data: updatedData, error: updateError } = await supabase
         .from('bookings')
         .update(updateData)
         .eq('id', bookingId)
+        .eq('customer_id', customerData.id)
         .select('*');
 
       console.log('Supabase response:', { updatedData, updateError });
 
       if (updateError) {
         console.error('Supabase update error:', updateError);
-        // Check if it's a permission issue
-        if (updateError.code === 'PGRST116' || updateError.message?.includes('permission denied')) {
-          throw new Error('You do not have permission to cancel this booking. Please contact support.');
-        }
         throw new Error(`Failed to update booking: ${updateError.message}`);
       }
 
       if (!updatedData || updatedData.length === 0) {
-        console.warn('No data returned from update operation - this might indicate a permission issue');
-        throw new Error('Unable to cancel booking. This may be due to permissions or the booking may not exist.');
+        console.warn('No data returned from update operation');
+        throw new Error('Unable to cancel booking. The booking may not exist or you may not have permission.');
       }
 
       console.log('Update successful!');
