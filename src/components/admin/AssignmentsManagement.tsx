@@ -1,12 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserCheck, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAssignmentsData } from './assignments/hooks/useAssignmentsData';
 import BookingAssignmentCard from './assignments/BookingAssignmentCard';
+
+interface Service {
+  id: string;
+  title: string;
+}
 
 const AssignmentsManagement = () => {
   const { 
@@ -20,8 +26,33 @@ const AssignmentsManagement = () => {
   } = useAssignmentsData();
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [serviceFilter, setServiceFilter] = useState('all');
+  const [services, setServices] = useState<Service[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+
+  // Fetch services from Supabase
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('id, title')
+          .eq('is_active', true)
+          .order('title', { ascending: true });
+
+        if (error) throw error;
+
+        setServices(data || []);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        setServices([]);
+      } finally {
+        setServicesLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const filteredBookings = bookings.filter(booking => {
     const customerName = booking.customers 
@@ -33,18 +64,15 @@ const AssignmentsManagement = () => {
       booking.service_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.service_address.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
     const matchesService = serviceFilter === 'all' || booking.service_type === serviceFilter;
     
-    return matchesSearch && matchesStatus && matchesService;
+    return matchesSearch && matchesService;
   });
 
   const getBookingsByStatus = (status: string) => {
     if (status === 'all') return bookings;
     return bookings.filter(booking => booking.status === status);
   };
-
-  const uniqueServices = [...new Set(bookings.map(booking => booking.service_type))];
 
   const getBookingStats = () => {
     const total = bookings.length;
@@ -178,11 +206,15 @@ const AssignmentsManagement = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Services</SelectItem>
-                {uniqueServices.map((service) => (
-                  <SelectItem key={service} value={service}>
-                    {service}
-                  </SelectItem>
-                ))}
+                {servicesLoading ? (
+                  <SelectItem value="loading" disabled>Loading...</SelectItem>
+                ) : (
+                  services.map((service) => (
+                    <SelectItem key={service.id} value={service.title}>
+                      {service.title}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
