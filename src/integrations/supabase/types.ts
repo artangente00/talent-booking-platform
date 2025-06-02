@@ -83,6 +83,9 @@ export type Database = {
       }
       bookings: {
         Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_talent_id: string | null
           booking_date: string
           booking_time: string
           created_at: string
@@ -96,6 +99,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_talent_id?: string | null
           booking_date: string
           booking_time: string
           created_at?: string
@@ -109,6 +115,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_talent_id?: string | null
           booking_date?: string
           booking_time?: string
           created_at?: string
@@ -122,6 +131,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_assigned_talent_id_fkey"
+            columns: ["assigned_talent_id"]
+            isOneToOne: false
+            referencedRelation: "talents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_customer_id_fkey"
             columns: ["customer_id"]
@@ -367,6 +383,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_suggested_talents: {
+        Args: { customer_city: string; service_type: string }
+        Returns: {
+          talent_id: string
+          full_name: string
+          address: string
+          services: string[]
+          profile_photo_url: string
+          hourly_rate: string
+          experience: string
+          match_score: number
+        }[]
+      }
       is_admin: {
         Args: { user_uuid?: string }
         Returns: boolean
