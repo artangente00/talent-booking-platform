@@ -82,12 +82,19 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
       </div>
       <div>
         <Label htmlFor="address">Address *</Label>
-        <Input
-          id="address"
+        <Select
+          onValueChange={(value) => setFormData((prev: any) => ({ ...prev, address: value }))}
           value={formData.address}
-          onChange={(e) => setFormData((prev: any) => ({ ...prev, address: e.target.value }))}
-          required
-        />
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="City or Municipality" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Bayawan City">Bayawan City</SelectItem>
+            <SelectItem value="Santa Catalina">Santa Catalina</SelectItem>
+            <SelectItem value="Basay">Basay</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
