@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -75,6 +74,7 @@ export const useAssignmentsData = () => {
         console.error('Error fetching all talents:', allTalentsError);
       }
 
+      // Use the updated RPC function that properly handles array comparison
       const { data, error } = await supabase.rpc('get_suggested_talents', {
         customer_city: customerCity,
         service_type: serviceType
