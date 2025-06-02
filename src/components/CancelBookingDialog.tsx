@@ -48,21 +48,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
       console.log('User ID:', user.id);
       console.log('Cancellation reason:', cancellationReason.trim());
 
-      // Get customer data to verify ownership
-      const { data: customerData, error: customerError } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (customerError) {
-        console.error('Error fetching customer data:', customerError);
-        throw new Error('Unable to find customer profile');
-      }
-
-      console.log('Customer ID:', customerData.id);
-
-      // Use a more direct approach - update the booking with explicit conditions
+      // Update the booking - RLS policies will handle permission checking
       const updateData = {
         status: 'cancelled',
         booking_status: 'cancelled',
@@ -73,12 +59,10 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       console.log('Update data to be sent:', updateData);
 
-      // Perform the update with explicit customer_id check
       const { data: updatedData, error: updateError } = await supabase
         .from('bookings')
         .update(updateData)
         .eq('id', bookingId)
-        .eq('customer_id', customerData.id)
         .select('*');
 
       console.log('Supabase response:', { updatedData, updateError });
@@ -90,21 +74,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       if (!updatedData || updatedData.length === 0) {
         console.warn('No data returned from update operation');
-        // Try a direct check to see if the booking exists for this customer
-        const { data: checkBooking } = await supabase
-          .from('bookings')
-          .select('id, customer_id, status')
-          .eq('id', bookingId)
-          .eq('customer_id', customerData.id)
-          .single();
-        
-        console.log('Booking check result:', checkBooking);
-        
-        if (!checkBooking) {
-          throw new Error('Booking not found. It may have already been cancelled or you may not have permission to cancel it.');
-        } else {
-          throw new Error('Unable to update booking status. Please try again or contact support.');
-        }
+        throw new Error('Unable to cancel booking. You may not have permission to cancel this booking or it may have already been cancelled.');
       }
 
       console.log('Cancellation successful!');
