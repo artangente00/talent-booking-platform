@@ -420,7 +420,7 @@ const TalentManagement = () => {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">
-                        {talent.hourly_rate ? `₱${talent.hourly_rate}/day` : 'Not specified'}
+                        {talent.hourly_rate ? `${talent.hourly_rate}/day` : 'Not specified'}
                       </span>
                     </TableCell>
                     <TableCell>
