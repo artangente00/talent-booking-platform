@@ -47,10 +47,7 @@ const BookingCalendarGrid = ({
             return (
               <div key={dayIndex} className="border-r last:border-r-0 min-h-[80px] p-1">
                 {booking && (
-                  <BookingCard 
-                    booking={booking} 
-                    statusColor={getStatusColor(booking.status)} 
-                  />
+                  <BookingCard booking={booking} />
                 )}
               </div>
             );
