@@ -48,20 +48,20 @@ export const useBookingsData = () => {
 
       if (bookingsError) throw bookingsError;
 
-      // Transform bookings data
+      // Transform bookings data to match the Booking interface
       const transformedBookings = (bookingsData || []).map(booking => ({
         id: booking.id,
+        booking_date: booking.booking_date,
+        booking_time: booking.booking_time,
+        service_address: booking.service_address,
         service_type: booking.service_type,
-        customer_name: booking.customers 
-          ? `${booking.customers.first_name || ''} ${booking.customers.middle_name || ''} ${booking.customers.last_name || ''}`.trim()
-          : 'Unknown Customer',
-        address: booking.service_address,
-        city: booking.customers?.address || '',
-        date: booking.booking_date,
-        time: booking.booking_time,
         status: booking.status,
-        assigned_talent_id: booking.assigned_talent_id,
-        customer_id: booking.customer_id
+        customer: {
+          first_name: booking.customers?.first_name || '',
+          middle_name: booking.customers?.middle_name || null,
+          last_name: booking.customers?.last_name || ''
+        },
+        talent_name: booking.assigned_talent_id ? 'Assigned Talent' : undefined
       }));
 
       setBookings(transformedBookings);
