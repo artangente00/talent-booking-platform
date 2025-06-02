@@ -3,200 +3,203 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, MapPin, User, UserCheck, UserX } from 'lucide-react';
-import { BookingWithCustomer, SuggestedTalent, AssignedTalent } from './types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CalendarDays, Clock, MapPin, User, UserPlus, UserX, Star, CheckCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { Booking, AssignedTalent, SuggestedTalent } from './types';
 import TalentSelector from './TalentSelector';
 
 interface BookingAssignmentCardProps {
-  booking: BookingWithCustomer;
+  booking: Booking;
   assignedTalent?: AssignedTalent;
   onGetSuggestedTalents: (customerCity: string, serviceType: string) => Promise<SuggestedTalent[]>;
-  onAssignTalent: (bookingId: string, talentId: string) => void;
-  onUnassignTalent: (bookingId: string) => void;
+  onAssignTalent: (bookingId: string, talentId: string) => Promise<void>;
+  onUnassignTalent: (bookingId: string) => Promise<void>;
+  onUpdateBookingStatus?: (bookingId: string, status: string) => Promise<void>;
 }
 
-const BookingAssignmentCard = ({
+const BookingAssignmentCard: React.FC<BookingAssignmentCardProps> = ({
   booking,
   assignedTalent,
   onGetSuggestedTalents,
   onAssignTalent,
-  onUnassignTalent
-}: BookingAssignmentCardProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [suggestedTalents, setSuggestedTalents] = useState<SuggestedTalent[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const customerName = booking.customers 
-    ? `${booking.customers.first_name || ''} ${booking.customers.middle_name || ''} ${booking.customers.last_name || ''}`.trim()
-    : 'Unknown Customer';
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+  onUnassignTalent,
+  onUpdateBookingStatus
+}) => {
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'assigned': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    switch (status.toLowerCase()) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'assigned': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const handleOpenDialog = async () => {
-    setIsDialogOpen(true);
-    setLoading(true);
-    
-    const customerCity = booking.customers?.city_municipality || '';
-    console.log('Opening dialog for booking:', {
-      bookingId: booking.id,
-      serviceType: booking.service_type,
-      customerCity,
-      customerData: booking.customers
-    });
-    
-    const talents = await onGetSuggestedTalents(customerCity, booking.service_type);
-    console.log('Received talents:', talents);
-    setSuggestedTalents(talents);
-    setLoading(false);
+  const formatCustomerName = (customers: any) => {
+    if (!customers) return 'Unknown Customer';
+    return `${customers.first_name || ''} ${customers.middle_name || ''} ${customers.last_name || ''}`.trim();
   };
 
-  const handleSelectTalent = (talentId: string) => {
-    onAssignTalent(booking.id, talentId);
-    setIsDialogOpen(false);
+  const handleStatusChange = async (newStatus: string) => {
+    if (onUpdateBookingStatus) {
+      await onUpdateBookingStatus(booking.id, newStatus);
+    }
   };
+
+  const canChangeToCompleted = booking.status === 'assigned' && assignedTalent;
+  const canAssignTalent = booking.status === 'pending' || booking.status === 'assigned';
 
   return (
-    <Card className="w-full">
+    <Card className="h-full">
       <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{booking.service_type}</CardTitle>
-          <Badge className={`${getStatusColor(booking.status)} border-0`}>
+        <div className="flex justify-between items-start mb-2">
+          <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">
+            {booking.service_type}
+          </CardTitle>
+          <Badge className={`${getStatusColor(booking.status)} text-xs`}>
             {booking.status.toUpperCase()}
           </Badge>
         </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="font-medium">Customer:</span>
-              <span>{customerName}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="font-medium">Date:</span>
-              <span>{formatDate(booking.booking_date)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gray-500" />
-              <span className="font-medium">Time:</span>
-              <span>{booking.booking_time}</span>
-            </div>
+        
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">{formatCustomerName(booking.customers)}</span>
           </div>
           
-          <div className="space-y-2">
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
-              <span className="font-medium">Address:</span>
-              <span className="text-right flex-1">{booking.service_address}</span>
-            </div>
-            
-            {booking.customers?.city_municipality && (
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">City:</span>
-                <span>{booking.customers.city_municipality}</span>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 flex-shrink-0" />
+            <span>{format(new Date(booking.booking_date), 'MMM dd, yyyy')}</span>
           </div>
+          
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 flex-shrink-0" />
+            <span>{booking.booking_time}</span>
+          </div>
+          
+          <div className="flex items-start gap-2">
+            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span className="line-clamp-2">{booking.service_address}</span>
+          </div>
+          
+          {booking.customers?.city_municipality && (
+            <div className="text-xs text-gray-500">
+              City: {booking.customers.city_municipality}
+            </div>
+          )}
         </div>
-
-        {/* Assignment Section */}
-        <div className="pt-4 border-t">
-          {assignedTalent ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={assignedTalent.profile_photo_url || undefined} />
-                  <AvatarFallback>
-                    <User className="w-5 h-5" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium text-sm">{assignedTalent.full_name}</p>
-                  <p className="text-xs text-gray-600">
-                    {assignedTalent.hourly_rate ? `₱${assignedTalent.hourly_rate}/day` : 'Rate not specified'}
-                  </p>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        {/* Assigned Talent Section */}
+        {assignedTalent ? (
+          <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-start gap-3">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={assignedTalent.profile_photo_url || ''} alt={assignedTalent.full_name} />
+                <AvatarFallback>
+                  {assignedTalent.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-green-800 truncate">{assignedTalent.full_name}</h4>
+                <p className="text-xs text-green-600 line-clamp-2">{assignedTalent.address}</p>
+                <div className="flex items-center gap-4 mt-1 text-xs text-green-600">
+                  {assignedTalent.hourly_rate && (
+                    <span>₱{assignedTalent.hourly_rate}/hr</span>
+                  )}
+                  {assignedTalent.experience && (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      <span>{assignedTalent.experience}</span>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800 font-medium">No talent assigned</p>
+            <p className="text-xs text-yellow-600">Click "Assign Freelancer" to assign a talent to this booking.</p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          {canAssignTalent && (
+            <div className="flex gap-2">
+              <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    disabled={booking.status === 'completed' || booking.status === 'cancelled'}
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    {assignedTalent ? 'Reassign' : 'Assign Freelancer'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Assign Freelancer to Booking</DialogTitle>
+                  </DialogHeader>
+                  <TalentSelector
+                    booking={booking}
+                    onGetSuggestedTalents={onGetSuggestedTalents}
+                    onAssignTalent={async (talentId) => {
+                      await onAssignTalent(booking.id, talentId);
+                      setIsAssignDialogOpen(false);
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
               
-              <div className="flex gap-2">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={handleOpenDialog}>
-                      <UserCheck className="w-4 h-4 mr-2" />
-                      Reassign
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Select Freelancer for {booking.service_type}</DialogTitle>
-                    </DialogHeader>
-                    <TalentSelector
-                      suggestedTalents={suggestedTalents}
-                      onSelectTalent={handleSelectTalent}
-                      loading={loading}
-                    />
-                  </DialogContent>
-                </Dialog>
-                
+              {assignedTalent && (
                 <Button 
                   variant="outline" 
-                  size="sm" 
+                  size="sm"
                   onClick={() => onUnassignTalent(booking.id)}
-                  className="text-red-600 hover:text-red-700"
+                  disabled={booking.status === 'completed' || booking.status === 'cancelled'}
                 >
                   <UserX className="w-4 h-4 mr-2" />
                   Unassign
                 </Button>
-              </div>
+              )}
             </div>
-          ) : (
-            <div className="flex justify-center">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={handleOpenDialog} className="w-full">
-                    <UserCheck className="w-4 h-4 mr-2" />
-                    Assign Freelancer
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Select Freelancer for {booking.service_type}</DialogTitle>
-                    <p className="text-sm text-gray-600">
-                      Customer location: {booking.customers?.city_municipality || 'Not specified'}
-                    </p>
-                  </DialogHeader>
-                  <TalentSelector
-                    suggestedTalents={suggestedTalents}
-                    onSelectTalent={handleSelectTalent}
-                    loading={loading}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+          )}
+
+          {/* Status Change Button */}
+          {canChangeToCompleted && onUpdateBookingStatus && (
+            <Button 
+              onClick={() => handleStatusChange('completed')}
+              className="w-full bg-green-600 hover:bg-green-700"
+              size="sm"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Mark as Completed
+            </Button>
+          )}
+
+          {/* Status Selector for other status changes */}
+          {onUpdateBookingStatus && booking.status !== 'completed' && booking.status !== 'cancelled' && (
+            <Select onValueChange={handleStatusChange} value={booking.status}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Change Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="assigned">Assigned</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
           )}
         </div>
       </CardContent>

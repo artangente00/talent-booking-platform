@@ -140,7 +140,8 @@ export const useAssignmentsData = () => {
         .update({
           assigned_talent_id: talentId,
           assigned_by: user.id,
-          assigned_at: new Date().toISOString()
+          assigned_at: new Date().toISOString(),
+          status: 'assigned'
         })
         .eq('id', bookingId);
 
@@ -170,7 +171,8 @@ export const useAssignmentsData = () => {
         .update({
           assigned_talent_id: null,
           assigned_by: null,
-          assigned_at: null
+          assigned_at: null,
+          status: 'pending'
         })
         .eq('id', bookingId);
 
@@ -193,6 +195,54 @@ export const useAssignmentsData = () => {
     }
   };
 
+  const updateBookingStatus = async (bookingId: string, status: string) => {
+    try {
+      // Get booking details to check for assigned talent
+      const { data: bookingData, error: fetchError } = await supabase
+        .from('bookings')
+        .select('assigned_talent_id')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // If status is completed and there's an assigned talent, make them available
+      if (status === 'completed' && bookingData.assigned_talent_id) {
+        const { error: talentError } = await supabase
+          .from('talents')
+          .update({ is_available: true })
+          .eq('id', bookingData.assigned_talent_id);
+
+        if (talentError) {
+          console.error('Error updating talent availability:', talentError);
+          // Don't fail the whole operation if talent update fails
+        }
+      }
+
+      toast({
+        title: "Success",
+        description: "Booking status updated successfully!",
+      });
+
+      // Refresh data
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update booking status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -204,6 +254,7 @@ export const useAssignmentsData = () => {
     getSuggestedTalents,
     assignTalent,
     unassignTalent,
+    updateBookingStatus,
     refetch: fetchData
   };
 };

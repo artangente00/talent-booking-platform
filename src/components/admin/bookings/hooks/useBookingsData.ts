@@ -49,23 +49,30 @@ export const useBookingsData = () => {
       if (bookingsError) throw bookingsError;
 
       // Transform bookings data to match the Booking interface
-      const transformedBookings = (bookingsData || []).map(booking => ({
-        id: booking.id,
-        booking_date: booking.booking_date,
-        booking_time: booking.booking_time,
-        service_address: booking.service_address,
-        service_type: booking.service_type,
-        status: booking.status,
-        booking_status: booking.booking_status || 'active',
-        customer: {
-          first_name: booking.customers?.first_name || '',
-          middle_name: booking.customers?.middle_name || null,
-          last_name: booking.customers?.last_name || ''
-        },
-        talent_name: booking.assigned_talent_id ? 'Assigned Talent' : undefined,
-        cancelled_at: booking.cancelled_at,
-        cancellation_reason: booking.cancellation_reason
-      }));
+      const transformedBookings = (bookingsData || []).map(booking => {
+        // Automatically set status to "assigned" if talent is assigned and status is still "pending"
+        const adjustedStatus = booking.assigned_talent_id && booking.status === 'pending' 
+          ? 'assigned' 
+          : booking.status;
+
+        return {
+          id: booking.id,
+          booking_date: booking.booking_date,
+          booking_time: booking.booking_time,
+          service_address: booking.service_address,
+          service_type: booking.service_type,
+          status: adjustedStatus,
+          booking_status: booking.booking_status || 'active',
+          customer: {
+            first_name: booking.customers?.first_name || '',
+            middle_name: booking.customers?.middle_name || null,
+            last_name: booking.customers?.last_name || ''
+          },
+          talent_name: booking.assigned_talent_id ? 'Assigned Talent' : undefined,
+          cancelled_at: booking.cancelled_at,
+          cancellation_reason: booking.cancellation_reason
+        };
+      });
 
       setBookings(transformedBookings);
     } catch (error) {
