@@ -22,20 +22,17 @@ const BookingServiceContent = ({
   setCurrentWeek 
 }: BookingServiceContentProps) => {
   const getServiceBookings = (serviceId: string) => {
-    // Map service ID to service title for filtering
-    const serviceObj = service;
-    if (!serviceObj) return [];
-    
-    console.log(`Getting bookings for service: ${serviceObj.title}`);
+    // If "All Services" is selected, return all bookings
+    if (serviceId === 'all') {
+      return bookings;
+    }
     
     // Filter bookings by service_type matching the service title
     const filteredBookings = bookings.filter(booking => {
-      const serviceTypeMatch = booking.service_type.toLowerCase() === serviceObj.title.toLowerCase();
-      console.log(`Booking service_type: ${booking.service_type}, Service title: ${serviceObj.title}, Match: ${serviceTypeMatch}`);
+      const serviceTypeMatch = booking.service_type.toLowerCase() === service.title.toLowerCase();
       return serviceTypeMatch;
     });
     
-    console.log(`Found ${filteredBookings.length} bookings for ${serviceObj.title}`);
     return filteredBookings;
   };
 

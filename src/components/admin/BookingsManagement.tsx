@@ -8,14 +8,7 @@ import ServiceTabs from './bookings/ServiceTabs';
 const BookingsManagement = () => {
   const { services, bookings, loading } = useBookingsData();
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [activeService, setActiveService] = useState<string>('');
-
-  // Set active service when services are loaded
-  React.useEffect(() => {
-    if (services.length > 0 && !activeService) {
-      setActiveService(services[0].id);
-    }
-  }, [services, activeService]);
+  const [activeService, setActiveService] = useState<string>('all');
 
   if (loading) {
     return (
