@@ -29,6 +29,8 @@ const BookingAssignmentCard: React.FC<BookingAssignmentCardProps> = ({
   onUpdateBookingStatus
 }) => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [suggestedTalents, setSuggestedTalents] = useState<SuggestedTalent[]>([]);
+  const [loadingTalents, setLoadingTalents] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -49,6 +51,27 @@ const BookingAssignmentCard: React.FC<BookingAssignmentCardProps> = ({
     if (onUpdateBookingStatus) {
       await onUpdateBookingStatus(booking.id, newStatus);
     }
+  };
+
+  const handleAssignDialogOpen = async () => {
+    setIsAssignDialogOpen(true);
+    if (booking.customers?.city_municipality) {
+      setLoadingTalents(true);
+      try {
+        const talents = await onGetSuggestedTalents(booking.customers.city_municipality, booking.service_type);
+        setSuggestedTalents(talents);
+      } catch (error) {
+        console.error('Error fetching suggested talents:', error);
+        setSuggestedTalents([]);
+      } finally {
+        setLoadingTalents(false);
+      }
+    }
+  };
+
+  const handleTalentSelect = async (talentId: string) => {
+    await onAssignTalent(booking.id, talentId);
+    setIsAssignDialogOpen(false);
   };
 
   const canChangeToCompleted = booking.status === 'assigned' && assignedTalent;
@@ -141,6 +164,7 @@ const BookingAssignmentCard: React.FC<BookingAssignmentCardProps> = ({
                     size="sm" 
                     className="flex-1"
                     disabled={booking.status === 'completed' || booking.status === 'cancelled'}
+                    onClick={handleAssignDialogOpen}
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     {assignedTalent ? 'Reassign' : 'Assign Freelancer'}
@@ -151,12 +175,9 @@ const BookingAssignmentCard: React.FC<BookingAssignmentCardProps> = ({
                     <DialogTitle>Assign Freelancer to Booking</DialogTitle>
                   </DialogHeader>
                   <TalentSelector
-                    booking={booking}
-                    onGetSuggestedTalents={onGetSuggestedTalents}
-                    onAssignTalent={async (talentId) => {
-                      await onAssignTalent(booking.id, talentId);
-                      setIsAssignDialogOpen(false);
-                    }}
+                    suggestedTalents={suggestedTalents}
+                    onSelectTalent={handleTalentSelect}
+                    loading={loadingTalents}
                   />
                 </DialogContent>
               </Dialog>
