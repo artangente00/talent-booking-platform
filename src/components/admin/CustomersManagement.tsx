@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
@@ -63,7 +62,7 @@ const CustomersManagement = () => {
 
       console.log('User authenticated, fetching customers...');
       
-      // Fetch customers with their booking counts using a single query
+      // Fetch customers with their booking counts, excluding those who are also admins
       const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select(`
@@ -84,6 +83,7 @@ const CustomersManagement = () => {
           city_municipality,
           street_barangay,
           payment_status,
+          user_id,
           bookings!bookings_customer_id_fkey (
             id,
             created_at
@@ -111,8 +111,29 @@ const CustomersManagement = () => {
         return;
       }
 
-      // Process the data to include booking counts and last booking
-      const processedCustomers = customersData.map((customer) => {
+      // Get all admin user_ids to filter them out
+      const { data: adminsData, error: adminsError } = await supabase
+        .from('admins')
+        .select('user_id')
+        .eq('is_active', true);
+
+      if (adminsError) {
+        console.error('Error fetching admins:', adminsError);
+        // Continue without filtering admins if query fails
+      }
+
+      const adminUserIds = new Set(adminsData?.map(admin => admin.user_id) || []);
+      console.log('Admin user IDs to exclude:', Array.from(adminUserIds));
+
+      // Filter out customers who are also admins and process the data
+      const filteredCustomersData = customersData.filter(customer => 
+        !adminUserIds.has(customer.user_id)
+      );
+
+      console.log('Filtered customers (excluding admins):', filteredCustomersData.length, 'out of', customersData.length);
+
+      // Process the filtered data to include booking counts and last booking
+      const processedCustomers = filteredCustomersData.map((customer) => {
         const bookings = customer.bookings || [];
         const lastBooking = bookings.length > 0 
           ? new Date(Math.max(...bookings.map(b => new Date(b.created_at).getTime()))).toISOString()
