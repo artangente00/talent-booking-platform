@@ -8,6 +8,8 @@ export interface Booking {
   status: string;
   booking_status: string;
   assigned_talent_id: string | null;
+  assigned_at: string | null;
+  assigned_by: string | null;
   customers: {
     first_name: string | null;
     middle_name: string | null;

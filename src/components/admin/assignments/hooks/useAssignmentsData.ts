@@ -53,6 +53,8 @@ export const useAssignmentsData = () => {
           status: booking.status,
           booking_status: booking.booking_status || 'active',
           assigned_talent_id: booking.assigned_talent_id,
+          assigned_at: booking.assigned_at,
+          assigned_by: booking.assigned_by,
           customers: booking.customers,
           created_at: booking.created_at,
           updated_at: booking.updated_at,
