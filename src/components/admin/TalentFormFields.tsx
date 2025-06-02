@@ -4,7 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { X } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 
 interface Service {
@@ -56,15 +59,45 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
     }
   }, [formData.birthdate, setFormData]);
 
-  const handleServiceChange = (selectedTitle: string) => {
-    const selected = services.find(service => service.title === selectedTitle);
-    if (selected) {
+  const handleServiceToggle = (serviceTitle: string, checked: boolean) => {
+    const currentServices = Array.isArray(formData.services) ? formData.services : [];
+    
+    if (checked) {
+      const updatedServices = [...currentServices, serviceTitle];
       setFormData((prev: any) => ({
         ...prev,
-        services: [selected.title],
-        hourly_rate: selected.price_range || ''
+        services: updatedServices
+      }));
+      
+      // Set price range from the first selected service for now
+      const selectedService = services.find(s => s.title === serviceTitle);
+      if (selectedService && currentServices.length === 0) {
+        setFormData((prev: any) => ({
+          ...prev,
+          hourly_rate: selectedService.price_range || ''
+        }));
+      }
+    } else {
+      const updatedServices = currentServices.filter((s: string) => s !== serviceTitle);
+      setFormData((prev: any) => ({
+        ...prev,
+        services: updatedServices,
+        // Clear hourly_rate if no services selected
+        ...(updatedServices.length === 0 ? { hourly_rate: '' } : {})
       }));
     }
+  };
+
+  const removeService = (serviceToRemove: string) => {
+    const currentServices = Array.isArray(formData.services) ? formData.services : [];
+    const updatedServices = currentServices.filter((s: string) => s !== serviceToRemove);
+    
+    setFormData((prev: any) => ({
+      ...prev,
+      services: updatedServices,
+      // Clear hourly_rate if no services selected
+      ...(updatedServices.length === 0 ? { hourly_rate: '' } : {})
+    }));
   };
 
   const handleImageUpload = (url: string | null) => {
@@ -73,6 +106,8 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
       profile_photo_url: url
     }));
   };
+
+  const currentServices = Array.isArray(formData.services) ? formData.services : [];
 
   return (
     <div className="space-y-4">
@@ -143,22 +178,44 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
       </div>
 
       <div>
-        <Label htmlFor="service">Service *</Label>
-        <Select
-          onValueChange={handleServiceChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a service" />
-          </SelectTrigger>
-          <SelectContent>
-            {services.map((service) => (
-              <SelectItem key={service.title} value={service.title}>
+        <Label htmlFor="service">Services *</Label>
+        
+        {/* Selected Services Display */}
+        {currentServices.length > 0 && (
+          <div className="mb-3">
+            <Label className="text-sm">Selected Services:</Label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {currentServices.map((service: string) => (
+                <Badge key={service} variant="secondary" className="flex items-center gap-1">
+                  {service}
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => removeService(service)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Service Selection */}
+        <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+          <Label className="text-sm font-medium">Available Services:</Label>
+          {services.map((service) => (
+            <div key={service.title} className="flex items-center space-x-2">
+              <Checkbox
+                id={`service-${service.title}`}
+                checked={currentServices.includes(service.title)}
+                onCheckedChange={(checked) => handleServiceToggle(service.title, checked as boolean)}
+              />
+              <Label htmlFor={`service-${service.title}`} className="text-sm font-normal cursor-pointer">
                 {service.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
+
       <div>
         <Label htmlFor="experience">Experience</Label>
         <Select
@@ -182,9 +239,9 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
           id="hourly_rate"
           type="text"
           value={formData.hourly_rate || ''}
-          readOnly
+          onChange={(e) => setFormData((prev: any) => ({ ...prev, hourly_rate: e.target.value }))}
+          placeholder="Enter daily rate"
         />
-
       </div>
       <div>
         <Label htmlFor="availability">Availability</Label>

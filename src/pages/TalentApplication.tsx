@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ImageUpload from '@/components/admin/ImageUpload';
 
@@ -24,7 +26,7 @@ const TalentApplication = () => {
     address: '',
     birthdate: '',
     experience: '',
-    service: '',
+    services: [] as string[],
     customService: '',
     description: '',
     availability: '',
@@ -90,15 +92,54 @@ const TalentApplication = () => {
     setFormData(prev => ({ ...prev, profilePhotoUrl: url }));
   };
 
+  const handleServiceToggle = (serviceTitle: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      services: checked 
+        ? [...prev.services, serviceTitle]
+        : prev.services.filter(s => s !== serviceTitle)
+    }));
+  };
+
+  const handleCustomServiceToggle = (checked: boolean) => {
+    if (checked) {
+      setFormData(prev => ({
+        ...prev,
+        services: [...prev.services, 'Others']
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        services: prev.services.filter(s => s !== 'Others'),
+        customService: ''
+      }));
+    }
+  };
+
+  const removeService = (serviceToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.filter(s => s !== serviceToRemove),
+      ...(serviceToRemove === 'Others' ? { customService: '' } : {})
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const finalService = formData.service === 'Others' ? formData.customService : formData.service;
-    
-    if (!finalService) {
+    if (formData.services.length === 0) {
       toast({
         title: "Error",
-        description: "Please select a service you can provide or specify your custom service.",
+        description: "Please select at least one service you can provide.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.services.includes('Others') && !formData.customService.trim()) {
+      toast({
+        title: "Error",
+        description: "Please specify your custom service.",
         variant: "destructive",
       });
       return;
@@ -109,6 +150,11 @@ const TalentApplication = () => {
     try {
       const calculatedAge = calculateAge(formData.birthdate);
       
+      // Replace 'Others' with the custom service if specified
+      const finalServices = formData.services.map(service => 
+        service === 'Others' ? formData.customService : service
+      );
+      
       const { error } = await supabase
         .from('talents')
         .insert({
@@ -118,7 +164,7 @@ const TalentApplication = () => {
           birthdate: formData.birthdate || null,
           age: calculatedAge,
           experience: formData.experience || null,
-          services: [finalService],
+          services: finalServices,
           description: formData.description || null,
           availability: formData.availability || null,
           hourly_rate: null,
@@ -142,7 +188,7 @@ const TalentApplication = () => {
         address: '',
         birthdate: '',
         experience: '',
-        service: '',
+        services: [],
         customService: '',
         description: '',
         availability: '',
@@ -159,14 +205,6 @@ const TalentApplication = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleServiceChange = (value: string) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      service: value,
-      customService: value === 'Others' ? prev.customService : ''
-    }));
   };
 
   return (
@@ -207,7 +245,7 @@ const TalentApplication = () => {
             <CardHeader>
               <CardTitle className="text-2xl">Freelancer Application Form</CardTitle>
               <CardDescription>
-                Tell us about yourself and the service you'd like to offer
+                Tell us about yourself and the services you'd like to offer
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -285,27 +323,63 @@ const TalentApplication = () => {
 
                 {/* Service Selection */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Service You Can Provide *</h3>
-                  <p className="text-sm text-gray-600">Select the service you're qualified and willing to provide</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Services You Can Provide *</h3>
+                  <p className="text-sm text-gray-600">Select all services you're qualified and willing to provide</p>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="service">Service Type</Label>
-                    <Select onValueChange={handleServiceChange} value={formData.service} disabled={isLoadingServices}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={isLoadingServices ? "Loading services..." : "Select a service"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.title}>
-                            {service.title}
-                          </SelectItem>
+                  {/* Selected Services Display */}
+                  {formData.services.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Selected Services:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.services.map((service) => (
+                          <Badge key={service} variant="secondary" className="flex items-center gap-1">
+                            {service === 'Others' ? formData.customService || 'Others' : service}
+                            <X 
+                              className="w-3 h-3 cursor-pointer" 
+                              onClick={() => removeService(service)}
+                            />
+                          </Badge>
                         ))}
-                        <SelectItem value="Others">Others</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Service Checkboxes */}
+                  <div className="space-y-3">
+                    <Label>Available Services:</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-40 overflow-y-auto border rounded-md p-3">
+                      {isLoadingServices ? (
+                        <div className="col-span-2 text-center py-4">Loading services...</div>
+                      ) : (
+                        <>
+                          {services.map((service) => (
+                            <div key={service.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={service.id}
+                                checked={formData.services.includes(service.title)}
+                                onCheckedChange={(checked) => handleServiceToggle(service.title, checked as boolean)}
+                              />
+                              <Label htmlFor={service.id} className="text-sm font-normal cursor-pointer">
+                                {service.title}
+                              </Label>
+                            </div>
+                          ))}
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="others"
+                              checked={formData.services.includes('Others')}
+                              onCheckedChange={(checked) => handleCustomServiceToggle(checked as boolean)}
+                            />
+                            <Label htmlFor="others" className="text-sm font-normal cursor-pointer">
+                              Others
+                            </Label>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
 
-                  {formData.service === 'Others' && (
+                  {formData.services.includes('Others') && (
                     <div className="space-y-2">
                       <Label htmlFor="customService">Please specify your service *</Label>
                       <Input
