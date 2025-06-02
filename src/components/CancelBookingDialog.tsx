@@ -47,6 +47,7 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
         .from('bookings')
         .update({
           status: 'cancelled',
+          booking_status: 'cancelled',
           cancelled_at: new Date().toISOString(),
           cancelled_by: user.id,
           cancellation_reason: cancellationReason.trim()

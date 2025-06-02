@@ -12,6 +12,7 @@ export interface Booking {
   service_address: string;
   service_type: string;
   status: string;
+  booking_status: string;
   customer: {
     first_name: string;
     middle_name: string | null;

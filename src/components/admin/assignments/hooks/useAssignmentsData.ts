@@ -1,18 +1,21 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Booking, AssignedTalent, SuggestedTalent } from '../types';
 import { useToast } from '@/hooks/use-toast';
-import { BookingWithCustomer, SuggestedTalent, AssignedTalent } from '../types';
 
 export const useAssignmentsData = () => {
-  const [bookings, setBookings] = useState<BookingWithCustomer[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [assignedTalents, setAssignedTalents] = useState<Record<string, AssignedTalent>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchBookings = async () => {
+  const fetchData = async () => {
     try {
-      const { data: bookingsData, error } = await supabase
+      setLoading(true);
+      
+      // Fetch bookings with customer details and assigned talent info
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
@@ -21,38 +24,67 @@ export const useAssignmentsData = () => {
             middle_name,
             last_name,
             city_municipality
+          ),
+          talents (
+            id,
+            full_name,
+            address,
+            phone,
+            profile_photo_url,
+            hourly_rate,
+            experience
           )
         `)
-        .order('booking_date', { ascending: true });
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (bookingsError) throw bookingsError;
 
-      console.log('Bookings data:', bookingsData);
-      setBookings(bookingsData || []);
+      // Transform booking data and extract assigned talents
+      const transformedBookings: Booking[] = [];
+      const talentsMap: Record<string, AssignedTalent> = {};
 
-      // Fetch assigned talents for bookings that have assignments
-      const assignedBookings = (bookingsData || []).filter(booking => booking.assigned_talent_id);
-      if (assignedBookings.length > 0) {
-        const talentIds = assignedBookings.map(booking => booking.assigned_talent_id);
-        const { data: talentsData, error: talentsError } = await supabase
-          .from('talents')
-          .select('id, full_name, profile_photo_url, hourly_rate')
-          .in('id', talentIds);
+      (bookingsData || []).forEach((booking) => {
+        const transformedBooking: Booking = {
+          id: booking.id,
+          service_type: booking.service_type,
+          service_address: booking.service_address,
+          booking_date: booking.booking_date,
+          booking_time: booking.booking_time,
+          status: booking.status,
+          booking_status: booking.booking_status || 'active',
+          assigned_talent_id: booking.assigned_talent_id,
+          customers: booking.customers,
+          created_at: booking.created_at,
+          updated_at: booking.updated_at,
+          special_instructions: booking.special_instructions,
+          duration: booking.duration,
+          cancelled_at: booking.cancelled_at,
+          cancellation_reason: booking.cancellation_reason
+        };
 
-        if (talentsError) throw talentsError;
+        transformedBookings.push(transformedBooking);
 
-        const talentsMap = (talentsData || []).reduce((acc, talent) => {
-          acc[talent.id] = talent;
-          return acc;
-        }, {} as Record<string, AssignedTalent>);
+        // If there's an assigned talent, add to the talents map
+        if (booking.assigned_talent_id && booking.talents) {
+          talentsMap[booking.assigned_talent_id] = {
+            id: booking.talents.id,
+            full_name: booking.talents.full_name,
+            address: booking.talents.address,
+            phone: booking.talents.phone,
+            profile_photo_url: booking.talents.profile_photo_url,
+            hourly_rate: booking.talents.hourly_rate,
+            experience: booking.talents.experience
+          };
+        }
+      });
 
-        setAssignedTalents(talentsMap);
-      }
+      setBookings(transformedBookings);
+      setAssignedTalents(talentsMap);
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error fetching assignments data:', error);
       toast({
         title: "Error",
-        description: "Failed to load bookings data.",
+        description: "Failed to load assignments data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -62,141 +94,65 @@ export const useAssignmentsData = () => {
 
   const getSuggestedTalents = async (customerCity: string, serviceType: string): Promise<SuggestedTalent[]> => {
     try {
-      console.log('Getting suggested talents for:', { customerCity, serviceType });
-      
-      // First, let's check what talents we have and their statuses
-      const { data: allTalents, error: allTalentsError } = await supabase
-        .from('talents')
-        .select('*');
-      
-      console.log('All talents in database:', allTalents);
-      console.log('Talents with status breakdown:', 
-        allTalents?.map(t => ({ name: t.full_name, status: t.status, services: t.services, address: t.address }))
-      );
-      
-      if (allTalentsError) {
-        console.error('Error fetching all talents:', allTalentsError);
-      }
-
-      // Let's also try a direct query to see what we get with different status filters
-      const { data: approvedTalents, error: approvedError } = await supabase
-        .from('talents')
-        .select('*')
-        .eq('status', 'approved');
-      
-      console.log('Approved talents:', approvedTalents);
-
-      const { data: pendingTalents, error: pendingError } = await supabase
-        .from('talents')
-        .select('*')
-        .eq('status', 'pending');
-      
-      console.log('Pending talents:', pendingTalents);
-
-      // Updated RPC call - let's also try a manual query first to debug
-      const { data: manualQuery, error: manualError } = await supabase
-        .from('talents')
-        .select('*')
-        .in('status', ['approved', 'pending']);
-      
-      console.log('Manual query result:', manualQuery);
-      
-      // Check if any talents match the service
-      const matchingTalents = manualQuery?.filter(talent => 
-        talent.services && talent.services.includes(serviceType)
-      );
-      console.log('Talents matching service type:', matchingTalents);
-
-      // Use the RPC function but update to include pending status
       const { data, error } = await supabase.rpc('get_suggested_talents', {
         customer_city: customerCity,
         service_type: serviceType
       });
 
-      console.log('RPC call result:', { data, error });
+      if (error) throw error;
 
-      if (error) {
-        console.error('RPC error:', error);
-        throw error;
-      }
-      
-      return data || [];
+      return (data || []).map((talent: any) => ({
+        id: talent.talent_id,
+        full_name: talent.full_name,
+        address: talent.address,
+        services: talent.services,
+        profile_photo_url: talent.profile_photo_url,
+        hourly_rate: talent.hourly_rate,
+        experience: talent.experience,
+        match_score: talent.match_score
+      }));
     } catch (error) {
-      console.error('Error getting suggested talents:', error);
+      console.error('Error fetching suggested talents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch suggested talents.",
+        variant: "destructive",
+      });
       return [];
     }
   };
 
   const assignTalent = async (bookingId: string, talentId: string) => {
     try {
-      console.log('=== ASSIGNMENT DEBUG START ===');
-      console.log('Assigning talent:', { bookingId, talentId });
-      console.log('BookingId type:', typeof bookingId);
-      console.log('TalentId type:', typeof talentId);
-      
-      // First, let's verify the booking exists
-      const { data: existingBooking, error: fetchError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('id', bookingId)
-        .single();
-      
-      console.log('Existing booking check:', { existingBooking, fetchError });
-      
-      if (fetchError) {
-        console.error('Error fetching existing booking:', fetchError);
-        throw new Error(`Booking not found: ${fetchError.message}`);
-      }
-      
-      if (!existingBooking) {
-        throw new Error(`No booking found with ID: ${bookingId}`);
-      }
-      
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id);
       
-      // Now try the update
-      const updateData = {
-        assigned_talent_id: talentId,
-        assigned_at: new Date().toISOString(),
-        assigned_by: user?.id,
-        status: 'assigned'
-      };
-      
-      console.log('Update data:', updateData);
-      
-      const { data, error } = await supabase
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase
         .from('bookings')
-        .update(updateData)
-        .eq('id', bookingId)
-        .select();
+        .update({
+          assigned_talent_id: talentId,
+          assigned_by: user.id,
+          assigned_at: new Date().toISOString()
+        })
+        .eq('id', bookingId);
 
-      console.log('Update result:', { data, error });
-      console.log('=== ASSIGNMENT DEBUG END ===');
-
-      if (error) {
-        console.error('Assignment error:', error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        throw new Error('No booking was updated. Check if the booking ID exists.');
-      }
-
-      console.log('Successfully updated booking:', data[0]);
+      if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Freelancer assigned successfully.",
+        description: "Talent assigned successfully!",
       });
 
-      // Refresh data immediately
-      await fetchBookings();
+      // Refresh data
+      await fetchData();
     } catch (error) {
       console.error('Error assigning talent:', error);
       toast({
         title: "Error",
-        description: `Failed to assign freelancer: ${error.message}`,
+        description: "Failed to assign talent. Please try again.",
         variant: "destructive",
       });
     }
@@ -204,58 +160,45 @@ export const useAssignmentsData = () => {
 
   const unassignTalent = async (bookingId: string) => {
     try {
-      console.log('Unassigning talent from booking:', bookingId);
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('bookings')
         .update({
           assigned_talent_id: null,
-          assigned_at: null,
           assigned_by: null,
-          status: 'pending'
+          assigned_at: null
         })
-        .eq('id', bookingId)
-        .select();
+        .eq('id', bookingId);
 
-      console.log('Unassign result:', { data, error });
-
-      if (error) {
-        console.error('Unassignment error:', error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        throw new Error('No booking was updated. Check if the booking ID exists.');
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Freelancer unassigned successfully.",
+        description: "Talent unassigned successfully!",
       });
 
-      // Refresh data immediately
-      await fetchBookings();
+      // Refresh data
+      await fetchData();
     } catch (error) {
       console.error('Error unassigning talent:', error);
       toast({
         title: "Error",
-        description: `Failed to unassign freelancer: ${error.message}`,
+        description: "Failed to unassign talent. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchData();
   }, []);
 
-  return { 
-    bookings, 
-    assignedTalents, 
-    loading, 
-    getSuggestedTalents, 
-    assignTalent, 
+  return {
+    bookings,
+    assignedTalents,
+    loading,
+    getSuggestedTalents,
+    assignTalent,
     unassignTalent,
-    refreshData: fetchBookings
+    refetch: fetchData
   };
 };

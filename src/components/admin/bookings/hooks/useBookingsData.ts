@@ -32,7 +32,7 @@ export const useBookingsData = () => {
 
       setServices(transformedServices);
 
-      // Fetch bookings with customer details
+      // Fetch bookings with customer details, including the new booking_status field
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -56,6 +56,7 @@ export const useBookingsData = () => {
         service_address: booking.service_address,
         service_type: booking.service_type,
         status: booking.status,
+        booking_status: booking.booking_status || 'active',
         customer: {
           first_name: booking.customers?.first_name || '',
           middle_name: booking.customers?.middle_name || null,
