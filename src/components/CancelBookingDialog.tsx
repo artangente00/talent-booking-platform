@@ -43,9 +43,26 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
         throw new Error('User not authenticated');
       }
 
-      console.log('Cancelling booking with ID:', bookingId);
+      console.log('Starting cancellation process...');
+      console.log('Booking ID:', bookingId);
+      console.log('User ID:', user.id);
       console.log('Cancellation reason:', cancellationReason.trim());
 
+      // First, let's check if the booking exists
+      const { data: existingBooking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('id, status, booking_status')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching booking:', fetchError);
+        throw new Error('Failed to find booking');
+      }
+
+      console.log('Existing booking:', existingBooking);
+
+      // Prepare the update data
       const updateData = {
         status: 'cancelled',
         booking_status: 'cancelled',
@@ -54,20 +71,32 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
         cancellation_reason: cancellationReason.trim()
       };
 
-      console.log('Update data:', updateData);
+      console.log('Update data to be sent:', updateData);
 
-      const { error, data } = await supabase
+      // Perform the update
+      const { data: updatedData, error: updateError } = await supabase
         .from('bookings')
         .update(updateData)
         .eq('id', bookingId)
-        .select();
+        .select('*');
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        console.error('Error details:', {
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          code: updateError.code
+        });
+        throw new Error(`Failed to update booking: ${updateError.message}`);
       }
 
-      console.log('Update successful, data:', data);
+      console.log('Update successful!');
+      console.log('Updated booking data:', updatedData);
+
+      if (!updatedData || updatedData.length === 0) {
+        console.warn('No data returned from update operation');
+      }
 
       toast({
         title: "Booking Cancelled",
@@ -78,10 +107,10 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
       setCancellationReason('');
       onBookingCancelled();
     } catch (error) {
-      console.error('Error cancelling booking:', error);
+      console.error('Error in handleCancel:', error);
       toast({
         title: "Error",
-        description: "Failed to cancel booking. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to cancel booking. Please try again.",
         variant: "destructive",
       });
     } finally {
