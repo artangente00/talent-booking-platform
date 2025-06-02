@@ -63,18 +63,50 @@ export const useAssignmentsData = () => {
     try {
       console.log('Getting suggested talents for:', { customerCity, serviceType });
       
-      // First, let's check if we have any talents at all
+      // First, let's check what talents we have and their statuses
       const { data: allTalents, error: allTalentsError } = await supabase
         .from('talents')
         .select('*');
       
       console.log('All talents in database:', allTalents);
+      console.log('Talents with status breakdown:', 
+        allTalents?.map(t => ({ name: t.full_name, status: t.status, services: t.services, address: t.address }))
+      );
       
       if (allTalentsError) {
         console.error('Error fetching all talents:', allTalentsError);
       }
 
-      // Use the updated RPC function that properly handles array comparison
+      // Let's also try a direct query to see what we get with different status filters
+      const { data: approvedTalents, error: approvedError } = await supabase
+        .from('talents')
+        .select('*')
+        .eq('status', 'approved');
+      
+      console.log('Approved talents:', approvedTalents);
+
+      const { data: pendingTalents, error: pendingError } = await supabase
+        .from('talents')
+        .select('*')
+        .eq('status', 'pending');
+      
+      console.log('Pending talents:', pendingTalents);
+
+      // Updated RPC call - let's also try a manual query first to debug
+      const { data: manualQuery, error: manualError } = await supabase
+        .from('talents')
+        .select('*')
+        .in('status', ['approved', 'pending']);
+      
+      console.log('Manual query result:', manualQuery);
+      
+      // Check if any talents match the service
+      const matchingTalents = manualQuery?.filter(talent => 
+        talent.services && talent.services.includes(serviceType)
+      );
+      console.log('Talents matching service type:', matchingTalents);
+
+      // Use the RPC function but update to include pending status
       const { data, error } = await supabase.rpc('get_suggested_talents', {
         customer_city: customerCity,
         service_type: serviceType
