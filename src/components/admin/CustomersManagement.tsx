@@ -26,6 +26,7 @@ interface Customer {
   valid_government_id: string | null;
   status: string;
   id_photo_link: string | null;
+  has_assigned_booking: boolean;
 }
 
 const CustomersManagement = () => {
