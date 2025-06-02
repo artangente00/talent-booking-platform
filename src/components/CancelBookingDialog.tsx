@@ -43,18 +43,31 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
-        .from('bookings')
-        .update({
-          status: 'cancelled',
-          booking_status: 'cancelled',
-          cancelled_at: new Date().toISOString(),
-          cancelled_by: user.id,
-          cancellation_reason: cancellationReason.trim()
-        })
-        .eq('id', bookingId);
+      console.log('Cancelling booking with ID:', bookingId);
+      console.log('Cancellation reason:', cancellationReason.trim());
 
-      if (error) throw error;
+      const updateData = {
+        status: 'cancelled',
+        booking_status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: user.id,
+        cancellation_reason: cancellationReason.trim()
+      };
+
+      console.log('Update data:', updateData);
+
+      const { error, data } = await supabase
+        .from('bookings')
+        .update(updateData)
+        .eq('id', bookingId)
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Update successful, data:', data);
 
       toast({
         title: "Booking Cancelled",
