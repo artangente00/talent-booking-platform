@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import IdPhotoUpload from '@/components/auth/IdPhotoUpload';
@@ -30,21 +32,31 @@ interface Customer {
   street_barangay: string | null;
 }
 
-interface EditCustomerFormData {
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  email: string;
-  contact_number: string;
-  birthdate: string;
-  birthplace: string;
-  city_municipality: string;
-  street_barangay: string;
-  valid_government_id: string;
-  password: string;
-  confirm_password: string;
-  status: string;
-}
+const editCustomerSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  middle_name: z.string().optional(),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  contact_number: z.string().min(1, "Contact number is required"),
+  birthdate: z.string().min(1, "Birthdate is required"),
+  birthplace: z.string().min(1, "Birthplace is required"),
+  city_municipality: z.string().min(1, "City or Municipality is required"),
+  street_barangay: z.string().min(1, "Street and Barangay is required"),
+  valid_government_id: z.string().min(1, "Valid Government ID is required"),
+  password: z.string().optional(),
+  confirm_password: z.string().optional(),
+  status: z.string().min(1, "Status is required"),
+}).refine((data) => {
+  if (data.password && data.password !== data.confirm_password) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Passwords don't match",
+  path: ["confirm_password"],
+});
+
+type EditCustomerFormData = z.infer<typeof editCustomerSchema>;
 
 interface EditCustomerDialogProps {
   customer: Customer | null;
@@ -61,6 +73,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
   const { toast } = useToast();
   
   const form = useForm<EditCustomerFormData>({
+    resolver: zodResolver(editCustomerSchema),
     defaultValues: {
       first_name: '',
       middle_name: '',
@@ -135,14 +148,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
       
       // Set the existing ID photo preview if it exists
       if (customer.id_photo_link) {
-        // If it's a Supabase storage URL, use it directly
-        if (customer.id_photo_link.includes('supabase')) {
-          setIdPhotoPreview(customer.id_photo_link);
-        } else {
-          // If it's a relative path, construct the full URL
-          const { data } = supabase.storage.from('id-photos').getPublicUrl(customer.id_photo_link);
-          setIdPhotoPreview(data.publicUrl);
-        }
+        setIdPhotoPreview(customer.id_photo_link);
       } else {
         setIdPhotoPreview(null);
       }
@@ -160,12 +166,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
     } else {
       // Reset to existing photo if removing new upload
       if (customer?.id_photo_link) {
-        if (customer.id_photo_link.includes('supabase')) {
-          setIdPhotoPreview(customer.id_photo_link);
-        } else {
-          const { data } = supabase.storage.from('id-photos').getPublicUrl(customer.id_photo_link);
-          setIdPhotoPreview(data.publicUrl);
-        }
+        setIdPhotoPreview(customer.id_photo_link);
       } else {
         setIdPhotoPreview(null);
       }
@@ -199,16 +200,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
 
   const onSubmit = async (data: EditCustomerFormData) => {
     if (!customer) return;
-    
-    // Check password confirmation only if password is provided
-    if (data.password && data.password !== data.confirm_password) {
-      toast({
-        title: "Error",
-        description: "Passwords don't match",
-        variant: "destructive",
-      });
-      return;
-    }
     
     setLoading(true);
     
@@ -309,7 +300,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="John" 
                         {...field}
                         disabled={loading}
-                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -346,7 +336,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="Doe" 
                         {...field}
                         disabled={loading}
-                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -367,7 +356,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                       placeholder="john@example.com" 
                       {...field}
                       disabled={loading}
-                      required
                     />
                   </FormControl>
                   <FormMessage />
@@ -387,7 +375,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                       placeholder="+63 917 123 4567" 
                       {...field}
                       disabled={loading}
-                      required
                     />
                   </FormControl>
                   <FormMessage />
@@ -407,7 +394,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         type="date"
                         {...field}
                         disabled={loading}
-                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -426,7 +412,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="City, Province" 
                         {...field}
                         disabled={loading}
-                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -478,7 +463,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="Street, Barangay" 
                         {...field}
                         disabled={loading}
-                        required
                       />
                     </FormControl>
                     <FormMessage />
@@ -498,7 +482,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                       placeholder="Driver's License, Passport, etc." 
                       {...field}
                       disabled={loading}
-                      required
                     />
                   </FormControl>
                   <FormMessage />
@@ -526,7 +509,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="••••••••"
                         {...field}
                         disabled={loading}
-                        minLength={6}
                       />
                     </FormControl>
                     <FormMessage />
@@ -546,7 +528,6 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
                         placeholder="••••••••"
                         {...field}
                         disabled={loading}
-                        minLength={6}
                       />
                     </FormControl>
                     <FormMessage />
@@ -561,7 +542,7 @@ const EditCustomerDialog = ({ customer, open, onOpenChange, onCustomerUpdated }:
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loading}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
