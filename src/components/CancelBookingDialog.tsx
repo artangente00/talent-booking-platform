@@ -48,20 +48,6 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
       console.log('User ID:', user.id);
       console.log('Cancellation reason:', cancellationReason.trim());
 
-      // First, let's check if the booking exists
-      const { data: existingBooking, error: fetchError } = await supabase
-        .from('bookings')
-        .select('id, status, booking_status')
-        .eq('id', bookingId)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching booking:', fetchError);
-        throw new Error('Failed to find booking');
-      }
-
-      console.log('Existing booking:', existingBooking);
-
       // Prepare the update data
       const updateData = {
         status: 'cancelled',
@@ -73,30 +59,31 @@ const CancelBookingDialog: React.FC<CancelBookingDialogProps> = ({
 
       console.log('Update data to be sent:', updateData);
 
-      // Perform the update
+      // Perform the update with more specific error handling
       const { data: updatedData, error: updateError } = await supabase
         .from('bookings')
         .update(updateData)
         .eq('id', bookingId)
         .select('*');
 
+      console.log('Supabase response:', { updatedData, updateError });
+
       if (updateError) {
         console.error('Supabase update error:', updateError);
-        console.error('Error details:', {
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-          code: updateError.code
-        });
+        // Check if it's a permission issue
+        if (updateError.code === 'PGRST116' || updateError.message?.includes('permission denied')) {
+          throw new Error('You do not have permission to cancel this booking. Please contact support.');
+        }
         throw new Error(`Failed to update booking: ${updateError.message}`);
+      }
+
+      if (!updatedData || updatedData.length === 0) {
+        console.warn('No data returned from update operation - this might indicate a permission issue');
+        throw new Error('Unable to cancel booking. This may be due to permissions or the booking may not exist.');
       }
 
       console.log('Update successful!');
       console.log('Updated booking data:', updatedData);
-
-      if (!updatedData || updatedData.length === 0) {
-        console.warn('No data returned from update operation');
-      }
 
       toast({
         title: "Booking Cancelled",

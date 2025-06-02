@@ -39,6 +39,8 @@ export const useAssignmentsData = () => {
 
       if (bookingsError) throw bookingsError;
 
+      console.log('Fetched bookings data:', bookingsData);
+
       // Transform booking data and extract assigned talents
       const transformedBookings: Booking[] = [];
       const talentsMap: Record<string, AssignedTalent> = {};
@@ -80,6 +82,7 @@ export const useAssignmentsData = () => {
         }
       });
 
+      console.log('Transformed bookings:', transformedBookings);
       setBookings(transformedBookings);
       setAssignedTalents(talentsMap);
     } catch (error) {
