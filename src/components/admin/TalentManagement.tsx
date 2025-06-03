@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User, Edit, Trash2, MoreHorizontal, CheckCircle, XCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, UserPlus, Mail, Phone, Calendar, Star, Users, User, Edit, Trash2, MoreHorizontal, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,14 +34,25 @@ interface Talent {
   is_available: boolean;
 }
 
+interface Service {
+  id: string;
+  title: string;
+  is_active: boolean;
+}
+
 const TalentManagement = () => {
   const [talents, setTalents] = useState<Talent[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedService, setSelectedService] = useState('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
+
   const [newTalent, setNewTalent] = useState({
     full_name: '',
     phone: '',
@@ -70,8 +82,24 @@ const TalentManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchServices();
     fetchTalents();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, title, is_active')
+        .eq('is_active', true)
+        .order('title', { ascending: true });
+
+      if (error) throw error;
+      setServices(data || []);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
 
   const fetchTalents = async () => {
     try {
@@ -125,7 +153,8 @@ const TalentManagement = () => {
           profile_photo_url,
           birthdate: birthdate || null,
           age: age ? parseInt(age) : null,
-          status: 'pending'
+          status: 'pending',
+          is_available: false // Default to not available for pending status
         });
   
       if (error) throw error;
@@ -239,9 +268,15 @@ const TalentManagement = () => {
 
   const updateTalentStatus = async (talentId: string, newStatus: string) => {
     try {
+      // Set availability based on status
+      const isAvailable = newStatus === 'approved';
+      
       const { error } = await supabase
         .from('talents')
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          is_available: isAvailable
+        })
         .eq('id', talentId);
 
       if (error) {
@@ -251,13 +286,13 @@ const TalentManagement = () => {
 
       setTalents(prev => prev.map(talent => 
         talent.id === talentId 
-          ? { ...talent, status: newStatus }
+          ? { ...talent, status: newStatus, is_available: isAvailable }
           : talent
       ));
 
       toast({
         title: "Success",
-        description: "Talent status updated successfully.",
+        description: `Talent status updated successfully. Availability set to ${isAvailable ? 'Available' : 'Not Available'}.`,
       });
     } catch (error) {
       console.error('Error updating talent status:', error);
@@ -269,10 +304,39 @@ const TalentManagement = () => {
     }
   };
 
-  const filteredTalents = talents.filter(talent =>
-    talent.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    talent.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const getFilteredTalents = (serviceTitle: string) => {
+    let filtered = talents;
+
+    // Filter by service
+    if (serviceTitle !== 'all') {
+      filtered = filtered.filter(talent => 
+        talent.services.some(service => 
+          service.toLowerCase().includes(serviceTitle.toLowerCase())
+        )
+      );
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(talent =>
+        talent.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        talent.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Filter by availability
+    if (availabilityFilter !== 'all') {
+      const isAvailable = availabilityFilter === 'available';
+      filtered = filtered.filter(talent => talent.is_available === isAvailable);
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(talent => talent.status === statusFilter);
+    }
+
+    return filtered;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -291,68 +355,45 @@ const TalentManagement = () => {
     });
   };
 
-  if (loading) {
+  const renderTalentTable = (serviceTitle: string) => {
+    const filteredTalents = getFilteredTalents(serviceTitle);
+
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="space-y-4">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filters:</span>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
+          
+          <div className="flex flex-wrap gap-4">
+            <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Availability" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Availability</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="not-available">Not Available</SelectItem>
+              </SelectContent>
+            </Select>
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Freelancers Management
-            </CardTitle>
-            <CardDescription>
-              Manage service providers and their applications
-            </CardDescription>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-kwikie-orange hover:bg-kwikie-red">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Add Freelancer
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add New Freelancer</DialogTitle>
-                <DialogDescription>Add a new service provider to your team.</DialogDescription>
-              </DialogHeader>
-            
-              <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
-            
-              <DialogFooter className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                <Button onClick={addTalent}>Add Freelancer</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search talents by name or services..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
+        {/* Table */}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -371,7 +412,9 @@ const TalentManagement = () => {
               {filteredTalents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                    {searchTerm ? 'No talents found matching your search.' : 'No talents found.'}
+                    {searchTerm || availabilityFilter !== 'all' || statusFilter !== 'all' 
+                      ? 'No talents found matching your filters.' 
+                      : 'No talents found for this service.'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -436,7 +479,7 @@ const TalentManagement = () => {
                           <>
                             <XCircle className="w-4 h-4 text-red-600" />
                             <Badge className="bg-red-100 text-red-800 border-0">
-                              Assigned
+                              Not Available
                             </Badge>
                           </>
                         )}
@@ -490,6 +533,94 @@ const TalentManagement = () => {
             </TableBody>
           </Table>
         </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Freelancers Management
+            </CardTitle>
+            <CardDescription>
+              Manage service providers and their applications
+            </CardDescription>
+          </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-kwikie-orange hover:bg-kwikie-red">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Freelancer
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Freelancer</DialogTitle>
+                <DialogDescription>Add a new service provider to your team.</DialogDescription>
+              </DialogHeader>
+            
+              <TalentFormFields formData={newTalent} setFormData={setNewTalent} />
+            
+              <DialogFooter className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                <Button onClick={addTalent}>Add Freelancer</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search talents by name or services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <Tabs value={selectedService} onValueChange={setSelectedService} className="space-y-4">
+          <TabsList className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-8 w-full h-auto gap-1 p-1">
+            <TabsTrigger value="all" className="px-3 py-2 text-sm">
+              All Services
+            </TabsTrigger>
+            {services.map((service) => (
+              <TabsTrigger key={service.id} value={service.title} className="px-3 py-2 text-sm">
+                {service.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            {renderTalentTable('all')}
+          </TabsContent>
+
+          {services.map((service) => (
+            <TabsContent key={service.id} value={service.title} className="space-y-4">
+              {renderTalentTable(service.title)}
+            </TabsContent>
+          ))}
+        </Tabs>
       </CardContent>
 
       {/* Edit Dialog */}
