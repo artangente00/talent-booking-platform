@@ -32,6 +32,8 @@ interface Talent {
   birthdate: string | null;
   age: number | null;
   is_available: boolean;
+  average_rating?: number;
+  total_ratings?: number;
 }
 
 interface Service {
@@ -113,7 +115,38 @@ const TalentManagement = () => {
         throw error;
       }
 
-      setTalents(data || []);
+      // Fetch ratings for each talent
+      const talentsWithRatings = await Promise.all(
+        (data || []).map(async (talent) => {
+          const { data: ratingsData, error: ratingsError } = await supabase
+            .from('ratings')
+            .select('rating')
+            .in('booking_id', 
+              await supabase
+                .from('bookings')
+                .select('id')
+                .eq('assigned_talent_id', talent.id)
+                .then(({ data: bookings }) => (bookings || []).map(b => b.id))
+            );
+
+          if (ratingsError) {
+            console.error('Error fetching ratings for talent:', talent.id, ratingsError);
+          }
+
+          const ratings = ratingsData || [];
+          const averageRating = ratings.length > 0 
+            ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+            : 0;
+
+          return {
+            ...talent,
+            average_rating: averageRating,
+            total_ratings: ratings.length
+          };
+        })
+      );
+
+      setTalents(talentsWithRatings);
     } catch (error) {
       console.error('Error fetching talents:', error);
       toast({
@@ -355,6 +388,33 @@ const TalentManagement = () => {
     });
   };
 
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(
+        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+      );
+    }
+
+    if (hasHalfStar) {
+      stars.push(
+        <Star key="half" className="w-4 h-4 fill-yellow-400/50 text-yellow-400" />
+      );
+    }
+
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(
+        <Star key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+      );
+    }
+
+    return stars;
+  };
+
   const renderTalentTable = (serviceTitle: string) => {
     const filteredTalents = getFilteredTalents(serviceTitle);
 
@@ -403,6 +463,7 @@ const TalentManagement = () => {
                 <TableHead>Services</TableHead>
                 <TableHead>Experience</TableHead>
                 <TableHead>Rate</TableHead>
+                <TableHead>Rating</TableHead>
                 <TableHead>Availability</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -411,7 +472,7 @@ const TalentManagement = () => {
             <TableBody>
               {filteredTalents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     {searchTerm || availabilityFilter !== 'all' || statusFilter !== 'all' 
                       ? 'No talents found matching your filters.' 
                       : 'No talents found for this service.'}
@@ -465,6 +526,22 @@ const TalentManagement = () => {
                       <span className="text-sm">
                         {talent.hourly_rate ? `${talent.hourly_rate}/day` : 'Not specified'}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {talent.total_ratings && talent.total_ratings > 0 ? (
+                          <>
+                            <div className="flex items-center">
+                              {renderStars(talent.average_rating || 0)}
+                            </div>
+                            <span className="text-sm text-gray-600">
+                              {talent.average_rating?.toFixed(1)} ({talent.total_ratings})
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-500">No ratings yet</span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
