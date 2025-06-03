@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, CheckCircle, Clock, TrendingUp, Search } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import EarningsSummary from './payments/EarningsSummary';
 
 interface Booking {
   id: string;
@@ -29,17 +30,8 @@ interface Booking {
   } | null;
 }
 
-interface EarningsData {
-  total_bookings: number;
-  total_revenue: number;
-  total_commission: number;
-  confirmed_payments: number;
-  pending_payments: number;
-}
-
 const PaymentsManagement = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingPayment, setEditingPayment] = useState<{ bookingId: string; amount: string } | null>(null);
@@ -47,7 +39,6 @@ const PaymentsManagement = () => {
 
   useEffect(() => {
     fetchBookings();
-    fetchEarnings();
   }, []);
 
   const fetchBookings = async () => {
@@ -88,24 +79,6 @@ const PaymentsManagement = () => {
     }
   };
 
-  const fetchEarnings = async () => {
-    try {
-      const { data, error } = await supabase.rpc('calculate_total_earnings');
-      
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setEarnings(data[0]);
-      }
-    } catch (error) {
-      console.error('Error fetching earnings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch earnings data.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const updatePayment = async (bookingId: string, amount: number) => {
     try {
       const { error } = await supabase
@@ -124,7 +97,6 @@ const PaymentsManagement = () => {
       });
 
       fetchBookings();
-      fetchEarnings();
       setEditingPayment(null);
     } catch (error) {
       console.error('Error updating payment:', error);
@@ -154,7 +126,6 @@ const PaymentsManagement = () => {
       });
 
       fetchBookings();
-      fetchEarnings();
     } catch (error) {
       console.error('Error confirming payment:', error);
       toast({
@@ -339,96 +310,7 @@ const PaymentsManagement = () => {
           </TabsContent>
 
           <TabsContent value="earnings">
-            {earnings && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                          <p className="text-2xl font-bold">{earnings.total_bookings}</p>
-                        </div>
-                        <TrendingUp className="w-8 h-8 text-blue-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                          <p className="text-2xl font-bold">{formatCurrency(Number(earnings.total_revenue))}</p>
-                        </div>
-                        <DollarSign className="w-8 h-8 text-green-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Commission (5%)</p>
-                          <p className="text-2xl font-bold text-green-600">{formatCurrency(Number(earnings.total_commission))}</p>
-                        </div>
-                        <TrendingUp className="w-8 h-8 text-green-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Confirmed Payments</p>
-                          <p className="text-2xl font-bold text-green-500">{earnings.confirmed_payments}</p>
-                        </div>
-                        <CheckCircle className="w-8 h-8 text-green-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Pending Payments</p>
-                          <p className="text-2xl font-bold text-orange-500">{earnings.pending_payments}</p>
-                        </div>
-                        <Clock className="w-8 h-8 text-orange-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Revenue Breakdown</CardTitle>
-                    <CardDescription>
-                      Our platform takes a 5% commission on each completed service
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total Service Revenue:</span>
-                        <span className="font-medium">{formatCurrency(Number(earnings.total_revenue))}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Platform Commission (5%):</span>
-                        <span className="font-medium text-green-600">{formatCurrency(Number(earnings.total_commission))}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Freelancer Earnings (95%):</span>
-                        <span className="font-medium">{formatCurrency(Number(earnings.total_revenue) - Number(earnings.total_commission))}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+            <EarningsSummary />
           </TabsContent>
         </Tabs>
       </CardContent>
