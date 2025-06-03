@@ -83,6 +83,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          amount_paid: number | null
           assigned_at: string | null
           assigned_by: string | null
           assigned_talent_id: string | null
@@ -96,13 +97,17 @@ export type Database = {
           customer_id: string
           duration: string | null
           id: string
+          payment_confirmed_at: string | null
+          payment_confirmed_by: string | null
           service_address: string
+          service_rate: number | null
           service_type: string
           special_instructions: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          amount_paid?: number | null
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_talent_id?: string | null
@@ -116,13 +121,17 @@ export type Database = {
           customer_id: string
           duration?: string | null
           id?: string
+          payment_confirmed_at?: string | null
+          payment_confirmed_by?: string | null
           service_address: string
+          service_rate?: number | null
           service_type: string
           special_instructions?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          amount_paid?: number | null
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_talent_id?: string | null
@@ -136,7 +145,10 @@ export type Database = {
           customer_id?: string
           duration?: string | null
           id?: string
+          payment_confirmed_at?: string | null
+          payment_confirmed_by?: string | null
           service_address?: string
+          service_rate?: number | null
           service_type?: string
           special_instructions?: string | null
           status?: string
@@ -178,6 +190,7 @@ export type Database = {
           payment_status: string | null
           status: string
           street_barangay: string | null
+          total_amount_paid: number | null
           updated_at: string
           user_id: string
           valid_government_id: string | null
@@ -200,6 +213,7 @@ export type Database = {
           payment_status?: string | null
           status?: string
           street_barangay?: string | null
+          total_amount_paid?: number | null
           updated_at?: string
           user_id: string
           valid_government_id?: string | null
@@ -222,6 +236,7 @@ export type Database = {
           payment_status?: string | null
           status?: string
           street_barangay?: string | null
+          total_amount_paid?: number | null
           updated_at?: string
           user_id?: string
           valid_government_id?: string | null
@@ -404,6 +419,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_total_earnings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_bookings: number
+          total_revenue: number
+          total_commission: number
+          confirmed_payments: number
+          pending_payments: number
+        }[]
+      }
       get_suggested_talents: {
         Args: { customer_city: string; service_type: string }
         Returns: {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, TrendingUp, Settings, Star, FileText, Package, UserCheck, UserPlus } from 'lucide-react';
+import { Users, Calendar, TrendingUp, Settings, Star, FileText, Package, UserCheck, UserPlus, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -16,6 +16,7 @@ import ContentManagement from '@/components/admin/ContentManagement';
 import ServicesManagement from '@/components/admin/ServicesManagement';
 import BookersManagement from '@/components/admin/BookersManagement';
 import AssignmentsManagement from '@/components/admin/AssignmentsManagement';
+import PaymentsManagement from '@/components/admin/PaymentsManagement';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -109,7 +110,7 @@ const AdminDashboard = () => {
 
           <Tabs defaultValue="overview" className="space-y-6">
             <div className="overflow-x-auto">
-              <TabsList className="grid grid-cols-9 min-w-max md:w-full">
+              <TabsList className="grid grid-cols-10 min-w-max md:w-full">
                 <TabsTrigger value="overview" className="flex items-center gap-2 px-2 md:px-3">
                   <TrendingUp className="w-4 h-4" />
                   <span className="hidden sm:inline">Overview</span>
@@ -125,6 +126,10 @@ const AdminDashboard = () => {
                 <TabsTrigger value="assignments" className="flex items-center gap-2 px-2 md:px-3">
                   <UserPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">Assignments</span>
+                </TabsTrigger>
+                <TabsTrigger value="payments" className="flex items-center gap-2 px-2 md:px-3">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="hidden sm:inline">Payments</span>
                 </TabsTrigger>
                 <TabsTrigger value="bookers" className="flex items-center gap-2 px-2 md:px-3">
                   <UserCheck className="w-4 h-4" />
@@ -163,6 +168,10 @@ const AdminDashboard = () => {
 
             <TabsContent value="assignments">
               <AssignmentsManagement />
+            </TabsContent>
+
+            <TabsContent value="payments">
+              <PaymentsManagement />
             </TabsContent>
 
             <TabsContent value="bookers">
