@@ -8,7 +8,7 @@ import { Calendar, Download, FileText, Table as TableIcon, DollarSign, TrendingU
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 interface EarningsData {
@@ -158,7 +158,7 @@ const EarningsSummary = () => {
       booking.payment_confirmed_at ? 'Confirmed' : 'Pending'
     ]);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [['Date', 'Customer', 'Service', 'Amount', 'Status']],
       body: tableData,
       startY: 105,
