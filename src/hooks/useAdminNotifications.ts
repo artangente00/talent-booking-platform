@@ -6,9 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 interface Notification {
   id: string;
   type: 'new_customer' | 'new_booking' | 'new_talent';
+  title: string;
   message: string;
-  timestamp: Date;
+  data?: any;
   read: boolean;
+  created_at: string;
 }
 
 export const useAdminNotifications = () => {
@@ -16,126 +18,148 @@ export const useAdminNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
 
+  // Fetch existing notifications
+  const fetchNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const formattedNotifications = data?.map(notification => ({
+        ...notification,
+        created_at: notification.created_at
+      })) || [];
+
+      setNotifications(formattedNotifications);
+      setUnreadCount(formattedNotifications.filter(n => !n.read).length);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
   useEffect(() => {
-    // Subscribe to new customers
-    const customersChannel = supabase
-      .channel('customers-notifications')
+    fetchNotifications();
+
+    // Subscribe to real-time notifications
+    const channel = supabase
+      .channel('notifications-changes')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'customers'
+          table: 'notifications'
         },
         (payload) => {
-          const newNotification: Notification = {
-            id: `customer-${payload.new.id}-${Date.now()}`,
-            type: 'new_customer',
-            message: `New customer signup: ${payload.new.first_name} ${payload.new.last_name}`,
-            timestamp: new Date(),
-            read: false
-          };
+          const newNotification = payload.new as Notification;
           
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
           
+          // Show toast notification
           toast({
-            title: "New Customer Signup",
+            title: newNotification.title,
             description: newNotification.message,
           });
         }
       )
-      .subscribe();
-
-    // Subscribe to new bookings
-    const bookingsChannel = supabase
-      .channel('bookings-notifications')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: 'UPDATE',
           schema: 'public',
-          table: 'bookings'
+          table: 'notifications'
         },
         (payload) => {
-          const newNotification: Notification = {
-            id: `booking-${payload.new.id}-${Date.now()}`,
-            type: 'new_booking',
-            message: `New booking created: ${payload.new.service_type}`,
-            timestamp: new Date(),
-            read: false
-          };
+          const updatedNotification = payload.new as Notification;
           
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          setNotifications(prev =>
+            prev.map(notification =>
+              notification.id === updatedNotification.id
+                ? updatedNotification
+                : notification
+            )
+          );
           
-          toast({
-            title: "New Booking",
-            description: newNotification.message,
+          // Update unread count
+          setUnreadCount(prev => {
+            const currentUnread = notifications.filter(n => !n.read).length;
+            const newUnread = notifications.map(n => 
+              n.id === updatedNotification.id ? updatedNotification : n
+            ).filter(n => !n.read).length;
+            return newUnread;
           });
         }
       )
       .subscribe();
 
-    // Subscribe to new talent applications
-    const talentsChannel = supabase
-      .channel('talents-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'talents'
-        },
-        (payload) => {
-          const newNotification: Notification = {
-            id: `talent-${payload.new.id}-${Date.now()}`,
-            type: 'new_talent',
-            message: `New talent application: ${payload.new.full_name}`,
-            timestamp: new Date(),
-            read: false
-          };
-          
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          
-          toast({
-            title: "New Talent Application",
-            description: newNotification.message,
-          });
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscriptions
     return () => {
-      supabase.removeChannel(customersChannel);
-      supabase.removeChannel(bookingsChannel);
-      supabase.removeChannel(talentsChannel);
+      supabase.removeChannel(channel);
     };
   }, [toast]);
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true, updated_at: new Date().toISOString() })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-    setUnreadCount(0);
+  const markAllAsRead = async () => {
+    try {
+      const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+      
+      if (unreadIds.length === 0) return;
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true, updated_at: new Date().toISOString() })
+        .in('id', unreadIds);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notification => ({ ...notification, read: true }))
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
-  const clearNotifications = () => {
-    setNotifications([]);
-    setUnreadCount(0);
+  const clearNotifications = async () => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (error) throw error;
+
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
   };
 
   return {

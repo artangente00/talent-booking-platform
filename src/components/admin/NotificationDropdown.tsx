@@ -36,9 +36,10 @@ const NotificationDropdown = () => {
     }
   };
 
-  const formatTime = (timestamp: Date) => {
+  const formatTime = (timestamp: string) => {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const notificationTime = new Date(timestamp);
+    const diff = now.getTime() - notificationTime.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
@@ -94,7 +95,7 @@ const NotificationDropdown = () => {
         
         {notifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground text-sm">
-            No new notifications
+            No notifications yet
           </div>
         ) : (
           <ScrollArea className="h-96">
@@ -114,7 +115,7 @@ const NotificationDropdown = () => {
                     {notification.message}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatTime(notification.timestamp)}
+                    {formatTime(notification.created_at)}
                   </p>
                 </div>
                 {!notification.read && (
