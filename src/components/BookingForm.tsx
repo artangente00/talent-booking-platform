@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -11,6 +10,7 @@ import { Calendar, Clock, MapPin, User, Phone, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import ServicePricing from './ServicePricing';
 
 interface BookingFormProps {
   children: React.ReactNode;
@@ -239,6 +239,11 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* Service Pricing Display */}
+            {formData.service && (
+              <ServicePricing selectedService={formData.service} />
+            )}
           </div>
 
           {/* Personal Information */}
