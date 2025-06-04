@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Tables } from '@/integrations/supabase/types';
 
 interface Notification {
   id: string;
@@ -29,8 +30,9 @@ export const useAdminNotifications = () => {
 
       if (error) throw error;
 
-      const formattedNotifications = data?.map(notification => ({
+      const formattedNotifications: Notification[] = data?.map((notification: Tables<'notifications'>) => ({
         ...notification,
+        type: notification.type as 'new_customer' | 'new_booking' | 'new_talent',
         created_at: notification.created_at
       })) || [];
 
@@ -55,7 +57,11 @@ export const useAdminNotifications = () => {
           table: 'notifications'
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const dbNotification = payload.new as Tables<'notifications'>;
+          const newNotification: Notification = {
+            ...dbNotification,
+            type: dbNotification.type as 'new_customer' | 'new_booking' | 'new_talent'
+          };
           
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
@@ -75,7 +81,11 @@ export const useAdminNotifications = () => {
           table: 'notifications'
         },
         (payload) => {
-          const updatedNotification = payload.new as Notification;
+          const dbNotification = payload.new as Tables<'notifications'>;
+          const updatedNotification: Notification = {
+            ...dbNotification,
+            type: dbNotification.type as 'new_customer' | 'new_booking' | 'new_talent'
+          };
           
           setNotifications(prev =>
             prev.map(notification =>
