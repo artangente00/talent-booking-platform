@@ -34,6 +34,8 @@ interface Talent {
   is_available: boolean;
   average_rating?: number;
   total_ratings?: number;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
 }
 
 interface Service {
@@ -66,7 +68,9 @@ const TalentManagement = () => {
     description: '',
     profile_photo_url: null as string | null,
     birthdate: '',
-    age: ''
+    age: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: ''
   });
   const [editTalent, setEditTalent] = useState({
     full_name: '',
@@ -79,7 +83,9 @@ const TalentManagement = () => {
     description: '',
     profile_photo_url: null as string | null,
     birthdate: '',
-    age: ''
+    age: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: ''
   });
   const { toast } = useToast();
 
@@ -160,7 +166,7 @@ const TalentManagement = () => {
   };
 
   const addTalent = async () => {
-    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age } = newTalent;
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age, emergency_contact_name, emergency_contact_phone } = newTalent;
   
     if (!full_name || !phone || !address || services.length === 0) {
       toast({
@@ -187,7 +193,9 @@ const TalentManagement = () => {
           birthdate: birthdate || null,
           age: age ? parseInt(age) : null,
           status: 'pending',
-          is_available: false // Default to not available for pending status
+          is_available: false, // Default to not available for pending status
+          emergency_contact_name: emergency_contact_name || null,
+          emergency_contact_phone: emergency_contact_phone || null
         });
   
       if (error) throw error;
@@ -205,7 +213,9 @@ const TalentManagement = () => {
         description: '',
         profile_photo_url: null,
         birthdate: '',
-        age: ''
+        age: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: ''
       });
       fetchTalents();
     } catch (error) {
@@ -216,7 +226,7 @@ const TalentManagement = () => {
   const updateTalent = async () => {
     if (!selectedTalent) return;
 
-    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age } = editTalent;
+    const { full_name, phone, address, services, experience, hourly_rate, availability, description, profile_photo_url, birthdate, age, emergency_contact_name, emergency_contact_phone } = editTalent;
   
     if (!full_name || !phone || !address || services.length === 0) {
       toast({
@@ -241,7 +251,9 @@ const TalentManagement = () => {
           description,
           profile_photo_url,
           birthdate: birthdate || null,
-          age: age ? parseInt(age) : null
+          age: age ? parseInt(age) : null,
+          emergency_contact_name: emergency_contact_name || null,
+          emergency_contact_phone: emergency_contact_phone || null
         })
         .eq('id', selectedTalent.id);
   
@@ -289,7 +301,9 @@ const TalentManagement = () => {
       description: talent.description || '',
       profile_photo_url: talent.profile_photo_url,
       birthdate: talent.birthdate || '',
-      age: talent.age ? talent.age.toString() : ''
+      age: talent.age ? talent.age.toString() : '',
+      emergency_contact_name: talent.emergency_contact_name || '',
+      emergency_contact_phone: talent.emergency_contact_phone || ''
     });
     setIsEditDialogOpen(true);
   };
