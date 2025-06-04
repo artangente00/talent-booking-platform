@@ -30,7 +30,9 @@ const TalentApplication = () => {
     customService: '',
     description: '',
     availability: '',
-    profilePhotoUrl: null as string | null
+    profilePhotoUrl: null as string | null,
+    emergencyContactName: '',
+    emergencyContactPhone: ''
   });
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -169,6 +171,8 @@ const TalentApplication = () => {
           availability: formData.availability || null,
           hourly_rate: null,
           profile_photo_url: formData.profilePhotoUrl,
+          emergency_contact_name: formData.emergencyContactName || null,
+          emergency_contact_phone: formData.emergencyContactPhone || null,
         });
 
       if (error) {
@@ -192,7 +196,9 @@ const TalentApplication = () => {
         customService: '',
         description: '',
         availability: '',
-        profilePhotoUrl: null
+        profilePhotoUrl: null,
+        emergencyContactName: '',
+        emergencyContactPhone: ''
       });
       
     } catch (error) {
@@ -317,6 +323,36 @@ const TalentApplication = () => {
                           <SelectItem value="Basay">Basay</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emergency Contact */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
+                  <p className="text-sm text-gray-600">Person to contact in case of emergency</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyContactName">Emergency Contact Name</Label>
+                      <Input
+                        id="emergencyContactName"
+                        type="text"
+                        placeholder="Full Name"
+                        value={formData.emergencyContactName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, emergencyContactName: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+                      <Input
+                        id="emergencyContactPhone"
+                        type="tel"
+                        placeholder="+63 917 123 4567"
+                        value={formData.emergencyContactPhone}
+                        onChange={(e) => setFormData(prev => ({ ...prev, emergencyContactPhone: e.target.value }))}
+                      />
                     </div>
                   </div>
                 </div>

@@ -365,6 +365,8 @@ export type Database = {
           birthdate: string | null
           created_at: string
           description: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           experience: string | null
           full_name: string
           hourly_rate: string | null
@@ -383,6 +385,8 @@ export type Database = {
           birthdate?: string | null
           created_at?: string
           description?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           experience?: string | null
           full_name: string
           hourly_rate?: string | null
@@ -401,6 +405,8 @@ export type Database = {
           birthdate?: string | null
           created_at?: string
           description?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           experience?: string | null
           full_name?: string
           hourly_rate?: string | null

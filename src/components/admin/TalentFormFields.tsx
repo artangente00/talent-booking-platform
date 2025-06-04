@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -177,6 +176,33 @@ const TalentFormFields = ({ formData, setFormData }: TalentFormFieldsProps) => {
         </div>
       </div>
 
+      {/* Emergency Contact Section */}
+      <div className="space-y-4 border-t pt-4">
+        <h3 className="text-lg font-medium text-gray-900">Emergency Contact</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="emergencyContactName">Emergency Contact Name</Label>
+            <Input
+              id="emergencyContactName"
+              value={formData.emergency_contact_name || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, emergency_contact_name: e.target.value }))}
+              placeholder="Full Name"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="emergencyContactPhone">Emergency Contact Phone</Label>
+            <Input
+              id="emergencyContactPhone"
+              value={formData.emergency_contact_phone || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, emergency_contact_phone: e.target.value }))}
+              placeholder="+63 917 123 4567"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Services Section */}
       <div>
         <Label htmlFor="service">Services *</Label>
         
