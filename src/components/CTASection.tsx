@@ -25,7 +25,7 @@ const CTASection = () => {
 
   const handleBookServiceClick = () => {
     if (!user) {
-      navigate('/auth');
+      navigate('/auth?tab=signup');
     } else {
       navigate('/services');
     }

@@ -153,12 +153,12 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/auth">
+              <Link to="/auth?tab=signin">
                 <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10">
                   Sign In
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?tab=signup">
                 <Button className="bg-kwikie-orange hover:bg-kwikie-red">
                   Sign Up
                 </Button>
@@ -254,12 +254,12 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                    <Link to="/auth?tab=signin" onClick={() => setIsMenuOpen(false)}>
                       <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full">
                         Sign In
                       </Button>
                     </Link>
-                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                    <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
                       <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
                         Sign Up
                       </Button>

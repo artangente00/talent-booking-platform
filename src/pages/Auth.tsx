@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,16 @@ import SignInForm from '@/components/auth/SignInForm';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('signup');
+
+  useEffect(() => {
+    // Check URL parameter for tab
+    const tab = searchParams.get('tab');
+    if (tab === 'signin' || tab === 'signup') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -44,7 +54,7 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signup" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
