@@ -13,8 +13,7 @@ import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown, X } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
-
-
+import type { Json } from '@/integrations/supabase/types';
 
 interface SpecialPricing {
   duration: string;
@@ -112,8 +111,7 @@ const ServicesManagement = () => {
     try {
       const submitData = {
         ...formData,
-        special_pricing: formData.has_special_pricing ? (formData.special_pricing as unknown as Json) : null,
-
+        special_pricing: formData.has_special_pricing ? (formData.special_pricing as Json) : null,
       };
 
       if (editingService) {
@@ -648,3 +646,5 @@ const ServicesManagement = () => {
 };
 
 export default ServicesManagement;
+
+}
