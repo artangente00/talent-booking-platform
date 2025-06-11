@@ -106,7 +106,8 @@ const ServicesManagement = () => {
     try {
       const submitData = {
         ...formData,
-        special_pricing: formData.has_special_pricing ? formData.special_pricing : null,
+        special_pricing: formData.has_special_pricing ? (formData.special_pricing as unknown as Json) : null,
+
       };
 
       if (editingService) {
