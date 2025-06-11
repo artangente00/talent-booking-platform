@@ -14,6 +14,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
 
+interface SpecialPricing {
+  duration: string;
+  price: string;
+}
+
 interface Service {
   id: string;
   title: string;
@@ -25,7 +30,7 @@ interface Service {
   is_active: boolean;
   sort_order: number;
   has_special_pricing: boolean;
-  special_pricing: Array<{ duration: string; price: string }> | null;
+  special_pricing: SpecialPricing[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,7 +45,7 @@ interface ServiceFormData {
   is_active: boolean;
   sort_order: number;
   has_special_pricing: boolean;
-  special_pricing: Array<{ duration: string; price: string }>;
+  special_pricing: SpecialPricing[];
 }
 
 const ServicesManagement = () => {
@@ -75,7 +80,14 @@ const ServicesManagement = () => {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      setServices(data || []);
+      
+      // Transform the data to properly type the special_pricing field
+      const transformedData = (data || []).map(service => ({
+        ...service,
+        special_pricing: service.special_pricing as SpecialPricing[] | null,
+      }));
+      
+      setServices(transformedData);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast({
