@@ -13,7 +13,6 @@ import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown, X } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
-import type { Json } from '../../../pages/Index';
 
 
 
