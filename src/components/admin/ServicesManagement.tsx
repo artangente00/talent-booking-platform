@@ -13,7 +13,7 @@ import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown, X } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
-import { Json } from '@/pages/Index'; // Adjust path if needed
+import type { Json } from '@/pages/Index'; // adjust path if needed
 
 
 interface SpecialPricing {
@@ -86,10 +86,7 @@ const ServicesManagement = () => {
       // Transform the data to properly type the special_pricing field
       const transformedData = (data || []).map(service => ({
         ...service,
-        special_pricing: Array.isArray(service.special_pricing)
-        ? (service.special_pricing as unknown as SpecialPricing[])
-        : [],
-
+        special_pricing: Array.isArray(service.special_pricing) ? service.special_pricing as SpecialPricing[] : [],
 
       }));
       
