@@ -84,7 +84,8 @@ const ServicesManagement = () => {
       // Transform the data to properly type the special_pricing field
       const transformedData = (data || []).map(service => ({
         ...service,
-        special_pricing: service.special_pricing as SpecialPricing[] | null,
+        special_pricing: Array.isArray(service.special_pricing) ? service.special_pricing as SpecialPricing[] : [],
+
       }));
       
       setServices(transformedData);
