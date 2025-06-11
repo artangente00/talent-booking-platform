@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -26,11 +27,25 @@ interface Customer {
   contact_number: string;
 }
 
+interface SpecialPricing {
+  duration: string;
+  price: string;
+}
+
+interface Service {
+  id: string;
+  title: string;
+  has_special_pricing: boolean;
+  special_pricing: SpecialPricing[] | null;
+}
+
 const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [formData, setFormData] = useState({
     service: preselectedService || '',
     name: '',
@@ -64,8 +79,33 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
       }
     });
 
+    // Fetch services data
+    fetchServices();
+
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('id, title, has_special_pricing, special_pricing')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      
+      const transformedData = (data || []).map(service => ({
+        ...service,
+        special_pricing: Array.isArray(service.special_pricing)
+          ? (service.special_pricing as unknown as SpecialPricing[])
+          : [],
+      }));
+      
+      setServices(transformedData);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
 
   const fetchCustomerData = async (userId: string) => {
     try {
@@ -104,7 +144,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     setIsOpen(true);
   };
 
-  const services = [
+  const serviceNames = [
     'Cleaning Services',
     'Driver Services',
     'Babysitting',
@@ -119,7 +159,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
   ];
 
-  const durations = [
+  const defaultDurations = [
     '3 hours',
     '4 hours',
     '6 hours',
@@ -132,6 +172,29 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+
+    // When service changes, find the selected service and reset duration
+    if (field === 'service') {
+      const service = services.find(s => s.title === value);
+      setSelectedService(service || null);
+      setFormData(prev => ({
+        ...prev,
+        duration: '' // Reset duration when service changes
+      }));
+    }
+  };
+
+  const getDurationOptions = () => {
+    if (selectedService?.has_special_pricing && selectedService.special_pricing?.length > 0) {
+      return selectedService.special_pricing.map(pricing => ({
+        value: pricing.duration,
+        label: `${pricing.duration} - ${pricing.price}`
+      }));
+    }
+    return defaultDurations.map(duration => ({
+      value: duration,
+      label: duration
     }));
   };
 
@@ -206,6 +269,14 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     }
   };
 
+  // Set selected service when form opens with preselected service
+  useEffect(() => {
+    if (preselectedService && services.length > 0) {
+      const service = services.find(s => s.title === preselectedService);
+      setSelectedService(service || null);
+    }
+  }, [preselectedService, services]);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -232,7 +303,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
               <SelectContent>
-                {services.map((service) => (
+                {serviceNames.map((service) => (
                   <SelectItem key={service} value={service}>
                     {service}
                   </SelectItem>
@@ -345,16 +416,16 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
           <div className="space-y-2">
             <Label htmlFor="duration" className="text-sm font-medium">
-              Expected Duration
+              {selectedService?.has_special_pricing ? 'Service Duration & Price *' : 'Expected Duration'}
             </Label>
             <Select value={formData.duration} onValueChange={(value) => handleInputChange('duration', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select duration (optional)" />
+                <SelectValue placeholder={selectedService?.has_special_pricing ? "Select duration and price" : "Select duration (optional)"} />
               </SelectTrigger>
               <SelectContent>
-                {durations.map((duration) => (
-                  <SelectItem key={duration} value={duration}>
-                    {duration}
+                {getDurationOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
