@@ -353,12 +353,14 @@ export type Database = {
           color_class: string
           created_at: string
           description: string
+          has_special_pricing: boolean | null
           icon_name: string
           id: string
           is_active: boolean
           price_range: string
           route: string
           sort_order: number
+          special_pricing: Json | null
           title: string
           updated_at: string
         }
@@ -366,12 +368,14 @@ export type Database = {
           color_class: string
           created_at?: string
           description: string
+          has_special_pricing?: boolean | null
           icon_name: string
           id?: string
           is_active?: boolean
           price_range: string
           route: string
           sort_order?: number
+          special_pricing?: Json | null
           title: string
           updated_at?: string
         }
@@ -379,12 +383,14 @@ export type Database = {
           color_class?: string
           created_at?: string
           description?: string
+          has_special_pricing?: boolean | null
           icon_name?: string
           id?: string
           is_active?: boolean
           price_range?: string
           route?: string
           sort_order?: number
+          special_pricing?: Json | null
           title?: string
           updated_at?: string
         }

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Package, Plus, Edit, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
@@ -24,6 +24,8 @@ interface Service {
   color_class: string;
   is_active: boolean;
   sort_order: number;
+  has_special_pricing: boolean;
+  special_pricing: Array<{ duration: string; price: string }> | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +39,8 @@ interface ServiceFormData {
   color_class: string;
   is_active: boolean;
   sort_order: number;
+  has_special_pricing: boolean;
+  special_pricing: Array<{ duration: string; price: string }>;
 }
 
 const ServicesManagement = () => {
@@ -54,6 +58,8 @@ const ServicesManagement = () => {
     color_class: 'hover:border-blue-300',
     is_active: true,
     sort_order: 0,
+    has_special_pricing: false,
+    special_pricing: [],
   });
   const { toast } = useToast();
 
@@ -86,11 +92,16 @@ const ServicesManagement = () => {
     e.preventDefault();
     
     try {
+      const submitData = {
+        ...formData,
+        special_pricing: formData.has_special_pricing ? formData.special_pricing : null,
+      };
+
       if (editingService) {
         const { error } = await supabase
           .from('services')
           .update({
-            ...formData,
+            ...submitData,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingService.id);
@@ -104,7 +115,7 @@ const ServicesManagement = () => {
       } else {
         const { error } = await supabase
           .from('services')
-          .insert([formData]);
+          .insert([submitData]);
 
         if (error) throw error;
 
@@ -139,6 +150,31 @@ const ServicesManagement = () => {
       color_class: service.color_class,
       is_active: service.is_active,
       sort_order: service.sort_order,
+      has_special_pricing: service.has_special_pricing || false,
+      special_pricing: service.special_pricing || [],
+    });
+  };
+
+  const addSpecialPricing = () => {
+    setFormData({
+      ...formData,
+      special_pricing: [...formData.special_pricing, { duration: '', price: '' }]
+    });
+  };
+
+  const removeSpecialPricing = (index: number) => {
+    setFormData({
+      ...formData,
+      special_pricing: formData.special_pricing.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateSpecialPricing = (index: number, field: 'duration' | 'price', value: string) => {
+    const updated = [...formData.special_pricing];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({
+      ...formData,
+      special_pricing: updated
     });
   };
 
@@ -215,6 +251,8 @@ const ServicesManagement = () => {
       color_class: 'hover:border-blue-300',
       is_active: true,
       sort_order: services.length,
+      has_special_pricing: false,
+      special_pricing: [],
     });
   };
 
@@ -239,6 +277,185 @@ const ServicesManagement = () => {
     'hover:border-indigo-300',
     'hover:border-gray-300',
   ];
+
+  const ServiceForm = ({ isEdit = false }) => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title">Service Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="e.g., Cleaning Services"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="price_range">Price Range</Label>
+          <Input
+            id="price_range"
+            value={formData.price_range}
+            onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+            placeholder="e.g., ₱500 - ₱1,000"
+            required={!formData.has_special_pricing}
+            disabled={formData.has_special_pricing}
+          />
+        </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Brief description of the service"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="icon_name">Icon</Label>
+          <Select value={formData.icon_name} onValueChange={(value) => setFormData({ ...formData, icon_name: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {iconOptions.map((icon) => (
+                <SelectItem key={icon} value={icon}>
+                  <div className="flex items-center gap-2">
+                    {getIcon(icon)}
+                    {icon}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="color_class">Hover Color</Label>
+          <Select value={formData.color_class} onValueChange={(value) => setFormData({ ...formData, color_class: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {colorOptions.map((color) => (
+                <SelectItem key={color} value={color}>
+                  {color.replace('hover:border-', '').replace('-300', '')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="route">Route</Label>
+          <Input
+            id="route"
+            value={formData.route}
+            onChange={(e) => setFormData({ ...formData, route: e.target.value })}
+            placeholder="e.g., /services/cleaning"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="sort_order">Sort Order</Label>
+          <Input
+            id="sort_order"
+            type="number"
+            value={formData.sort_order}
+            onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
+            min="0"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Special Pricing Section */}
+      <div className="space-y-4 border-t pt-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="has_special_pricing"
+            checked={formData.has_special_pricing}
+            onCheckedChange={(checked) => setFormData({ 
+              ...formData, 
+              has_special_pricing: checked,
+              special_pricing: checked ? formData.special_pricing : []
+            })}
+          />
+          <Label htmlFor="has_special_pricing">Enable Special Pricing</Label>
+        </div>
+
+        {formData.has_special_pricing && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Special Pricing Options</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addSpecialPricing}>
+                <Plus className="w-4 h-4 mr-1" />
+                Add Option
+              </Button>
+            </div>
+            
+            {formData.special_pricing.map((pricing, index) => (
+              <div key={index} className="grid grid-cols-2 gap-2 items-end">
+                <div>
+                  <Label htmlFor={`duration-${index}`}>Duration</Label>
+                  <Input
+                    id={`duration-${index}`}
+                    value={pricing.duration}
+                    onChange={(e) => updateSpecialPricing(index, 'duration', e.target.value)}
+                    placeholder="e.g., 12hr"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`price-${index}`}>Price</Label>
+                  <div className="flex gap-1">
+                    <Input
+                      id={`price-${index}`}
+                      value={pricing.price}
+                      onChange={(e) => updateSpecialPricing(index, 'price', e.target.value)}
+                      placeholder="e.g., ₱525"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => removeSpecialPricing(index)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="is_active"
+          checked={formData.is_active}
+          onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+        />
+        <Label htmlFor="is_active">Active</Label>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={() => {
+          setIsAddDialogOpen(false);
+          setEditingService(null);
+        }}>
+          Cancel
+        </Button>
+        <Button type="submit">{isEdit ? 'Update' : 'Create'} Service</Button>
+      </DialogFooter>
+    </form>
+  );
 
   if (loading) {
     return (
@@ -282,124 +499,14 @@ const ServicesManagement = () => {
                 Add Service
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Service</DialogTitle>
                 <DialogDescription>
                   Create a new service offering for your business.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="title">Service Title</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="e.g., Cleaning Services"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="price_range">Price Range</Label>
-                    <Input
-                      id="price_range"
-                      value={formData.price_range}
-                      onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                      placeholder="e.g., ₱500 - ₱1,000"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Brief description of the service"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="icon_name">Icon</Label>
-                    <Select value={formData.icon_name} onValueChange={(value) => setFormData({ ...formData, icon_name: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {iconOptions.map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            <div className="flex items-center gap-2">
-                              {getIcon(icon)}
-                              {icon}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="color_class">Hover Color</Label>
-                    <Select value={formData.color_class} onValueChange={(value) => setFormData({ ...formData, color_class: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colorOptions.map((color) => (
-                          <SelectItem key={color} value={color}>
-                            {color.replace('hover:border-', '').replace('-300', '')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="route">Route</Label>
-                    <Input
-                      id="route"
-                      value={formData.route}
-                      onChange={(e) => setFormData({ ...formData, route: e.target.value })}
-                      placeholder="e.g., /services/cleaning"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="sort_order">Sort Order</Label>
-                    <Input
-                      id="sort_order"
-                      type="number"
-                      value={formData.sort_order}
-                      onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
-                      min="0"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  />
-                  <Label htmlFor="is_active">Active</Label>
-                </div>
-
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create Service</Button>
-                </DialogFooter>
-              </form>
+              <ServiceForm />
             </DialogContent>
           </Dialog>
         </div>
@@ -409,7 +516,7 @@ const ServicesManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Service</TableHead>
-                <TableHead>Price Range</TableHead>
+                <TableHead>Pricing</TableHead>
                 <TableHead>Route</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Order</TableHead>
@@ -435,7 +542,22 @@ const ServicesManagement = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{service.price_range}</TableCell>
+                    <TableCell>
+                      {service.has_special_pricing && service.special_pricing ? (
+                        <div className="space-y-1">
+                          {service.special_pricing.map((pricing, idx) => (
+                            <div key={idx} className="text-sm">
+                              <Badge variant="secondary" className="mr-1">
+                                {pricing.duration}
+                              </Badge>
+                              {pricing.price}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        service.price_range
+                      )}
+                    </TableCell>
                     <TableCell className="font-mono text-sm">{service.route}</TableCell>
                     <TableCell>
                       <Badge variant={service.is_active ? "default" : "secondary"}>
@@ -475,120 +597,14 @@ const ServicesManagement = () => {
                               <Edit className="w-4 h-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>Edit Service</DialogTitle>
                               <DialogDescription>
                                 Update the service information.
                               </DialogDescription>
                             </DialogHeader>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="edit_title">Service Title</Label>
-                                  <Input
-                                    id="edit_title"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="edit_price_range">Price Range</Label>
-                                  <Input
-                                    id="edit_price_range"
-                                    value={formData.price_range}
-                                    onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                                    required
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="edit_description">Description</Label>
-                                <Textarea
-                                  id="edit_description"
-                                  value={formData.description}
-                                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                  required
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="edit_icon_name">Icon</Label>
-                                  <Select value={formData.icon_name} onValueChange={(value) => setFormData({ ...formData, icon_name: value })}>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {iconOptions.map((icon) => (
-                                        <SelectItem key={icon} value={icon}>
-                                          <div className="flex items-center gap-2">
-                                            {getIcon(icon)}
-                                            {icon}
-                                          </div>
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label htmlFor="edit_color_class">Hover Color</Label>
-                                  <Select value={formData.color_class} onValueChange={(value) => setFormData({ ...formData, color_class: value })}>
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {colorOptions.map((color) => (
-                                        <SelectItem key={color} value={color}>
-                                          {color.replace('hover:border-', '').replace('-300', '')}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="edit_route">Route</Label>
-                                  <Input
-                                    id="edit_route"
-                                    value={formData.route}
-                                    onChange={(e) => setFormData({ ...formData, route: e.target.value })}
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="edit_sort_order">Sort Order</Label>
-                                  <Input
-                                    id="edit_sort_order"
-                                    type="number"
-                                    value={formData.sort_order}
-                                    onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) })}
-                                    min="0"
-                                    required
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="flex items-center space-x-2">
-                                <Switch
-                                  id="edit_is_active"
-                                  checked={formData.is_active}
-                                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                                />
-                                <Label htmlFor="edit_is_active">Active</Label>
-                              </div>
-
-                              <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setEditingService(null)}>
-                                  Cancel
-                                </Button>
-                                <Button type="submit">Update Service</Button>
-                              </DialogFooter>
-                            </form>
+                            <ServiceForm isEdit={true} />
                           </DialogContent>
                         </Dialog>
                         <Button
