@@ -5,6 +5,11 @@ import ServiceCard from './ServiceCard';
 import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 
+interface SpecialPricing {
+  duration: string;
+  price: string;
+}
+
 interface Service {
   id: string;
   title: string;
@@ -15,6 +20,8 @@ interface Service {
   color_class: string;
   is_active: boolean;
   sort_order: number;
+  has_special_pricing: boolean;
+  special_pricing: SpecialPricing[] | null;
 }
 
 const ServicesSection = () => {
@@ -34,7 +41,16 @@ const ServicesSection = () => {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      setServices(data || []);
+      
+      // Transform the data to properly type the special_pricing field
+      const transformedData = (data || []).map(service => ({
+        ...service,
+        special_pricing: Array.isArray(service.special_pricing)
+          ? (service.special_pricing as unknown as SpecialPricing[])
+          : [],
+      }));
+      
+      setServices(transformedData);
     } catch (error) {
       console.error('Error fetching services:', error);
       // Fallback to empty array if there's an error
@@ -87,6 +103,8 @@ const ServicesSection = () => {
               price={service.price_range}
               route={service.route}
               color={service.color_class}
+              hasSpecialPricing={service.has_special_pricing || false}
+              specialPricing={service.special_pricing || []}
             />
           ))}
         </div>
