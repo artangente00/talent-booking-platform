@@ -99,6 +99,7 @@ export type Database = {
           id: string
           payment_confirmed_at: string | null
           payment_confirmed_by: string | null
+          selected_pricing: Json | null
           service_address: string
           service_rate: number | null
           service_type: string
@@ -123,6 +124,7 @@ export type Database = {
           id?: string
           payment_confirmed_at?: string | null
           payment_confirmed_by?: string | null
+          selected_pricing?: Json | null
           service_address: string
           service_rate?: number | null
           service_type: string
@@ -147,6 +149,7 @@ export type Database = {
           id?: string
           payment_confirmed_at?: string | null
           payment_confirmed_by?: string | null
+          selected_pricing?: Json | null
           service_address?: string
           service_rate?: number | null
           service_type?: string

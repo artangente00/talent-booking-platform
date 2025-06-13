@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -223,6 +222,20 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
     setIsSubmitting(true);
 
     try {
+      // Prepare selected pricing data for services with special pricing
+      let selectedPricingData = null;
+      if (selectedService?.has_special_pricing && formData.duration) {
+        const selectedPricing = selectedService.special_pricing?.find(
+          pricing => pricing.duration === formData.duration
+        );
+        if (selectedPricing) {
+          selectedPricingData = {
+            duration: selectedPricing.duration,
+            price: selectedPricing.price
+          };
+        }
+      }
+
       // Insert booking into database
       const { error } = await supabase
         .from('bookings')
@@ -233,7 +246,8 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
           booking_date: formData.date,
           booking_time: formData.time,
           duration: formData.duration || null,
-          special_instructions: formData.notes || null
+          special_instructions: formData.notes || null,
+          selected_pricing: selectedPricingData
         });
 
       if (error) throw error;
