@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -108,6 +109,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
   const fetchCustomerData = async (userId: string) => {
     try {
+      console.log('Fetching customer data for user:', userId);
       const { data: customerData, error } = await supabase
         .from('customers')
         .select('*')
@@ -119,6 +121,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
         return;
       }
 
+      console.log('Customer data fetched:', customerData);
       setCustomer(customerData);
       // Pre-fill form with customer data
       const fullName = `${customerData.first_name || ''} ${customerData.middle_name || ''} ${customerData.last_name || ''}`.trim();
@@ -200,7 +203,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Starting booking submission...');
+    console.log('Customer:', customer);
+    console.log('Form data:', formData);
+    
     if (!customer) {
+      console.error('No customer data found');
       toast({
         title: "Error",
         description: "Customer data not found. Please try signing in again.",
@@ -211,6 +219,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
     // Basic validation
     if (!formData.service || !formData.name || !formData.email || !formData.phone || !formData.address || !formData.date || !formData.time) {
+      console.error('Missing required fields');
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -236,21 +245,34 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
         }
       }
 
-      // Insert booking into database
-      const { error } = await supabase
-        .from('bookings')
-        .insert({
-          customer_id: customer.id,
-          service_type: formData.service,
-          service_address: formData.address,
-          booking_date: formData.date,
-          booking_time: formData.time,
-          duration: formData.duration || null,
-          special_instructions: formData.notes || null,
-          selected_pricing: selectedPricingData
-        });
+      console.log('Selected pricing data:', selectedPricingData);
 
-      if (error) throw error;
+      // Prepare booking data
+      const bookingData = {
+        customer_id: customer.id,
+        service_type: formData.service,
+        service_address: formData.address,
+        booking_date: formData.date,
+        booking_time: formData.time,
+        duration: formData.duration || null,
+        special_instructions: formData.notes || null,
+        selected_pricing: selectedPricingData
+      };
+
+      console.log('Booking data to insert:', bookingData);
+
+      // Insert booking into database
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert(bookingData)
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Booking inserted successfully:', data);
 
       toast({
         title: "Booking Submitted!",
