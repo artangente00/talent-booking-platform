@@ -63,6 +63,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Auth session:', session?.user?.id);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCustomerData(session.user.id);
@@ -71,6 +72,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchCustomerData(session.user.id);
@@ -87,13 +89,18 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
   const fetchServices = async () => {
     try {
+      console.log('Fetching services...');
       const { data, error } = await supabase
         .from('services')
         .select('id, title, has_special_pricing, special_pricing')
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching services:', error);
+        throw error;
+      }
       
+      console.log('Services fetched:', data?.length);
       const transformedData = (data || []).map(service => ({
         ...service,
         special_pricing: Array.isArray(service.special_pricing)
@@ -118,7 +125,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
       if (error) {
         console.error('Error fetching customer data:', error);
-        return;
+        // If customer doesn't exist, that's okay for now
+        if (error.code === 'PGRST116') {
+          console.log('Customer record not found - this is expected for new users');
+          return;
+        }
+        throw error;
       }
 
       console.log('Customer data fetched:', customerData);
@@ -129,7 +141,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
         ...prev,
         name: fullName,
         email: customerData.email,
-        phone: customerData.contact_number
+        phone: customerData.contact_number || ''
       }));
     } catch (error) {
       console.error('Error fetching customer data:', error);
@@ -171,6 +183,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
   ];
 
   const handleInputChange = (field: string, value: string) => {
+    console.log(`Field changed: ${field} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -203,26 +216,70 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Starting booking submission...');
+    console.log('=== BOOKING SUBMISSION STARTED ===');
+    console.log('User ID:', user?.id);
     console.log('Customer:', customer);
     console.log('Form data:', formData);
     
-    if (!customer) {
-      console.error('No customer data found');
+    // Check if user is authenticated
+    if (!user) {
+      console.error('User not authenticated');
       toast({
-        title: "Error",
-        description: "Customer data not found. Please try signing in again.",
+        title: "Authentication Required",
+        description: "Please sign in to make a booking.",
         variant: "destructive"
       });
+      navigate('/auth');
       return;
     }
 
-    // Basic validation
-    if (!formData.service || !formData.name || !formData.email || !formData.phone || !formData.address || !formData.date || !formData.time) {
-      console.error('Missing required fields');
+    // If no customer record exists, create one first
+    if (!customer) {
+      console.log('No customer record found, creating one...');
+      try {
+        const newCustomerData = {
+          user_id: user.id,
+          first_name: formData.name.split(' ')[0] || '',
+          middle_name: null,
+          last_name: formData.name.split(' ').slice(1).join(' ') || '',
+          email: formData.email,
+          contact_number: formData.phone
+        };
+
+        console.log('Creating customer with data:', newCustomerData);
+        const { data: newCustomer, error: customerError } = await supabase
+          .from('customers')
+          .insert(newCustomerData)
+          .select()
+          .single();
+
+        if (customerError) {
+          console.error('Error creating customer:', customerError);
+          throw customerError;
+        }
+
+        console.log('Customer created successfully:', newCustomer);
+        setCustomer(newCustomer);
+      } catch (error) {
+        console.error('Failed to create customer:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create customer record. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate required fields
+    const requiredFields = ['service', 'name', 'email', 'phone', 'address', 'date', 'time'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    
+    if (missingFields.length > 0) {
+      console.error('Missing required fields:', missingFields);
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
         variant: "destructive"
       });
       return;
@@ -247,9 +304,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
 
       console.log('Selected pricing data:', selectedPricingData);
 
+      // Use the customer we have (either existing or newly created)
+      const customerToUse = customer!;
+
       // Prepare booking data
       const bookingData = {
-        customer_id: customer.id,
+        customer_id: customerToUse.id,
         service_type: formData.service,
         service_address: formData.address,
         booking_date: formData.date,
@@ -268,7 +328,13 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
         .select();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase booking insert error:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
 
@@ -280,12 +346,12 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
       });
 
       // Reset form and close modal
-      const fullName = `${customer.first_name || ''} ${customer.middle_name || ''} ${customer.last_name || ''}`.trim();
+      const fullName = `${customerToUse.first_name || ''} ${customerToUse.middle_name || ''} ${customerToUse.last_name || ''}`.trim();
       setFormData({
         service: preselectedService || '',
         name: fullName,
-        email: customer.email,
-        phone: customer.contact_number,
+        email: customerToUse.email,
+        phone: customerToUse.contact_number || '',
         address: '',
         date: '',
         time: '',
@@ -295,9 +361,21 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
       setIsOpen(false);
     } catch (error) {
       console.error('Error submitting booking:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to submit booking. Please try again.";
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorObj = error as any;
+        if (errorObj.message?.includes('violates row-level security')) {
+          errorMessage = "Permission denied. Please try signing out and back in.";
+        } else if (errorObj.code === '23503') {
+          errorMessage = "Invalid data provided. Please check your inputs.";
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to submit booking. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -365,7 +443,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter your full name"
-                disabled
+                disabled={!!customer}
               />
             </div>
             
@@ -380,7 +458,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+63 9XX XXX XXXX"
-                disabled
+                disabled={!!customer}
               />
             </div>
           </div>
@@ -396,7 +474,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ children, preselectedService 
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="your.email@example.com"
-              disabled
+              disabled={!!customer}
             />
           </div>
 
