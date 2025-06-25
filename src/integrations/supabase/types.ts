@@ -246,6 +246,48 @@ export type Database = {
         }
         Relationships: []
       }
+      enhanced_page_contents: {
+        Row: {
+          content_type: string
+          content_value: string
+          created_at: string | null
+          display_order: number
+          id: string
+          meta_description: string | null
+          page_id: string
+          page_name: string
+          page_title: string
+          section_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_type: string
+          content_value: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          meta_description?: string | null
+          page_id: string
+          page_name: string
+          page_title: string
+          section_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_type?: string
+          content_value?: string
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          meta_description?: string | null
+          page_id?: string
+          page_name?: string
+          page_title?: string
+          section_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
