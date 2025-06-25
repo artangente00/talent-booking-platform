@@ -1,11 +1,10 @@
-
 import { Home, Car, Baby, Heart, ScrollText } from 'lucide-react';
 
 export const servicesData = [
   {
     id: 'cleaning',
     title: 'Cleaning Services',
-    description: 'Our professional cleaning services ensure your home is spotless and sanitized. We use eco-friendly products and pay attention to every detail.',
+    description: 'Our professional cleaning team provides comprehensive home cleaning services with attention to detail. We use eco-friendly products and modern equipment to ensure your home is spotless, sanitized, and safe for your family.',
     pricing: [
       { label: '12 hours (7am - 7pm)', price: '₱315' },
       { label: '24 hours', price: '₱420' }
