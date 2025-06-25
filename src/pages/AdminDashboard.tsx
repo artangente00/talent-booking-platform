@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -11,7 +12,7 @@ import CustomersManagement from '@/components/admin/CustomersManagement';
 import BookingsManagement from '@/components/admin/BookingsManagement';
 import AdminsManagement from '@/components/admin/AdminsManagement';
 import TalentManagement from '@/components/admin/TalentManagement';
-import ContentManagement from '@/components/admin/ContentManagement';
+import EnhancedContentManagement from '@/components/admin/EnhancedContentManagement';
 import ServicesManagement from '@/components/admin/ServicesManagement';
 import BookersManagement from '@/components/admin/BookersManagement';
 import AssignmentsManagement from '@/components/admin/AssignmentsManagement';
@@ -190,7 +191,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="content">
-              <ContentManagement />
+              <EnhancedContentManagement />
             </TabsContent>
 
             <TabsContent value="admins">
