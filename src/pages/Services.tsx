@@ -6,8 +6,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ServiceDetail from '@/components/ServiceDetail';
 import ServicesHero from '@/components/ServicesHero';
 import { servicesData } from '@/data/servicesData';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Services = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -18,11 +21,21 @@ const Services = () => {
           <div className="container mx-auto px-4">
             <Tabs defaultValue="cleaning" className="w-full">
               <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
-                <TabsTrigger value="cleaning" className="text-sm md:text-base">Cleaning</TabsTrigger>
-                <TabsTrigger value="drivers" className="text-sm md:text-base">Drivers</TabsTrigger>
-                <TabsTrigger value="babysitting" className="text-sm md:text-base">Babysitting</TabsTrigger>
-                <TabsTrigger value="elderly-care" className="text-sm md:text-base">Elderly Care</TabsTrigger>
-                <TabsTrigger value="laundry" className="text-sm md:text-base">Laundry</TabsTrigger>
+                <TabsTrigger value="cleaning" className="text-sm md:text-base">
+                  {t('service.tab.cleaning', 'Cleaning')}
+                </TabsTrigger>
+                <TabsTrigger value="drivers" className="text-sm md:text-base">
+                  {t('service.tab.drivers', 'Drivers')}
+                </TabsTrigger>
+                <TabsTrigger value="babysitting" className="text-sm md:text-base">
+                  {t('service.tab.babysitting', 'Babysitting')}
+                </TabsTrigger>
+                <TabsTrigger value="elderly-care" className="text-sm md:text-base">
+                  {t('service.tab.elderly_care', 'Elderly Care')}
+                </TabsTrigger>
+                <TabsTrigger value="laundry" className="text-sm md:text-base">
+                  {t('service.tab.laundry', 'Laundry')}
+                </TabsTrigger>
               </TabsList>
               
               {servicesData.map((service) => (

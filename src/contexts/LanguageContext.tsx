@@ -64,6 +64,8 @@ const translations = {
     'services.title': 'Our Services',
     'services.description': 'We provide a wide range of professional home services with fixed rates and verified talent.',
     'services.view_all': 'View all services',
+    'services.hero.title': 'Our Services',
+    'services.hero.description': 'Discover our range of professional home services tailored to your needs.',
     
     // Service Cards
     'service.cleaning.title': 'Cleaning Services',
@@ -78,6 +80,13 @@ const translations = {
     'service.laundry.description': 'Efficient laundry services with attention to detail',
     'service.book_now': 'Book Now',
     'service.starting_at': 'Starting at',
+    
+    // Service Tabs
+    'service.tab.cleaning': 'Cleaning',
+    'service.tab.drivers': 'Drivers',
+    'service.tab.babysitting': 'Babysitting',
+    'service.tab.elderly_care': 'Elderly Care',
+    'service.tab.laundry': 'Laundry',
     
     // CTA Section
     'cta.title': 'Ready to Book a Service?',
@@ -163,6 +172,8 @@ const translations = {
     'services.title': 'Aming mga Serbisyo',
     'services.description': 'Nagbibigay kami ng malawak na hanay ng propesyonal na home services na may fixed rates at verified talent.',
     'services.view_all': 'Tingnan ang lahat ng serbisyo',
+    'services.hero.title': 'Aming mga Serbisyo',
+    'services.hero.description': 'Tuklasin ang aming hanay ng propesyonal na home services na inilaan para sa inyong mga pangangailangan.',
     
     // Service Cards
     'service.cleaning.title': 'Mga Serbisyong Paglilinis',
@@ -177,6 +188,13 @@ const translations = {
     'service.laundry.description': 'Mga epektibong serbisyong paglalaba na may pansin sa detalye',
     'service.book_now': 'Mag-book Ngayon',
     'service.starting_at': 'Nagsisimula sa',
+    
+    // Service Tabs
+    'service.tab.cleaning': 'Paglilinis',
+    'service.tab.drivers': 'Mga Driver',
+    'service.tab.babysitting': 'Babysitting',
+    'service.tab.elderly_care': 'Pag-aalaga sa Matatanda',
+    'service.tab.laundry': 'Paglalaba',
     
     // CTA Section
     'cta.title': 'Handa na bang Mag-book ng Serbisyo?',
@@ -262,6 +280,8 @@ const translations = {
     'services.title': 'Aming mga Serbisyo',
     'services.description': 'Naghatag kami og daghan nga propesyonal nga home services nga adunay fixed rates ug verified talent.',
     'services.view_all': 'Tan-awa ang tanan nga serbisyo',
+    'services.hero.title': 'Aming mga Serbisyo',
+    'services.hero.description': 'Diskubreha ang aming hanay sa propesyonal nga home services nga giandam para sa inyong mga kinahanglan.',
     
     // Service Cards
     'service.cleaning.title': 'Mga Serbisyong Paglimpyo',
@@ -276,6 +296,13 @@ const translations = {
     'service.laundry.description': 'Mga epektibo nga serbisyong paglaba nga adunay atensyon sa detalye',
     'service.book_now': 'Pag-book Karon',
     'service.starting_at': 'Nagsugod sa',
+    
+    // Service Tabs
+    'service.tab.cleaning': 'Paglimpyo',
+    'service.tab.drivers': 'Mga Driver',
+    'service.tab.babysitting': 'Babysitting',
+    'service.tab.elderly_care': 'Pag-atiman sa mga Tigulang',
+    'service.tab.laundry': 'Paglaba',
     
     // CTA Section
     'cta.title': 'Andam na ba mo nga Mag-book og Serbisyo?',
