@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -36,6 +37,9 @@ const Hero = () => {
     );
   }
 
+  console.log('Hero subtitle content:', getContent('hero_subtitle', 'Default subtitle'));
+  console.log('Hero description content:', getContent('hero_description', 'Default description'));
+
   return (
     <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
@@ -46,7 +50,7 @@ const Hero = () => {
               {renderContent(getContent('hero_title', 'Find Trusted Talent for Your Home Services'))}
             </div>
             <div className="text-xl text-gray-600 max-w-lg">
-              {renderContent(getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.'))}
+              {renderContent(getContent('hero_subtitle', getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.')))}
             </div>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 

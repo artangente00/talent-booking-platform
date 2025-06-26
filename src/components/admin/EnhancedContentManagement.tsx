@@ -34,6 +34,7 @@ const EnhancedContentManagement = () => {
   const pageLayouts = {
     home: [
       { section_name: 'hero_title', content_type: 'text', label: 'Hero Title' },
+      { section_name: 'hero_subtitle', content_type: 'textarea', label: 'Hero Subtitle' },
       { section_name: 'hero_description', content_type: 'textarea', label: 'Hero Description' },
       { section_name: 'hero_feature_1', content_type: 'text', label: 'Hero Feature 1' },
       { section_name: 'hero_feature_2', content_type: 'text', label: 'Hero Feature 2' },
@@ -168,6 +169,9 @@ const EnhancedContentManagement = () => {
             switch (section.section_name) {
               case 'hero_title':
                 defaultValue = 'Find Trusted Talent for Your Home Services';
+                break;
+              case 'hero_subtitle':
+                defaultValue = 'Easily book trusted professionals for cleaning, driving, childcare, elder care, laundry, and a wide range of other services—all in just a few clicks.';
                 break;
               case 'hero_description':
                 defaultValue = 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.';
