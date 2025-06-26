@@ -3,9 +3,11 @@ import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePageContent } from '@/hooks/usePageContent';
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { getContent, loading } = usePageContent('home');
 
   const handleBrowseServicesClick = () => {
     console.log('Browse Services button clicked');
@@ -17,6 +19,19 @@ const Hero = () => {
     navigate('/how-it-works');
   };
 
+  if (loading) {
+    return (
+      <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
+        <div className="container mx-auto px-4 py-20 md:py-24 lg:py-32">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-300 rounded mb-4"></div>
+            <div className="h-6 bg-gray-300 rounded mb-8"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
@@ -24,10 +39,10 @@ const Hero = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-              Find Trusted Talent for Your <span className="text-kwikie-orange">Home Services</span>
+              {getContent('hero_title', 'Find Trusted Talent for Your Home Services')}
             </h1>
             <p className="text-xl text-gray-600 max-w-lg">
-              Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.
+              {getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 
@@ -53,19 +68,19 @@ const Hero = () => {
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>Verified Professionals</span>
+                <span>{getContent('hero_feature_1', 'Verified Professionals')}</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>Fixed Rates</span>
+                <span>{getContent('hero_feature_2', 'Fixed Rates')}</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>Satisfaction Guaranteed</span>
+                <span>{getContent('hero_feature_3', 'Satisfaction Guaranteed')}</span>
               </div>
             </div>
           </div>
@@ -81,7 +96,7 @@ const Hero = () => {
               <img 
                 src="https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
                 alt="Professional driver" 
-                className="rounded-xl h-40 w-full object-cover" 
+                className="h-40 w-full object-cover rounded-xl" 
               />
             </div>
           </div>

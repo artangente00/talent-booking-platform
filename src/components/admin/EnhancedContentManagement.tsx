@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,11 +35,16 @@ const EnhancedContentManagement = () => {
   const pageLayouts = {
     home: [
       { section_name: 'hero_title', content_type: 'text', label: 'Hero Title' },
-      { section_name: 'hero_subtitle', content_type: 'textarea', label: 'Hero Subtitle' },
       { section_name: 'hero_description', content_type: 'textarea', label: 'Hero Description' },
+      { section_name: 'hero_feature_1', content_type: 'text', label: 'Hero Feature 1' },
+      { section_name: 'hero_feature_2', content_type: 'text', label: 'Hero Feature 2' },
+      { section_name: 'hero_feature_3', content_type: 'text', label: 'Hero Feature 3' },
       { section_name: 'services_title', content_type: 'text', label: 'Services Section Title' },
       { section_name: 'services_description', content_type: 'textarea', label: 'Services Description' },
       { section_name: 'how_it_works_title', content_type: 'text', label: 'How It Works Title' },
+      { section_name: 'how_it_works_description', content_type: 'textarea', label: 'How It Works Description' },
+      { section_name: 'testimonials_title', content_type: 'text', label: 'Testimonials Title' },
+      { section_name: 'testimonials_description', content_type: 'textarea', label: 'Testimonials Description' },
       { section_name: 'cta_title', content_type: 'text', label: 'Call to Action Title' },
       { section_name: 'cta_description', content_type: 'textarea', label: 'Call to Action Description' }
     ],
@@ -158,13 +162,64 @@ const EnhancedContentManagement = () => {
       Object.entries(pageLayouts).forEach(([pageName, sections]) => {
         const pageId = crypto.randomUUID();
         sections.forEach((section, index) => {
+          let defaultValue = '';
+          
+          // Set realistic default values based on section names
+          if (pageName === 'home') {
+            switch (section.section_name) {
+              case 'hero_title':
+                defaultValue = 'Find Trusted Talent for Your Home Services';
+                break;
+              case 'hero_description':
+                defaultValue = 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.';
+                break;
+              case 'hero_feature_1':
+                defaultValue = 'Verified Professionals';
+                break;
+              case 'hero_feature_2':
+                defaultValue = 'Fixed Rates';
+                break;
+              case 'hero_feature_3':
+                defaultValue = 'Satisfaction Guaranteed';
+                break;
+              case 'services_title':
+                defaultValue = 'Our Services';
+                break;
+              case 'services_description':
+                defaultValue = 'Choose from our wide range of professional home services designed to make your life easier.';
+                break;
+              case 'how_it_works_title':
+                defaultValue = 'How It Works';
+                break;
+              case 'how_it_works_description':
+                defaultValue = 'Getting the help you need is simple and straightforward.';
+                break;
+              case 'testimonials_title':
+                defaultValue = 'What Our Customers Say';
+                break;
+              case 'testimonials_description':
+                defaultValue = 'Read testimonials from our satisfied customers.';
+                break;
+              case 'cta_title':
+                defaultValue = 'Ready to Get Started?';
+                break;
+              case 'cta_description':
+                defaultValue = 'Join thousands of satisfied customers who trust us with their home service needs.';
+                break;
+              default:
+                defaultValue = `Default ${section.label.toLowerCase()}`;
+            }
+          } else {
+            defaultValue = `Default ${section.label.toLowerCase()}`;
+          }
+
           defaultContents.push({
             page_id: pageId,
             page_name: pageName,
             page_title: `${pageName.charAt(0).toUpperCase() + pageName.slice(1).replace('-', ' ')} Page`,
             section_name: section.section_name,
             content_type: section.content_type,
-            content_value: `Default ${section.label.toLowerCase()}`,
+            content_value: defaultValue,
             display_order: index + 1,
             meta_description: `Meta description for ${pageName} page`
           });
