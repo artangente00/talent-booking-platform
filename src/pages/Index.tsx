@@ -32,7 +32,7 @@ const Index = () => {
         </div>
         
         <HowItWorks />
-        <Testimonials />
+        {/*<Testimonials />*/}
         <CTASection />
       </main>
       <Footer />
