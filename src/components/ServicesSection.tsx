@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import ServiceCard from './ServiceCard';
+import TranslatedServiceCard from './TranslatedServiceCard';
 import { Link } from 'react-router-dom';
 import { usePageContent } from '@/hooks/usePageContent';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -25,6 +25,15 @@ interface Service {
   has_special_pricing: boolean;
   special_pricing: SpecialPricing[] | null;
 }
+
+// Mapping of service titles to translation keys
+const serviceKeyMapping: Record<string, string> = {
+  'Cleaning Services': 'cleaning',
+  'Driver Services': 'driver', 
+  'Babysitting': 'babysitting',
+  'Elderly Care': 'elderly',
+  'Laundry Services': 'laundry'
+};
 
 const ServicesSection = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -105,19 +114,21 @@ const ServicesSection = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
-            <ServiceCard
-              key={service.id}
-              title={service.title}
-              description={service.description}
-              icon={getIcon(service.icon_name)}
-              price={service.price_range}
-              route={service.route}
-              color={service.color_class}
-              hasSpecialPricing={service.has_special_pricing || false}
-              specialPricing={service.special_pricing || []}
-            />
-          ))}
+          {services.map((service) => {
+            const serviceKey = serviceKeyMapping[service.title] || 'cleaning';
+            return (
+              <TranslatedServiceCard
+                key={service.id}
+                serviceKey={serviceKey}
+                icon={getIcon(service.icon_name)}
+                price={service.price_range}
+                route={service.route}
+                color={service.color_class}
+                hasSpecialPricing={service.has_special_pricing || false}
+                specialPricing={service.special_pricing || []}
+              />
+            );
+          })}
         </div>
 
         {services.length > 0 && (

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LanguageContextType {
@@ -35,6 +36,20 @@ const translations = {
     'services.description': 'We provide a wide range of professional home services with fixed rates and verified talent.',
     'services.view_all': 'View all services',
     
+    // Service Cards
+    'service.cleaning.title': 'Cleaning Services',
+    'service.cleaning.description': 'Professional house cleaners to keep your home spotless',
+    'service.driver.title': 'Driver Services', 
+    'service.driver.description': 'Experienced drivers available for 12h or 24h periods',
+    'service.babysitting.title': 'Babysitting',
+    'service.babysitting.description': 'Loving and attentive care for your children',
+    'service.elderly.title': 'Elderly Care',
+    'service.elderly.description': 'Compassionate caregivers for your loved ones',
+    'service.laundry.title': 'Laundry Services',
+    'service.laundry.description': 'Efficient laundry services with attention to detail',
+    'service.book_now': 'Book Now',
+    'service.starting_at': 'Starting at',
+    
     // CTA Section
     'cta.title': 'Ready to Book a Service?',
     'cta.description': 'Our professional team is ready to help with your home service needs. Book now and experience the difference.',
@@ -67,6 +82,20 @@ const translations = {
     'services.description': 'Nagbibigay kami ng malawak na hanay ng propesyonal na home services na may fixed rates at verified talent.',
     'services.view_all': 'Tingnan ang lahat ng serbisyo',
     
+    // Service Cards
+    'service.cleaning.title': 'Mga Serbisyong Paglilinis',
+    'service.cleaning.description': 'Mga propesyonal na house cleaner para mapanatiling malinis ang inyong tahanan',
+    'service.driver.title': 'Mga Serbisyong Driver',
+    'service.driver.description': 'Mga nakakaranasang driver na available para sa 12h o 24h na panahon',
+    'service.babysitting.title': 'Babysitting',
+    'service.babysitting.description': 'Mahabagin at masuyong pag-aalaga para sa inyong mga anak',
+    'service.elderly.title': 'Pag-aalaga sa Matatanda',
+    'service.elderly.description': 'Mga mahabagin na caregiver para sa inyong mga mahal sa buhay',
+    'service.laundry.title': 'Mga Serbisyong Paglalaba',
+    'service.laundry.description': 'Mga epektibong serbisyong paglalaba na may pansin sa detalye',
+    'service.book_now': 'Mag-book Ngayon',
+    'service.starting_at': 'Nagsisimula sa',
+    
     // CTA Section
     'cta.title': 'Handa na bang Mag-book ng Serbisyo?',
     'cta.description': 'Ang aming propesyonal na team ay handang tumulong sa inyong home service needs. Mag-book na ngayon at maranasan ang pagkakaiba.',
@@ -98,6 +127,20 @@ const translations = {
     'services.title': 'Aming mga Serbisyo',
     'services.description': 'Naghatag kami og daghan nga propesyonal nga home services nga adunay fixed rates ug verified talent.',
     'services.view_all': 'Tan-awa ang tanan nga serbisyo',
+    
+    // Service Cards
+    'service.cleaning.title': 'Mga Serbisyong Paglimpyo',
+    'service.cleaning.description': 'Mga propesyonal nga house cleaner aron mapreserba ang inyong balay nga limpyo',
+    'service.driver.title': 'Mga Serbisyong Driver',
+    'service.driver.description': 'Mga eksperto nga driver nga available para sa 12h o 24h nga panahon',
+    'service.babysitting.title': 'Babysitting',
+    'service.babysitting.description': 'Mahigugmaon ug mabinantayon nga pag-atiman para sa inyong mga anak',
+    'service.elderly.title': 'Pag-atiman sa mga Tigulang',
+    'service.elderly.description': 'Mga maloloy-on nga caregiver para sa inyong mga hinigugma',
+    'service.laundry.title': 'Mga Serbisyong Paglaba',
+    'service.laundry.description': 'Mga epektibo nga serbisyong paglaba nga adunay atensyon sa detalye',
+    'service.book_now': 'Pag-book Karon',
+    'service.starting_at': 'Nagsugod sa',
     
     // CTA Section
     'cta.title': 'Andam na ba mo nga Mag-book og Serbisyo?',
