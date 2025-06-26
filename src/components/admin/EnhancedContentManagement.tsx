@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 
 interface ContentSection {
@@ -249,6 +247,44 @@ const EnhancedContentManagement = () => {
     }
   };
 
+  const handleSavePageTitle = async (pageId: string, newTitle: string) => {
+    setSaving(`page_title_${pageId}`);
+    try {
+      const { error } = await supabase
+        .from('enhanced_page_contents')
+        .update({
+          page_title: newTitle,
+          updated_at: new Date().toISOString()
+        })
+        .eq('page_id', pageId);
+
+      if (error) throw error;
+
+      // Update local state
+      setPageContents(prev => 
+        prev.map(page => 
+          page.id === pageId 
+            ? { ...page, title: newTitle }
+            : page
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Page title updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving page title:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save page title.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(null);
+    }
+  };
+
   const handleSaveSection = async (pageId: string, sectionId: string, newValue: string) => {
     setSaving(sectionId);
     try {
@@ -311,12 +347,22 @@ const EnhancedContentManagement = () => {
     );
   };
 
+  const updatePageTitle = (pageId: string, value: string) => {
+    setPageContents(prev => 
+      prev.map(page => 
+        page.id === pageId 
+          ? { ...page, title: value }
+          : page
+      )
+    );
+  };
+
   const renderContentInput = (page: PageContent, section: ContentSection) => {
     const layout = pageLayouts[page.page_name as keyof typeof pageLayouts];
     const sectionLayout = layout?.find(l => l.section_name === section.section_name);
     const label = sectionLayout?.label || section.section_name;
 
-    // Use RichTextEditor for all content types now
+    // Use RichTextEditor for ALL content fields now - including titles
     return (
       <div key={section.id} className="space-y-2">
         <Label htmlFor={`${section.id}`}>{label}</Label>
@@ -382,6 +428,35 @@ const EnhancedContentManagement = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Page Title Editor */}
+                  <div className="space-y-2 border-b pb-4">
+                    <Label htmlFor={`page_title_${page.id}`}>Page Title</Label>
+                    <RichTextEditor
+                      value={page.title}
+                      onChange={(value) => updatePageTitle(page.id, value)}
+                      placeholder="Enter page title"
+                    />
+                    <Button 
+                      size="sm"
+                      onClick={() => handleSavePageTitle(page.id, page.title)}
+                      disabled={saving === `page_title_${page.id}`}
+                      className="bg-kwikie-orange hover:bg-kwikie-red"
+                    >
+                      {saving === `page_title_${page.id}` ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Page Title
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Content Sections */}
                   {page.sections
                     .sort((a, b) => a.display_order - b.display_order)
                     .map((section) => renderContentInput(page, section))}
