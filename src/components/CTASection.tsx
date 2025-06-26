@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const CTASection = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Get initial session
@@ -34,21 +36,22 @@ const CTASection = () => {
   return (
     <section className="py-16 bg-kwikie-orange text-white">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Book a Service?</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          {t('cta.title', 'Ready to Book a Service?')}
+        </h2>
         <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
-          Our professional team is ready to help with your home service needs.
-          Book now and experience the difference.
+          {t('cta.description', 'Our professional team is ready to help with your home service needs. Book now and experience the difference.')}
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button 
             onClick={handleBookServiceClick}
             className="bg-white text-kwikie-orange hover:bg-gray-50 text-lg h-12 px-8"
           >
-            Book a Service
+            {t('cta.book_service', 'Book a Service')}
           </Button>
           <Link to="/contact">
             <Button variant="outline" className="border-white text-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
-              Contact Us
+              {t('cta.contact_us', 'Contact Us')}
             </Button>
           </Link>
         </div>

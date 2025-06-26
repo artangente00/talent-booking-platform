@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import ServiceCard from './ServiceCard';
 import { Link } from 'react-router-dom';
 import { usePageContent } from '@/hooks/usePageContent';
+import { useLanguage } from '@/contexts/LanguageContext';
 import * as LucideIcons from 'lucide-react';
 
 interface SpecialPricing {
@@ -29,6 +30,7 @@ const ServicesSection = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const { getContent, loading: contentLoading } = usePageContent('home');
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchServices();
@@ -77,9 +79,9 @@ const ServicesSection = () => {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('services.title', 'Our Services')}</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We provide a wide range of professional home services with fixed rates and verified talent.
+              {t('services.description', 'We provide a wide range of professional home services with fixed rates and verified talent.')}
             </p>
           </div>
           <div className="flex justify-center items-center py-8">
@@ -95,10 +97,10 @@ const ServicesSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {renderContent(getContent('services_title', 'Our Services'))}
+            {renderContent(getContent('services_title', t('services.title', 'Our Services')))}
           </h2>
           <div className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {renderContent(getContent('services_description', 'We provide a wide range of professional home services with fixed rates and verified talent.'))}
+            {renderContent(getContent('services_description', t('services.description', 'We provide a wide range of professional home services with fixed rates and verified talent.')))}
           </div>
         </div>
         
@@ -124,7 +126,7 @@ const ServicesSection = () => {
               to="/services"
               className="inline-flex items-center text-brand-600 font-medium hover:underline"
             >
-              View all services
+              {t('services.view_all', 'View all services')}
               <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
               </svg>
