@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -50,7 +51,7 @@ const Hero = () => {
               {renderContent(getContent('hero_title', 'Find Trusted Talent for Your Home Services'))}
             </div>
             <div className="text-xl text-gray-600 max-w-lg">
-              {renderContent(getContent('hero_subtitle', getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.')))}
+              {renderContent(getContent('hero_subtitle', 'Easily book trusted professionals for cleaning, driving, childcare, elder care, laundry, and a wide range of other services—all in just a few clicks.'))}
             </div>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 
@@ -115,3 +116,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
