@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Plus, Trash2 } from 'lucide-react';
+import RichTextEditor from './RichTextEditor';
 
 interface ContentSection {
   id: string;
@@ -319,12 +320,10 @@ const EnhancedContentManagement = () => {
       return (
         <div key={section.id} className="space-y-2">
           <Label htmlFor={`${section.id}`}>{label}</Label>
-          <Textarea
-            id={`${section.id}`}
+          <RichTextEditor
             value={section.content_value}
-            onChange={(e) => updateSectionValue(page.id, section.id, e.target.value)}
+            onChange={(value) => updateSectionValue(page.id, section.id, value)}
             placeholder={`Enter ${label.toLowerCase()}`}
-            rows={4}
           />
           <Button 
             size="sm"

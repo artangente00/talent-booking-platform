@@ -19,6 +19,14 @@ const Hero = () => {
     navigate('/how-it-works');
   };
 
+  // Helper function to strip HTML tags for plain text display or render HTML safely
+  const renderContent = (content: string, isHtml: boolean = false) => {
+    if (isHtml) {
+      return <div dangerouslySetInnerHTML={{ __html: content }} />;
+    }
+    return content;
+  };
+
   if (loading) {
     return (
       <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
@@ -39,11 +47,11 @@ const Hero = () => {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-              {getContent('hero_title', 'Find Trusted Talent for Your Home Services')}
+              {renderContent(getContent('hero_title', 'Find Trusted Talent for Your Home Services'))}
             </h1>
-            <p className="text-xl text-gray-600 max-w-lg">
-              {getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.')}
-            </p>
+            <div className="text-xl text-gray-600 max-w-lg">
+              {renderContent(getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.'), true)}
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 
                 className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8 cursor-pointer"
