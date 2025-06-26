@@ -71,6 +71,37 @@ const translations = {
     'cta.description': 'Ang aming propesyonal na team ay handang tumulong sa inyong home service needs. Mag-book na ngayon at maranasan ang pagkakaiba.',
     'cta.book_service': 'Mag-book ng Serbisyo',
     'cta.contact_us': 'Makipag-ugnayan',
+  },
+  ceb: {
+    // Navigation
+    'nav.services': 'Mga Serbisyo',
+    'nav.how_it_works': 'Unsaon Paglihok',
+    'nav.about': 'Mahitungod',
+    'nav.contact': 'Kontak',
+    'nav.sign_in': 'Pag-sign In',
+    'nav.sign_up': 'Pag-sign Up',
+    'nav.dashboard': 'Dashboard',
+    'nav.logout': 'Pag-logout',
+    
+    // Hero Section
+    'hero.title': 'Pangitaa ang Kasaligan nga Talento para sa Inyong Home Services',
+    'hero.subtitle': 'Sayon nga pag-book sa mga kasaligan nga propesyonal para sa paglimpyo, pagmaneho, pag-atiman sa mga bata, pag-atiman sa mga tigulang, paglaba, ug uban pang mga serbisyo—tanan sa pipila ka clicks lang.',
+    'hero.browse_services': 'Tan-awa ang mga Serbisyo',
+    'hero.how_it_works': 'Unsaon Paglihok',
+    'hero.verified_professionals': 'Verified nga mga Propesyonal',
+    'hero.fixed_rates': 'Fixed nga mga Rate',
+    'hero.satisfaction_guaranteed': 'Garantisadong Katagbawan',
+    
+    // Services Section
+    'services.title': 'Aming mga Serbisyo',
+    'services.description': 'Naghatag kami og daghan nga propesyonal nga home services nga adunay fixed rates ug verified talent.',
+    'services.view_all': 'Tan-awa ang tanan nga serbisyo',
+    
+    // CTA Section
+    'cta.title': 'Andam na ba mo nga Mag-book og Serbisyo?',
+    'cta.description': 'Ang among propesyonal nga team andam na nga motabang sa inyong home service needs. Mag-book na karon ug masinati ang kalainan.',
+    'cta.book_service': 'Mag-book og Serbisyo',
+    'cta.contact_us': 'Kontak Namo',
   }
 };
 
