@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -18,6 +17,7 @@ import BookersManagement from '@/components/admin/BookersManagement';
 import AssignmentsManagement from '@/components/admin/AssignmentsManagement';
 import PaymentsManagement from '@/components/admin/PaymentsManagement';
 import NotificationDropdown from '@/components/admin/NotificationDropdown';
+import VisualContentManagement from '@/components/admin/VisualContentManagement';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -191,7 +191,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="content">
-              <EnhancedContentManagement />
+              <VisualContentManagement />
             </TabsContent>
 
             <TabsContent value="admins">
