@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -67,9 +68,9 @@ const Hero = () => {
             </span>
           </h1>
           
-          <div className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
             {renderTranslatedContent(getContent('hero_description', 'Book trusted professionals for cleaning, driving, babysitting, elderly care, and laundry services in your area.'))}
-          </div>
+          </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/services">
@@ -97,3 +98,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
