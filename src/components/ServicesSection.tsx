@@ -38,7 +38,6 @@ const serviceKeyMapping: Record<string, string> = {
 const ServicesSection = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const { getContent, loading: contentLoading } = usePageContent('home');
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -78,12 +77,7 @@ const ServicesSection = () => {
     return <IconComponent size={24} className="text-brand-600" />;
   };
 
-  // Helper function to render HTML content safely
-  const renderContent = (content: string) => {
-    return <div dangerouslySetInnerHTML={{ __html: content }} />;
-  };
-
-  if (loading || contentLoading) {
+  if (loading) {
     return (
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -106,11 +100,11 @@ const ServicesSection = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {renderContent(getContent('services_title', t('services.title', 'Our Services')))}
+            {t('services.title', 'Our Services')}
           </h2>
-          <div className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {renderContent(getContent('services_description', t('services.description', 'We provide a wide range of professional home services with fixed rates and verified talent.')))}
-          </div>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            {t('services.description', 'We provide a wide range of professional home services with fixed rates and verified talent.')}
+          </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
