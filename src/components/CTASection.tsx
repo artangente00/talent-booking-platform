@@ -1,57 +1,29 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { Link } from 'react-router-dom';
+import { useTranslationContext } from '@/contexts/TranslationContext';
 
 const CTASection = () => {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleBookServiceClick = () => {
-    if (!user) {
-      navigate('/auth?tab=signup');
-    } else {
-      navigate('/services');
-    }
-  };
+  const { t } = useTranslationContext();
 
   return (
-    <section className="py-16 bg-kwikie-orange text-white">
+    <section className="py-20 bg-gradient-to-r from-kwikie-yellow to-kwikie-orange">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Book a Service?</h2>
-        <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
-          Our professional team is ready to help with your home service needs.
-          Book now and experience the difference.
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          {t('Ready to Get Started?')}
+        </h2>
+        <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          {t('Join thousands of satisfied customers who trust Kwikie for their home service needs.')}
         </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
+        <Link to="/services">
           <Button 
-            onClick={handleBookServiceClick}
-            className="bg-white text-kwikie-orange hover:bg-gray-50 text-lg h-12 px-8"
+            size="lg" 
+            className="bg-white text-kwikie-orange hover:bg-gray-100 font-semibold px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            Book a Service
+            {t('Get Started Today')}
           </Button>
-          <Link to="/contact">
-            <Button variant="outline" className="border-white text-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8">
-              Contact Us
-            </Button>
-          </Link>
-        </div>
+        </Link>
       </div>
     </section>
   );
