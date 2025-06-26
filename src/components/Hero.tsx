@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -50,46 +49,74 @@ const Hero = () => {
   console.log('Hero description content:', getContent('hero_description', 'Default description'));
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-kwikie-yellow via-kwikie-orange to-kwikie-red overflow-hidden">
-      <div 
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
-      
+    <section className="relative min-h-screen flex items-center bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center text-white max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            {renderTranslatedContent(getContent('hero_title', 'Professional Home Services'))}
-            <br />
-            <span className="text-white/90">
-              {renderTranslatedContent(getContent('hero_subtitle', 'at Your Fingertips'))}
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
-            {renderTranslatedContent(getContent('hero_description', 'Book trusted professionals for cleaning, driving, babysitting, elderly care, and laundry services in your area.'))}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/services">
-              <Button 
-                size="lg" 
-                className="bg-white text-kwikie-orange hover:bg-gray-100 font-semibold px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                {t('Book a Service')}
-              </Button>
-            </Link>
-            <Link to="/how-it-works">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-2 border-white text-white hover:bg-white hover:text-kwikie-orange font-semibold px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                {t('Learn More')}
-              </Button>
-            </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left side - Content */}
+          <div className="text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-gray-900">
+              {renderTranslatedContent(getContent('hero_title', 'Find Trusted Talent for Your'))}
+              <br />
+              <span className="text-kwikie-orange">
+                {renderTranslatedContent(getContent('hero_subtitle', 'Home and Business Services'))}
+              </span>
+            </h1>
+            
+            <p className="text-lg md:text-xl mb-8 text-gray-600 max-w-2xl leading-relaxed">
+              {renderTranslatedContent(getContent('hero_description', 'Easily book trusted professionals for cleaning, driving, childcare, elder care, laundry, and a wide range of other services—all in just a few clicks.'))}
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <Link to="/services">
+                <Button 
+                  size="lg" 
+                  className="bg-kwikie-orange text-white hover:bg-kwikie-red font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {t('Browse Services')}
+                </Button>
+              </Link>
+              <Link to="/how-it-works">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-kwikie-orange text-kwikie-orange hover:bg-kwikie-orange hover:text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {t('How It Works')} <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Feature badges */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center text-green-600">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span className="font-medium">{t('Verified Professionals')}</span>
+              </div>
+              <div className="flex items-center text-green-600">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span className="font-medium">{t('Fixed Rates')}</span>
+              </div>
+              <div className="flex items-center text-green-600">
+                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+                <span className="font-medium">{t('Satisfaction Guaranteed')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Images placeholder */}
+          <div className="hidden lg:block">
+            <div className="relative">
+              {/* This is where the service images would go */}
+              <div className="bg-gray-200 rounded-lg h-96 flex items-center justify-center">
+                <span className="text-gray-500">Service Images</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -98,4 +125,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
