@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -22,8 +23,13 @@ const Hero = () => {
   };
 
   // Helper function to render HTML content safely
-  const renderContent = (content: string) => {
-    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  const renderTranslatedContent = (content: string) => {
+    const translatedContent = t(content);
+    // Check if the content contains HTML tags
+    if (translatedContent.includes('<') && translatedContent.includes('>')) {
+      return <div dangerouslySetInnerHTML={{ __html: translatedContent }} />;
+    }
+    return translatedContent;
   };
 
   if (loading) {
@@ -54,16 +60,16 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center text-white max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            {t(getContent('hero_title', 'Professional Home Services'))}
+            {renderTranslatedContent(getContent('hero_title', 'Professional Home Services'))}
             <br />
             <span className="text-white/90">
-              {t(getContent('hero_subtitle', 'at Your Fingertips'))}
+              {renderTranslatedContent(getContent('hero_subtitle', 'at Your Fingertips'))}
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
-            {t(getContent('hero_description', 'Book trusted professionals for cleaning, driving, babysitting, elderly care, and laundry services in your area.'))}
-          </p>
+          <div className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto leading-relaxed">
+            {renderTranslatedContent(getContent('hero_description', 'Book trusted professionals for cleaning, driving, babysitting, elderly care, and laundry services in your area.'))}
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/services">
