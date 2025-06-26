@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LanguageContextType {
@@ -69,15 +68,15 @@ const translations = {
     
     // Service Cards
     'service.cleaning.title': 'Cleaning Services',
-    'service.cleaning.description': 'Professional house cleaners to keep your home spotless',
+    'service.cleaning.description': 'Our professional cleaning team provides comprehensive home cleaning services with attention to detail. We use eco-friendly products and modern equipment to ensure your home is spotless, sanitized, and safe for your family.',
     'service.driver.title': 'Driver Services', 
-    'service.driver.description': 'Experienced drivers available for 12h or 24h periods',
-    'service.babysitting.title': 'Babysitting',
-    'service.babysitting.description': 'Loving and attentive care for your children',
-    'service.elderly.title': 'Elderly Care',
-    'service.elderly.description': 'Compassionate caregivers for your loved ones',
+    'service.driver.description': 'Our experienced drivers provide safe and reliable transportation. All drivers are licensed, background-checked, and have extensive driving experience.',
+    'service.babysitting.title': 'Baby Sitter/Yaya',
+    'service.babysitting.description': 'Our professional babysitters provide attentive care for your children in the comfort of your home. All sitters are experienced, background-checked, and trained in first aid.',
+    'service.elderly.title': 'Elderly Sitter',
+    'service.elderly.description': 'Our compassionate caregivers provide personalized care for seniors. Services include companionship, meal preparation, medication reminders, and assistance with daily activities.',
     'service.laundry.title': 'Laundry Services',
-    'service.laundry.description': 'Efficient laundry services with attention to detail',
+    'service.laundry.description': 'Our laundry service takes care of your washing, drying, and folding needs with professional care. We ensure your clothes are cleaned properly and returned neatly folded.',
     'service.book_now': 'Book Now',
     'service.starting_at': 'Starting at',
     
@@ -88,13 +87,60 @@ const translations = {
     'service.tab.elderly_care': 'Elderly Care',
     'service.tab.laundry': 'Laundry',
     
-    // CTA Section
+    // Service Detail Content
+    'service.detail.pricing': 'Pricing',
+    'service.detail.conditions': 'Conditions',
+    'service.detail.cleaning.pricing.12h': '12 hours (7am - 7pm)',
+    'service.detail.cleaning.pricing.24h': '24 hours',
+    'service.detail.drivers.pricing.12h': '12 hours',
+    'service.detail.drivers.pricing.24h': '24 hours',
+    'service.detail.babysitting.pricing.12h': '12 hours (7am - 7pm)',
+    'service.detail.babysitting.pricing.24h': '24 hours',
+    'service.detail.elderly.pricing.12h': '12 hours (7am - 7pm)',
+    'service.detail.elderly.pricing.24h': '24 hours',
+    'service.detail.laundry.pricing.minimum': 'Minimum 11 kilos',
+    'service.detail.laundry.pricing.additional': 'Additional per kilo (above 11kg)',
+    
+    // Service Conditions
+    'service.detail.cleaning.condition.1': 'Free lunch and dinner for 12-hour service',
+    'service.detail.cleaning.condition.2': 'Free lunch, dinner and breakfast for 24-hour service',
+    'service.detail.cleaning.condition.3': 'Talent should be entitled to rest (24-hour service)',
+    'service.detail.cleaning.condition.4': 'Service agreement required',
+    'service.detail.cleaning.condition.5': 'Service area covered: Basay, Bayawan and Sta. Catalina',
+    'service.detail.cleaning.condition.6': 'Penalty of 24 hours for service provider',
+    
+    'service.detail.drivers.condition.1': 'Free meal included',
+    'service.detail.drivers.condition.2': 'Free meal + accommodation for 24-hour service',
+    'service.detail.drivers.condition.3': 'Service area covered: Basay, Bayawan and Sta. Catalina',
+    'service.detail.drivers.condition.4': 'Penalty of 24 hours for service provider',
+    
+    'service.detail.babysitting.condition.1': 'Free lunch and dinner for 12-hour service',
+    'service.detail.babysitting.condition.2': 'Free lunch, dinner and breakfast for 24-hour service',
+    'service.detail.babysitting.condition.3': 'Talent should be entitled to rest (24-hour service)',
+    'service.detail.babysitting.condition.4': 'Service agreement required',
+    'service.detail.babysitting.condition.5': '1 yaya: 1 child ratio',
+    'service.detail.babysitting.condition.6': 'Additional ₱50 if no service is available for a particular area',
+    'service.detail.babysitting.condition.7': 'Service area covered: Basay, Bayawan and Sta. Catalina',
+    'service.detail.babysitting.condition.8': 'Penalty of 24 hours for service provider',
+    
+    'service.detail.elderly.condition.1': 'Free lunch and dinner for 12-hour service',
+    'service.detail.elderly.condition.2': 'Free lunch, dinner and breakfast for 24-hour service',
+    'service.detail.elderly.condition.3': 'Talent should be entitled to rest (24-hour service)',
+    'service.detail.elderly.condition.4': 'Service agreement required',
+    'service.detail.elderly.condition.5': '1 elderly: 1 talent ratio',
+    'service.detail.elderly.condition.6': 'Service area covered: Basay, Bayawan and Sta. Catalina',
+    'service.detail.elderly.condition.7': 'Penalty of 24 hours for service provider',
+    
+    'service.detail.laundry.condition.1': 'Detergent soap should be shouldered by the client',
+    'service.detail.laundry.condition.2': 'Free meal included',
+    'service.detail.laundry.condition.3': 'Service area covered: Basay, Bayawan and Sta. Catalina',
+    'service.detail.laundry.condition.4': 'Penalty of 24 hours for service provider',
+    
     'cta.title': 'Ready to Book a Service?',
     'cta.description': 'Our professional team is ready to help with your home service needs. Book now and experience the difference.',
     'cta.book_service': 'Book a Service',
     'cta.contact_us': 'Contact Us',
     
-    // Footer
     'footer.earn_money_title': 'Want to earn money providing services?',
     'footer.earn_money_description': 'Join our network of trusted professionals and start earning by offering your skills to customers in your area.',
     'footer.become_freelancer': 'Become a Freelancer',
@@ -177,15 +223,15 @@ const translations = {
     
     // Service Cards
     'service.cleaning.title': 'Mga Serbisyong Paglilinis',
-    'service.cleaning.description': 'Mga propesyonal na house cleaner para mapanatiling malinis ang inyong tahanan',
+    'service.cleaning.description': 'Ang aming propesyonal na cleaning team ay nagbibigay ng komprehensibong home cleaning services na may pansin sa detalye. Gumagamit kami ng eco-friendly na mga produkto at modernong kagamitan para matiyak na ang inyong tahanan ay malinis, sanitized, at safe para sa inyong pamilya.',
     'service.driver.title': 'Mga Serbisyong Driver',
-    'service.driver.description': 'Mga nakakaranasang driver na available para sa 12h o 24h na panahon',
-    'service.babysitting.title': 'Babysitting',
-    'service.babysitting.description': 'Mahabagin at masuyong pag-aalaga para sa inyong mga anak',
-    'service.elderly.title': 'Pag-aalaga sa Matatanda',
-    'service.elderly.description': 'Mga mahabagin na caregiver para sa inyong mga mahal sa buhay',
+    'service.driver.description': 'Ang aming mga nakaranasang driver ay nagbibigay ng ligtas at maaasahang transportasyon. Lahat ng mga driver ay may lisensya, na-background check, at may malawak na karanasan sa pagmamaneho.',
+    'service.babysitting.title': 'Baby Sitter/Yaya',
+    'service.babysitting.description': 'Ang aming mga propesyonal na babysitter ay nagbibigay ng masusuyong pag-aalaga sa inyong mga anak sa ginhawa ng inyong tahanan. Lahat ng mga sitter ay may karanasan, na-background check, at natraining sa first aid.',
+    'service.elderly.title': 'Elderly Sitter',
+    'service.elderly.description': 'Ang aming mga mahabagin na caregiver ay nagbibigay ng personalized na pag-aalaga para sa mga matatanda. Kasama sa mga serbisyo ang pakikipagkaibigan, paghahanda ng pagkain, pag-remind ng gamot, at tulong sa pang-araw-araw na gawain.',
     'service.laundry.title': 'Mga Serbisyong Paglalaba',
-    'service.laundry.description': 'Mga epektibong serbisyong paglalaba na may pansin sa detalye',
+    'service.laundry.description': 'Ang aming serbisyong paglalaba ay nag-aalaga sa inyong mga pangangailangan sa paglalaba, pagtuyo, at pagtiklop na may propesyonal na pag-aalaga. Tinitiyak namin na ang inyong mga damit ay malinis na nalaba at nabalik na maayos na nakatiklop.',
     'service.book_now': 'Mag-book Ngayon',
     'service.starting_at': 'Nagsisimula sa',
     
@@ -195,14 +241,61 @@ const translations = {
     'service.tab.babysitting': 'Babysitting',
     'service.tab.elderly_care': 'Pag-aalaga sa Matatanda',
     'service.tab.laundry': 'Paglalaba',
+
+    // Service Detail Content
+    'service.detail.pricing': 'Presyo',
+    'service.detail.conditions': 'Mga Kondisyon',
+    'service.detail.cleaning.pricing.12h': '12 oras (7am - 7pm)',
+    'service.detail.cleaning.pricing.24h': '24 oras',
+    'service.detail.drivers.pricing.12h': '12 oras',
+    'service.detail.drivers.pricing.24h': '24 oras',
+    'service.detail.babysitting.pricing.12h': '12 oras (7am - 7pm)',
+    'service.detail.babysitting.pricing.24h': '24 oras',
+    'service.detail.elderly.pricing.12h': '12 oras (7am - 7pm)',
+    'service.detail.elderly.pricing.24h': '24 oras',
+    'service.detail.laundry.pricing.minimum': 'Minimum 11 kilos',
+    'service.detail.laundry.pricing.additional': 'Karagdagang bawat kilo (higit sa 11kg)',
     
-    // CTA Section
+    // Service Conditions
+    'service.detail.cleaning.condition.1': 'Libreng tanghalian at hapunan para sa 12-oras na serbisyo',
+    'service.detail.cleaning.condition.2': 'Libreng tanghalian, hapunan at almusal para sa 24-oras na serbisyo',
+    'service.detail.cleaning.condition.3': 'Dapat na may karapatan ang talent na magpahinga (24-oras na serbisyo)',
+    'service.detail.cleaning.condition.4': 'Kinakailangan ang service agreement',
+    'service.detail.cleaning.condition.5': 'Saklaw ng serbisyo: Basay, Bayawan at Sta. Catalina',
+    'service.detail.cleaning.condition.6': 'Penalty ng 24 oras para sa service provider',
+    
+    'service.detail.drivers.condition.1': 'Kasama ang libreng pagkain',
+    'service.detail.drivers.condition.2': 'Libre nga pagkaon + tuluyan para sa 24-oras nga serbisyo',
+    'service.detail.drivers.condition.3': 'Saklaw ng serbisyo: Basay, Bayawan at Sta. Catalina',
+    'service.detail.drivers.condition.4': 'Penalty ng 24 oras para sa service provider',
+    
+    'service.detail.babysitting.condition.1': 'Libreng tanghalian at hapunan para sa 12-oras na serbisyo',
+    'service.detail.babysitting.condition.2': 'Libreng tanghalian, hapunan at almusal para sa 24-oras na serbisyo',
+    'service.detail.babysitting.condition.3': 'Dapat na may karapatan ang talent na magpahinga (24-oras na serbisyo)',
+    'service.detail.babysitting.condition.4': 'Kinakailangan ang service agreement',
+    'service.detail.babysitting.condition.5': '1 yaya: 1 bata na ratio',
+    'service.detail.babysitting.condition.6': 'Karagdagang ₱50 kung walang available na serbisyo para sa partikular na lugar',
+    'service.detail.babysitting.condition.7': 'Saklaw ng serbisyo: Basay, Bayawan at Sta. Catalina',
+    'service.detail.babysitting.condition.8': 'Penalty ng 24 oras para sa service provider',
+    
+    'service.detail.elderly.condition.1': 'Libreng tanghalian at hapunan para sa 12-oras na serbisyo',
+    'service.detail.elderly.condition.2': 'Libreng tanghalian, hapunan at almusal para sa 24-oras na serbisyo',
+    'service.detail.elderly.condition.3': 'Dapat na may karapatan ang talent na magpahinga (24-oras na serbisyo)',
+    'service.detail.elderly.condition.4': 'Kinakailangan ang service agreement',
+    'service.detail.elderly.condition.5': '1 matatanda: 1 talent na ratio',
+    'service.detail.elderly.condition.6': 'Saklaw ng serbisyo: Basay, Bayawan at Sta. Catalina',
+    'service.detail.elderly.condition.7': 'Penalty ng 24 oras para sa service provider',
+    
+    'service.detail.laundry.condition.1': 'Ang detergent soap ay dapat na sagot ng client',
+    'service.detail.laundry.condition.2': 'Kasama ang libreng pagkain',
+    'service.detail.laundry.condition.3': 'Saklaw ng serbisyo: Basay, Bayawan at Sta. Catalina',
+    'service.detail.laundry.condition.4': 'Penalty ng 24 oras para sa service provider',
+    
     'cta.title': 'Handa na bang Mag-book ng Serbisyo?',
     'cta.description': 'Ang aming propesyonal na team ay handang tumulong sa inyong home service needs. Mag-book na ngayon at maranasan ang pagkakaiba.',
     'cta.book_service': 'Mag-book ng Serbisyo',
     'cta.contact_us': 'Makipag-ugnayan',
     
-    // Footer
     'footer.earn_money_title': 'Gusto ba ninyong kumita sa pagbibigay ng mga serbisyo?',
     'footer.earn_money_description': 'Sumali sa aming network ng mga pinagkakatiwalaang propesyonal at magsimulang kumita sa pag-aalok ng inyong mga skills sa mga customer sa inyong lugar.',
     'footer.become_freelancer': 'Maging Freelancer',
@@ -285,15 +378,15 @@ const translations = {
     
     // Service Cards
     'service.cleaning.title': 'Mga Serbisyong Paglimpyo',
-    'service.cleaning.description': 'Mga propesyonal nga house cleaner aron mapreserba ang inyong balay nga limpyo',
+    'service.cleaning.description': 'Ang aming propesyonal nga cleaning team naghatag og komprehensibo nga home cleaning services nga adunay pagtagad sa detalye. Naggamit kami og eco-friendly nga mga produkto ug modernong kagamitan para masiguro nga ang inyong balay malimpyo, sanitized, ug luwas para sa inyong pamilya.',
     'service.driver.title': 'Mga Serbisyong Driver',
-    'service.driver.description': 'Mga eksperto nga driver nga available para sa 12h o 24h nga panahon',
-    'service.babysitting.title': 'Babysitting',
-    'service.babysitting.description': 'Mahigugmaon ug mabinantayon nga pag-atiman para sa inyong mga anak',
-    'service.elderly.title': 'Pag-atiman sa mga Tigulang',
-    'service.elderly.description': 'Mga maloloy-on nga caregiver para sa inyong mga hinigugma',
+    'service.driver.description': 'Ang aming mga eksperto nga driver naghatag og luwas ug kasaligan nga transportasyon. Ang tanang mga driver adunay lisensya, na-background check, ug adunay daghang kasinatian sa pagmaneho.',
+    'service.babysitting.title': 'Baby Sitter/Yaya',
+    'service.babysitting.description': 'Ang aming mga propesyonal nga babysitter naghatag og maampingon nga pag-atiman sa inyong mga anak sa kaharuhay sa inyong balay. Ang tanang mga sitter adunay kasinatian, na-background check, ug na-training sa first aid.',
+    'service.elderly.title': 'Elderly Sitter',
+    'service.elderly.description': 'Ang aming mga maloloy-on nga caregiver naghatag og personalized nga pag-atiman para sa mga tigulang. Naglakip sa mga serbisyo ang pakig-uban, pag-andam sa pagkaon, pagpahinumdom sa tambal, ug tabang sa adlaw-adlaw nga mga buhat.',
     'service.laundry.title': 'Mga Serbisyong Paglaba',
-    'service.laundry.description': 'Mga epektibo nga serbisyong paglaba nga adunay atensyon sa detalye',
+    'service.laundry.description': 'Ang aming serbisyong paglaba nag-atiman sa inyong mga panginahanglan sa paglaba, paguga, ug pagtiklop nga adunay propesyonal nga pag-atiman. Gisiguro namo nga ang inyong mga sinina malimpyo nga nalaba ug nabalik nga hapsay nga natiklad.',
     'service.book_now': 'Pag-book Karon',
     'service.starting_at': 'Nagsugod sa',
     
@@ -303,14 +396,61 @@ const translations = {
     'service.tab.babysitting': 'Babysitting',
     'service.tab.elderly_care': 'Pag-atiman sa mga Tigulang',
     'service.tab.laundry': 'Paglaba',
+
+    // Service Detail Content
+    'service.detail.pricing': 'Presyo',
+    'service.detail.conditions': 'Mga Kondisyon',
+    'service.detail.cleaning.pricing.12h': '12 ka oras (7am - 7pm)',
+    'service.detail.cleaning.pricing.24h': '24 ka oras',
+    'service.detail.drivers.pricing.12h': '12 ka oras',
+    'service.detail.drivers.pricing.24h': '24 ka oras',
+    'service.detail.babysitting.pricing.12h': '12 ka oras (7am - 7pm)',
+    'service.detail.babysitting.pricing.24h': '24 ka oras',
+    'service.detail.elderly.pricing.12h': '12 ka oras (7am - 7pm)',
+    'service.detail.elderly.pricing.24h': '24 ka oras',
+    'service.detail.laundry.pricing.minimum': 'Minimum 11 kilos',
+    'service.detail.laundry.pricing.additional': 'Dugang matag kilo (labaw sa 11kg)',
     
-    // CTA Section
+    // Service Conditions
+    'service.detail.cleaning.condition.1': 'Libre nga paniudto ug panihapon para sa 12-oras nga serbisyo',
+    'service.detail.cleaning.condition.2': 'Libre nga paniudto, panihapon ug pamahaw para sa 24-oras nga serbisyo',
+    'service.detail.cleaning.condition.3': 'Kinahanglan nga adunay katungod ang talent nga mopahulay (24-oras nga serbisyo)',
+    'service.detail.cleaning.condition.4': 'Gikinahanglan ang service agreement',
+    'service.detail.cleaning.condition.5': 'Saklaw sa serbisyo: Basay, Bayawan ug Sta. Catalina',
+    'service.detail.cleaning.condition.6': 'Penalty nga 24 ka oras para sa service provider',
+    
+    'service.detail.drivers.condition.1': 'Naglakip ang libre nga pagkaon',
+    'service.detail.drivers.condition.2': 'Libre nga pagkaon + tuluyan para sa 24-oras nga serbisyo',
+    'service.detail.drivers.condition.3': 'Saklaw sa serbisyo: Basay, Bayawan ug Sta. Catalina',
+    'service.detail.drivers.condition.4': 'Penalty nga 24 ka oras para sa service provider',
+    
+    'service.detail.babysitting.condition.1': 'Libre nga paniudto ug panihapon para sa 12-oras nga serbisyo',
+    'service.detail.babysitting.condition.2': 'Libre nga paniudto, panihapon ug pamahaw para sa 24-oras nga serbisyo',
+    'service.detail.babysitting.condition.3': 'Kinahanglan nga adunay katungod ang talent nga mopahulay (24-oras nga serbisyo)',
+    'service.detail.babysitting.condition.4': 'Gikinahanglan ang service agreement',
+    'service.detail.babysitting.condition.5': '1 yaya: 1 bata nga ratio',
+    'service.detail.babysitting.condition.6': 'Dugang nga ₱50 kung walay available nga serbisyo para sa partikular nga lugar',
+    'service.detail.babysitting.condition.7': 'Saklaw sa serbisyo: Basay, Bayawan ug Sta. Catalina',
+    'service.detail.babysitting.condition.8': 'Penalty nga 24 ka oras para sa service provider',
+    
+    'service.detail.elderly.condition.1': 'Libre nga paniudto ug panihapon para sa 12-oras nga serbisyo',
+    'service.detail.elderly.condition.2': 'Libre nga paniudto, panihapon ug pamahaw para sa 24-oras nga serbisyo',
+    'service.detail.elderly.condition.3': 'Kinahanglan nga adunay katungod ang talent nga mopahulay (24-oras nga serbisyo)',
+    'service.detail.elderly.condition.4': 'Gikinahanglan ang service agreement',
+    'service.detail.elderly.condition.5': '1 tigulang: 1 talent nga ratio',
+    'service.detail.elderly.condition.6': 'Saklaw sa serbisyo: Basay, Bayawan ug Sta. Catalina',
+    'service.detail.elderly.condition.7': 'Penalty nga 24 ka oras para sa service provider',
+    
+    'service.detail.laundry.condition.1': 'Ang detergent soap kinahanglan nga sagot sa client',
+    'service.detail.laundry.condition.2': 'Naglakip ang libre nga pagkaon',
+    'service.detail.laundry.condition.3': 'Saklaw sa serbisyo: Basay, Bayawan ug Sta. Catalina',
+    'service.detail.laundry.condition.4': 'Penalty nga 24 ka oras para sa service provider',
+    
     'cta.title': 'Andam na ba mo nga Mag-book og Serbisyo?',
     'cta.description': 'Ang among propesyonal nga team andam na nga motabang sa inyong home service needs. Mag-book na karon ug masinati ang kalainan.',
     'cta.book_service': 'Mag-book og Serbisyo',
     'cta.contact_us': 'Kontak Namo',
     
-    // Footer
     'footer.earn_money_title': 'Gusto ba mo nga mangita og kwarta sa paghatag og mga serbisyo?',
     'footer.earn_money_description': 'Apil sa among network sa mga kasaligan nga propesyonal ug magsugod og pangita pinaagi sa pag-offer sa inyong mga skills sa mga customer sa inyong lugar.',
     'footer.become_freelancer': 'Mahimong Freelancer',
