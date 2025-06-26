@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -19,12 +18,9 @@ const Hero = () => {
     navigate('/how-it-works');
   };
 
-  // Helper function to strip HTML tags for plain text display or render HTML safely
-  const renderContent = (content: string, isHtml: boolean = false) => {
-    if (isHtml) {
-      return <div dangerouslySetInnerHTML={{ __html: content }} />;
-    }
-    return content;
+  // Helper function to render HTML content safely
+  const renderContent = (content: string) => {
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
   };
 
   if (loading) {
@@ -46,11 +42,11 @@ const Hero = () => {
       <div className="container mx-auto px-4 py-20 md:py-24 lg:py-32">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
+            <div className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
               {renderContent(getContent('hero_title', 'Find Trusted Talent for Your Home Services'))}
-            </h1>
+            </div>
             <div className="text-xl text-gray-600 max-w-lg">
-              {renderContent(getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.'), true)}
+              {renderContent(getContent('hero_description', 'Book professional cleaners, drivers, babysitters, elderly care, and laundry services with just a few clicks.'))}
             </div>
             <div className="flex flex-col sm:flex-row gap-4 relative z-10">
               <Button 
@@ -76,19 +72,19 @@ const Hero = () => {
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>{getContent('hero_feature_1', 'Verified Professionals')}</span>
+                <div>{renderContent(getContent('hero_feature_1', 'Verified Professionals'))}</div>
               </div>
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>{getContent('hero_feature_2', 'Fixed Rates')}</span>
+                <div>{renderContent(getContent('hero_feature_2', 'Fixed Rates'))}</div>
               </div>
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                 </svg>
-                <span>{getContent('hero_feature_3', 'Satisfaction Guaranteed')}</span>
+                <div>{renderContent(getContent('hero_feature_3', 'Satisfaction Guaranteed'))}</div>
               </div>
             </div>
           </div>

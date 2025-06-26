@@ -316,44 +316,13 @@ const EnhancedContentManagement = () => {
     const sectionLayout = layout?.find(l => l.section_name === section.section_name);
     const label = sectionLayout?.label || section.section_name;
 
-    if (section.content_type === 'textarea') {
-      return (
-        <div key={section.id} className="space-y-2">
-          <Label htmlFor={`${section.id}`}>{label}</Label>
-          <RichTextEditor
-            value={section.content_value}
-            onChange={(value) => updateSectionValue(page.id, section.id, value)}
-            placeholder={`Enter ${label.toLowerCase()}`}
-          />
-          <Button 
-            size="sm"
-            onClick={() => handleSaveSection(page.id, section.id, section.content_value)}
-            disabled={saving === section.id}
-            className="bg-kwikie-orange hover:bg-kwikie-red"
-          >
-            {saving === section.id ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </>
-            )}
-          </Button>
-        </div>
-      );
-    }
-
+    // Use RichTextEditor for all content types now
     return (
       <div key={section.id} className="space-y-2">
         <Label htmlFor={`${section.id}`}>{label}</Label>
-        <Input
-          id={`${section.id}`}
+        <RichTextEditor
           value={section.content_value}
-          onChange={(e) => updateSectionValue(page.id, section.id, e.target.value)}
+          onChange={(value) => updateSectionValue(page.id, section.id, value)}
           placeholder={`Enter ${label.toLowerCase()}`}
         />
         <Button 
