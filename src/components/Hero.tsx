@@ -1,16 +1,14 @@
 
+
 import React from 'react';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePageContent } from '@/hooks/usePageContent';
-import { useTranslationContext } from '@/contexts/TranslationContext';
-import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const navigate = useNavigate();
   const { getContent, loading } = usePageContent('home');
-  const { t } = useTranslationContext();
 
   const handleBrowseServicesClick = () => {
     console.log('Browse Services button clicked');
@@ -23,13 +21,8 @@ const Hero = () => {
   };
 
   // Helper function to render HTML content safely
-  const renderTranslatedContent = (content: string) => {
-    const translatedContent = t(content);
-    // Check if the content contains HTML tags
-    if (translatedContent.includes('<') && translatedContent.includes('>')) {
-      return <div dangerouslySetInnerHTML={{ __html: translatedContent }} />;
-    }
-    return translatedContent;
+  const renderContent = (content: string) => {
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
   };
 
   if (loading) {
@@ -49,79 +42,78 @@ const Hero = () => {
   console.log('Hero description content:', getContent('hero_description', 'Default description'));
 
   return (
-    <section className="relative min-h-screen flex items-center bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Content */}
-          <div className="text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-gray-900">
-              {renderTranslatedContent(getContent('hero_title', 'Find Trusted Talent for Your'))}
-              <br />
-              <span className="text-kwikie-orange">
-                {renderTranslatedContent(getContent('hero_subtitle', 'Home and Business Services'))}
-              </span>
-            </h1>
-            
-            <p className="text-lg md:text-xl mb-8 text-gray-600 max-w-2xl leading-relaxed">
-              {renderTranslatedContent(getContent('hero_description', 'Easily book trusted professionals for cleaning, driving, childcare, elder care, laundry, and a wide range of other services—all in just a few clicks.'))}
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link to="/services">
-                <Button 
-                  size="lg" 
-                  className="bg-kwikie-orange text-white hover:bg-kwikie-red font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  {t('Browse Services')}
-                </Button>
-              </Link>
-              <Link to="/how-it-works">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-kwikie-orange text-kwikie-orange hover:bg-kwikie-orange hover:text-white font-semibold px-8 py-6 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  {t('How It Works')} <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+    <div className="relative bg-gradient-to-br from-kwikie-yellow/20 to-kwikie-orange/20 overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10"></div>
+      <div className="container mx-auto px-4 py-20 md:py-24 lg:py-32">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8">
+            <div className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
+              {renderContent(getContent('hero_title', 'Find Trusted Talent for Your Home Services'))}
             </div>
-
-            {/* Feature badges */}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center text-green-600">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-                <span className="font-medium">{t('Verified Professionals')}</span>
+            <div className="text-xl text-gray-600 max-w-lg">
+              {renderContent(getContent('hero_subtitle', 'Easily book trusted professionals for cleaning, driving, childcare, elder care, laundry, and a wide range of other services—all in just a few clicks.'))}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+              <Button 
+                className="bg-kwikie-orange hover:bg-kwikie-red text-lg h-12 px-8 cursor-pointer"
+                onClick={handleBrowseServicesClick}
+                type="button"
+              >
+                Browse Services
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 text-lg h-12 px-8 cursor-pointer"
+                onClick={handleHowItWorksClick}
+                type="button"
+              >
+                How It Works
+                <ArrowRight size={18} className="ml-2" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center space-x-6 text-sm text-gray-600">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                </svg>
+                <div>{renderContent(getContent('hero_feature_1', 'Verified Professionals'))}</div>
               </div>
-              <div className="flex items-center text-green-600">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-                <span className="font-medium">{t('Fixed Rates')}</span>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                </svg>
+                <div>{renderContent(getContent('hero_feature_2', 'Fixed Rates'))}</div>
               </div>
-              <div className="flex items-center text-green-600">
-                <div className="w-5 h-5 bg-green-500 rounded-full mr-2 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-                <span className="font-medium">{t('Satisfaction Guaranteed')}</span>
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                </svg>
+                <div>{renderContent(getContent('hero_feature_3', 'Satisfaction Guaranteed'))}</div>
               </div>
             </div>
           </div>
-
-          {/* Right side - Images placeholder */}
-          <div className="hidden lg:block">
-            <div className="relative">
-              {/* This is where the service images would go */}
-              <div className="bg-gray-200 rounded-lg h-96 flex items-center justify-center">
-                <span className="text-gray-500">Service Images</span>
-              </div>
+          <div className="relative hidden md:block">
+            <div className="bg-white rounded-2xl shadow-xl p-1 transform rotate-2">
+              <img 
+                src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+                alt="Professional house cleaner" 
+                className="rounded-xl" 
+              />
+            </div>
+            <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-1 transform -rotate-3 w-64">
+              <img 
+                src="https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                alt="Professional driver" 
+                className="h-40 w-full object-cover rounded-xl" 
+              />
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 export default Hero;
+
