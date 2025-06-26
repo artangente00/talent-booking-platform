@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -6,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import BookingForm from './BookingForm';
+import LanguageSelector from './LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Customer {
   id: string;
@@ -23,6 +26,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   // Check if we're on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
@@ -104,24 +108,27 @@ const Navbar = () => {
         {!isAdminPage && (
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-              Home
+              {t('nav.home', 'Home')}
             </Link>
             <Link to="/services" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-              Our Services
+              {t('nav.services', 'Our Services')}
             </Link>
             <Link to="/how-it-works" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-              How It Works
+              {t('nav.how_it_works', 'How It Works')}
             </Link>
             <Link to="/about" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-              About Us
+              {t('nav.about', 'About Us')}
             </Link>
             <Link to="/contact" className="text-gray-700 hover:text-kwikie-orange transition-colors">
-              Contact
+              {t('nav.contact', 'Contact')}
             </Link>
           </nav>
         )}
 
         <div className="hidden md:flex items-center space-x-4">
+          {/* Language Selector */}
+          <LanguageSelector />
+          
           {user ? (
             <>
               <span className="text-sm text-gray-600 flex items-center space-x-1">
@@ -133,7 +140,7 @@ const Navbar = () => {
                   <Link to="/dashboard">
                     <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10 flex items-center gap-1">
                       <Calendar size={16} />
-                      My Bookings
+                      {t('nav.dashboard', 'My Bookings')}
                     </Button>
                   </Link>
                   <BookingForm>
@@ -148,19 +155,19 @@ const Navbar = () => {
                 onClick={handleSignOut}
                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                Sign Out
+                {t('nav.logout', 'Sign Out')}
               </Button>
             </>
           ) : (
             <>
               <Link to="/auth?tab=signin">
                 <Button variant="outline" className="border-kwikie-orange text-kwikie-orange hover:bg-kwikie-yellow/10">
-                  Sign In
+                  {t('nav.sign_in', 'Sign In')}
                 </Button>
               </Link>
               <Link to="/auth?tab=signup">
                 <Button className="bg-kwikie-orange hover:bg-kwikie-red">
-                  Sign Up
+                  {t('nav.sign_up', 'Sign Up')}
                 </Button>
               </Link>
             </>
@@ -182,6 +189,11 @@ const Navbar = () => {
         <div className="md:hidden bg-white border-b border-gray-100">
           <div className="container mx-auto px-4 py-4">
             <nav className="flex flex-col space-y-4">
+              {/* Mobile Language Selector */}
+              <div className="pb-2 border-b border-gray-200">
+                <LanguageSelector />
+              </div>
+              
               {!isAdminPage && (
                 <>
                   <Link 
@@ -189,35 +201,35 @@ const Navbar = () => {
                     className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Home
+                    {t('nav.home', 'Home')}
                   </Link>
                   <Link 
                     to="/services" 
                     className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Our Services
+                    {t('nav.services', 'Our Services')}
                   </Link>
                   <Link 
                     to="/how-it-works" 
                     className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    How It Works
+                    {t('nav.how_it_works', 'How It Works')}
                   </Link>
                   <Link 
                     to="/about" 
                     className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    About Us
+                    {t('nav.about', 'About Us')}
                   </Link>
                   <Link 
                     to="/contact" 
                     className="text-gray-700 hover:text-kwikie-orange py-2 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Contact
+                    {t('nav.contact', 'Contact')}
                   </Link>
                 </>
               )}
@@ -234,7 +246,7 @@ const Navbar = () => {
                         <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                           <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full flex items-center gap-1">
                             <Calendar size={16} />
-                            My Bookings
+                            {t('nav.dashboard', 'My Bookings')}
                           </Button>
                         </Link>
                         <BookingForm>
@@ -249,19 +261,19 @@ const Navbar = () => {
                       onClick={handleSignOut}
                       className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
-                      Sign Out
+                      {t('nav.logout', 'Sign Out')}
                     </Button>
                   </>
                 ) : (
                   <>
                     <Link to="/auth?tab=signin" onClick={() => setIsMenuOpen(false)}>
                       <Button variant="outline" className="border-kwikie-orange text-kwikie-orange w-full">
-                        Sign In
+                        {t('nav.sign_in', 'Sign In')}
                       </Button>
                     </Link>
                     <Link to="/auth?tab=signup" onClick={() => setIsMenuOpen(false)}>
                       <Button className="bg-kwikie-orange hover:bg-kwikie-red w-full">
-                        Sign Up
+                        {t('nav.sign_up', 'Sign Up')}
                       </Button>
                     </Link>
                   </>

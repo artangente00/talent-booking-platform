@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LanguageContextType {
@@ -12,14 +11,15 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations = {
   en: {
     // Navigation
-    'nav.services': 'Services',
+    'nav.home': 'Home',
+    'nav.services': 'Our Services',
     'nav.how_it_works': 'How It Works',
-    'nav.about': 'About',
+    'nav.about': 'About Us',
     'nav.contact': 'Contact',
     'nav.sign_in': 'Sign In',
     'nav.sign_up': 'Sign Up',
-    'nav.dashboard': 'Dashboard',
-    'nav.logout': 'Logout',
+    'nav.dashboard': 'My Bookings',
+    'nav.logout': 'Sign Out',
     
     // Hero Section
     'hero.title': 'Find Trusted Talent for Your Home Services',
@@ -43,13 +43,14 @@ const translations = {
   },
   tl: {
     // Navigation
+    'nav.home': 'Home',
     'nav.services': 'Mga Serbisyo',
     'nav.how_it_works': 'Paano Gumagana',
     'nav.about': 'Tungkol',
     'nav.contact': 'Makipag-ugnayan',
     'nav.sign_in': 'Mag-sign In',
     'nav.sign_up': 'Mag-sign Up',
-    'nav.dashboard': 'Dashboard',
+    'nav.dashboard': 'Mga Booking Ko',
     'nav.logout': 'Mag-logout',
     
     // Hero Section
@@ -74,13 +75,14 @@ const translations = {
   },
   ceb: {
     // Navigation
+    'nav.home': 'Home',
     'nav.services': 'Mga Serbisyo',
     'nav.how_it_works': 'Unsaon Paglihok',
     'nav.about': 'Mahitungod',
     'nav.contact': 'Kontak',
     'nav.sign_in': 'Pag-sign In',
     'nav.sign_up': 'Pag-sign Up',
-    'nav.dashboard': 'Dashboard',
+    'nav.dashboard': 'Akong mga Booking',
     'nav.logout': 'Pag-logout',
     
     // Hero Section
