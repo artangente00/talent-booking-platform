@@ -18,6 +18,7 @@ import AssignmentsManagement from '@/components/admin/AssignmentsManagement';
 import PaymentsManagement from '@/components/admin/PaymentsManagement';
 import NotificationDropdown from '@/components/admin/NotificationDropdown';
 import VisualContentManagement from '@/components/admin/VisualContentManagement';
+import PageManagement from '@/components/admin/PageManagement';
 
 const AdminDashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -149,7 +150,7 @@ const AdminDashboard = () => {
                 </TabsTrigger>
                 <TabsTrigger value="content" className="flex items-center gap-2 px-2 md:px-3">
                   <FileText className="w-4 h-4" />
-                  <span className="hidden sm:inline">Content</span>
+                  <span className="hidden sm:inline">Pages</span>
                 </TabsTrigger>
                 <TabsTrigger value="admins" className="flex items-center gap-2 px-2 md:px-3">
                   <Settings className="w-4 h-4" />
@@ -191,7 +192,7 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="content">
-              <VisualContentManagement />
+              <PageManagement />
             </TabsContent>
 
             <TabsContent value="admins">
