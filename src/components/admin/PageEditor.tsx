@@ -58,48 +58,33 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         throw error;
       }
 
-      if (data && data.length > 0) {
-        console.log('Processing page content data:', data);
-        const groupedData = {
-          id: data[0].page_id,
-          page_name: data[0].page_name,
-          title: data[0].page_title,
-          meta_description: data[0].meta_description,
-          sections: data.map(item => ({
-            id: item.id,
-            section_name: item.section_name,
-            content_type: item.content_type as 'text' | 'textarea' | 'list' | 'image_url',
-            content_value: item.content_value,
-            display_order: item.display_order
-          })),
-          updated_at: data[0].updated_at
-        };
+      // Always create a default content structure
+      const defaultContent = {
+        id: data && data.length > 0 ? data[0].page_id : 'default',
+        page_name: pageName,
+        title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+        meta_description: data && data.length > 0 ? data[0].meta_description : '',
+        sections: data && data.length > 0 ? data.map(item => ({
+          id: item.id,
+          section_name: item.section_name,
+          content_type: item.content_type as 'text' | 'textarea' | 'list' | 'image_url',
+          content_value: item.content_value,
+          display_order: item.display_order
+        })) : [],
+        updated_at: data && data.length > 0 ? data[0].updated_at : new Date().toISOString()
+      };
 
-        console.log('Setting page content:', groupedData);
-        setPageContent(groupedData);
-      } else {
-        console.log('No data found for page:', pageName);
-        // Create default content structure if no data exists
-        const defaultContent = {
-          id: 'default',
-          page_name: pageName,
-          title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
-          meta_description: '',
-          sections: [],
-          updated_at: new Date().toISOString()
-        };
-        console.log('Setting default content:', defaultContent);
-        setPageContent(defaultContent);
-      }
+      console.log('Setting page content:', defaultContent);
+      setPageContent(defaultContent);
     } catch (error) {
       console.error('Error fetching page content:', error);
       toast({
         title: "Error",
-        description: "Failed to load page content.",
+        description: "Failed to load page content. Using default content.",
         variant: "destructive",
       });
       
-      // Set default content even on error to prevent infinite loading
+      // Always set default content even on error
       const defaultContent = {
         id: 'default',
         page_name: pageName,
@@ -193,6 +178,21 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         <span className="ml-2">Loading page content...</span>
       </div>
     );
+  }
+
+  // Force render even if pageContent is null
+  if (!pageContent) {
+    console.log('No page content, creating default');
+    const defaultContent = {
+      id: 'default',
+      page_name: pageName,
+      title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+      meta_description: '',
+      sections: [],
+      updated_at: new Date().toISOString()
+    };
+    setPageContent(defaultContent);
+    return null; // Will re-render with content
   }
 
   const renderPageEditor = () => {
