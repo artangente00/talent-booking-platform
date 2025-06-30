@@ -180,21 +180,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
     );
   }
 
-  // Force render even if pageContent is null
-  if (!pageContent) {
-    console.log('No page content, creating default');
-    const defaultContent = {
-      id: 'default',
-      page_name: pageName,
-      title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
-      meta_description: '',
-      sections: [],
-      updated_at: new Date().toISOString()
-    };
-    setPageContent(defaultContent);
-    return null; // Will re-render with content
-  }
-
   const renderPageEditor = () => {
     console.log('Rendering page editor for:', pageName);
     switch (pageName) {
