@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Search, Filter, Edit, Eye, Trash2 } from 'lucide-react';
+import PageEditor from './PageEditor';
 
 interface PageItem {
   id: string;
@@ -27,7 +28,7 @@ const PageManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState<PageItem | null>(null);
+  const [currentPageName, setCurrentPageName] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(false);
   const { toast } = useToast();
 
@@ -99,7 +100,7 @@ const PageManagement = () => {
   };
 
   const handleEditPage = (page: PageItem) => {
-    setCurrentPage(page);
+    setCurrentPageName(page.page_name);
     setShowEditor(true);
   };
 
@@ -120,8 +121,8 @@ const PageManagement = () => {
     ).join(' ');
   };
 
-  if (showEditor && currentPage) {
-    return <PageEditor page={currentPage} onBack={() => setShowEditor(false)} />;
+  if (showEditor && currentPageName) {
+    return <PageEditor pageName={currentPageName} onBack={() => setShowEditor(false)} />;
   }
 
   if (loading) {
@@ -285,71 +286,6 @@ const PageManagement = () => {
 
       <div className="text-sm text-gray-500">
         {filteredPages.length} {filteredPages.length === 1 ? 'item' : 'items'}
-      </div>
-    </div>
-  );
-};
-
-// Page Editor Component
-const PageEditor = ({ page, onBack }: { page: PageItem; onBack: () => void }) => {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack}>
-            ← Back to Pages
-          </Button>
-          <h2 className="text-2xl font-bold">Edit Page: {page.page_title}</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">Preview</Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">Update</Button>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Page Content</CardTitle>
-          <CardDescription>
-            Edit the content for the {page.page_name} page
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Input 
-              value={page.page_title}
-              placeholder="Enter title here"
-              className="text-lg font-medium"
-            />
-            
-            {/* This would integrate with the existing content editor */}
-            <div className="min-h-[400px] border rounded-lg p-4 bg-gray-50">
-              <p className="text-gray-500">Content editor would go here...</p>
-              <p className="text-sm text-gray-400 mt-2">
-                This will integrate with your existing VisualContentManagement component
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Page attributes sidebar would go here */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          {/* Main content area */}
-        </div>
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Publish</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div>Status: <strong>Published</strong></div>
-              <div>Visibility: <strong>Public</strong></div>
-              <div>Published on: <strong>{new Date(page.updated_at).toLocaleDateString()}</strong></div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
