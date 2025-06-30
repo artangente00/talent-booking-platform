@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,12 +35,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log('PageEditor mounted for page:', pageName);
-    fetchPageContent();
-  }, [pageName]);
-
-  const fetchPageContent = async () => {
+  const fetchPageContent = useCallback(async () => {
     try {
       console.log('Starting to fetch page content for:', pageName);
       setLoading(true);
@@ -98,7 +93,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
       console.log('Setting loading to false');
       setLoading(false);
     }
-  };
+  }, [pageName, toast]);
+
+  useEffect(() => {
+    console.log('PageEditor mounted for page:', pageName);
+    fetchPageContent();
+  }, [fetchPageContent]);
 
   const handleSaveSection = async (sectionId: string, newValue: string) => {
     setSaving(true);
@@ -142,7 +142,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
     }
   };
 
-  const updateSectionValue = (sectionId: string, value: string) => {
+  const updateSectionValue = useCallback((sectionId: string, value: string) => {
     setPageContent(prev => {
       if (!prev) return prev;
       return {
@@ -154,19 +154,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         )
       };
     });
-  };
+  }, []);
 
-  const getContent = (sectionName: string, fallback: string = '') => {
+  const getContent = useCallback((sectionName: string, fallback: string = '') => {
     const content = pageContent?.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
     console.log(`Getting content for ${sectionName}:`, content);
     return content;
-  };
+  }, [pageContent]);
 
-  const getSectionId = (sectionName: string) => {
+  const getSectionId = useCallback((sectionName: string) => {
     const id = pageContent?.sections.find(s => s.section_name === sectionName)?.id || '';
     console.log(`Getting section ID for ${sectionName}:`, id);
     return id;
-  };
+  }, [pageContent]);
 
   console.log('PageEditor render state:', { loading, pageContent });
 
