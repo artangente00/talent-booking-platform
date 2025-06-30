@@ -36,21 +36,30 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('PageEditor mounted for page:', pageName);
     fetchPageContent();
   }, [pageName]);
 
   const fetchPageContent = async () => {
     try {
+      console.log('Starting to fetch page content for:', pageName);
       setLoading(true);
+      
       const { data, error } = await supabase
         .from('enhanced_page_contents')
         .select('*')
         .eq('page_name', pageName)
         .order('display_order');
 
-      if (error) throw error;
+      console.log('Supabase query result:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       if (data && data.length > 0) {
+        console.log('Processing page content data:', data);
         const groupedData = {
           id: data[0].page_id,
           page_name: data[0].page_name,
@@ -66,7 +75,21 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
           updated_at: data[0].updated_at
         };
 
+        console.log('Setting page content:', groupedData);
         setPageContent(groupedData);
+      } else {
+        console.log('No data found for page:', pageName);
+        // Create default content structure if no data exists
+        const defaultContent = {
+          id: 'default',
+          page_name: pageName,
+          title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+          meta_description: '',
+          sections: [],
+          updated_at: new Date().toISOString()
+        };
+        console.log('Setting default content:', defaultContent);
+        setPageContent(defaultContent);
       }
     } catch (error) {
       console.error('Error fetching page content:', error);
@@ -75,7 +98,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         description: "Failed to load page content.",
         variant: "destructive",
       });
+      
+      // Set default content even on error to prevent infinite loading
+      const defaultContent = {
+        id: 'default',
+        page_name: pageName,
+        title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+        meta_description: '',
+        sections: [],
+        updated_at: new Date().toISOString()
+      };
+      setPageContent(defaultContent);
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
@@ -137,22 +172,31 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   };
 
   const getContent = (sectionName: string, fallback: string = '') => {
-    return pageContent?.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
+    const content = pageContent?.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
+    console.log(`Getting content for ${sectionName}:`, content);
+    return content;
   };
 
   const getSectionId = (sectionName: string) => {
-    return pageContent?.sections.find(s => s.section_name === sectionName)?.id || '';
+    const id = pageContent?.sections.find(s => s.section_name === sectionName)?.id || '';
+    console.log(`Getting section ID for ${sectionName}:`, id);
+    return id;
   };
 
+  console.log('PageEditor render state:', { loading, pageContent });
+
   if (loading) {
+    console.log('Rendering loading state');
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading page content...</span>
       </div>
     );
   }
 
   const renderPageEditor = () => {
+    console.log('Rendering page editor for:', pageName);
     switch (pageName) {
       case 'home':
         return (

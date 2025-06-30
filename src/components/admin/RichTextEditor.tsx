@@ -16,6 +16,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder = 'Enter text...',
   readOnly = false
 }) => {
+  console.log('RichTextEditor render:', { value, placeholder, readOnly });
+
   const modules = {
     toolbar: [
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
@@ -43,12 +45,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     'script', 'direction', 'code-block'
   ];
 
+  const handleChange = (content: string) => {
+    console.log('RichTextEditor content changed:', content);
+    onChange(content);
+  };
+
   return (
     <div className="bg-white rounded-md border">
       <ReactQuill
         theme="snow"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         modules={modules}
         formats={formats}
         placeholder={placeholder}
