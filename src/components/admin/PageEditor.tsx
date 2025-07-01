@@ -35,70 +35,81 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const fetchPageContent = useCallback(async () => {
-    try {
-      console.log('Starting to fetch page content for:', pageName);
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('enhanced_page_contents')
-        .select('*')
-        .eq('page_name', pageName)
-        .order('display_order');
-
-      console.log('Supabase query result:', { data, error });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      // Always create a default content structure
-      const defaultContent = {
-        id: data && data.length > 0 ? data[0].page_id : 'default',
-        page_name: pageName,
-        title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
-        meta_description: data && data.length > 0 ? data[0].meta_description : '',
-        sections: data && data.length > 0 ? data.map(item => ({
-          id: item.id,
-          section_name: item.section_name,
-          content_type: item.content_type as 'text' | 'textarea' | 'list' | 'image_url',
-          content_value: item.content_value,
-          display_order: item.display_order
-        })) : [],
-        updated_at: data && data.length > 0 ? data[0].updated_at : new Date().toISOString()
-      };
-
-      console.log('Setting page content:', defaultContent);
-      setPageContent(defaultContent);
-    } catch (error) {
-      console.error('Error fetching page content:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load page content. Using default content.",
-        variant: "destructive",
-      });
-      
-      // Always set default content even on error
-      const defaultContent = {
-        id: 'default',
-        page_name: pageName,
-        title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
-        meta_description: '',
-        sections: [],
-        updated_at: new Date().toISOString()
-      };
-      setPageContent(defaultContent);
-    } finally {
-      console.log('Setting loading to false');
-      setLoading(false);
-    }
-  }, [pageName, toast]);
-
   useEffect(() => {
-    console.log('PageEditor mounted for page:', pageName);
+    let isMounted = true;
+    
+    const fetchPageContent = async () => {
+      try {
+        console.log('Starting to fetch page content for:', pageName);
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('enhanced_page_contents')
+          .select('*')
+          .eq('page_name', pageName)
+          .order('display_order');
+
+        console.log('Supabase query result:', { data, error });
+
+        if (!isMounted) return;
+
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        // Create default content structure
+        const defaultContent: PageContent = {
+          id: data && data.length > 0 ? data[0].page_id : 'default',
+          page_name: pageName,
+          title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+          meta_description: data && data.length > 0 ? data[0].meta_description : '',
+          sections: data && data.length > 0 ? data.map(item => ({
+            id: item.id,
+            section_name: item.section_name,
+            content_type: item.content_type as 'text' | 'textarea' | 'list' | 'image_url',
+            content_value: item.content_value,
+            display_order: item.display_order
+          })) : [],
+          updated_at: data && data.length > 0 ? data[0].updated_at : new Date().toISOString()
+        };
+
+        console.log('Setting page content:', defaultContent);
+        setPageContent(defaultContent);
+      } catch (error) {
+        console.error('Error fetching page content:', error);
+        if (!isMounted) return;
+        
+        toast({
+          title: "Error",
+          description: "Failed to load page content. Using default content.",
+          variant: "destructive",
+        });
+        
+        // Set fallback content on error
+        const fallbackContent: PageContent = {
+          id: 'default',
+          page_name: pageName,
+          title: pageName.charAt(0).toUpperCase() + pageName.slice(1),
+          meta_description: '',
+          sections: [],
+          updated_at: new Date().toISOString()
+        };
+        setPageContent(fallbackContent);
+      } finally {
+        if (isMounted) {
+          console.log('Setting loading to false');
+          setLoading(false);
+        }
+      }
+    };
+
     fetchPageContent();
-  }, [fetchPageContent]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pageName, toast]);
 
   const handleSaveSection = async (sectionId: string, newValue: string) => {
     setSaving(true);
@@ -157,14 +168,14 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   }, []);
 
   const getContent = useCallback((sectionName: string, fallback: string = '') => {
-    const content = pageContent?.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
-    console.log(`Getting content for ${sectionName}:`, content);
+    if (!pageContent) return fallback;
+    const content = pageContent.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
     return content;
   }, [pageContent]);
 
   const getSectionId = useCallback((sectionName: string) => {
-    const id = pageContent?.sections.find(s => s.section_name === sectionName)?.id || '';
-    console.log(`Getting section ID for ${sectionName}:`, id);
+    if (!pageContent) return '';
+    const id = pageContent.sections.find(s => s.section_name === sectionName)?.id || '';
     return id;
   }, [pageContent]);
 
