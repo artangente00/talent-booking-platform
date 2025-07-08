@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,8 +36,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    let isMounted = true;
-    
     const fetchPageContent = async () => {
       try {
         console.log('Starting to fetch page content for:', pageName);
@@ -50,8 +48,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
           .order('display_order');
 
         console.log('Supabase query result:', { data, error });
-
-        if (!isMounted) return;
 
         if (error) {
           console.error('Supabase error:', error);
@@ -78,7 +74,6 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         setPageContent(defaultContent);
       } catch (error) {
         console.error('Error fetching page content:', error);
-        if (!isMounted) return;
         
         toast({
           title: "Error",
@@ -97,18 +92,12 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         };
         setPageContent(fallbackContent);
       } finally {
-        if (isMounted) {
-          console.log('Setting loading to false');
-          setLoading(false);
-        }
+        console.log('Setting loading to false');
+        setLoading(false);
       }
     };
 
     fetchPageContent();
-
-    return () => {
-      isMounted = false;
-    };
   }, [pageName, toast]);
 
   const handleSaveSection = async (sectionId: string, newValue: string) => {
@@ -153,7 +142,7 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
     }
   };
 
-  const updateSectionValue = useCallback((sectionId: string, value: string) => {
+  const updateSectionValue = (sectionId: string, value: string) => {
     setPageContent(prev => {
       if (!prev) return prev;
       return {
@@ -165,19 +154,19 @@ const PageEditor: React.FC<PageEditorProps> = ({ pageName, onBack }) => {
         )
       };
     });
-  }, []);
+  };
 
-  const getContent = useCallback((sectionName: string, fallback: string = '') => {
+  const getContent = (sectionName: string, fallback: string = '') => {
     if (!pageContent) return fallback;
-    const content = pageContent.sections.find(s => s.section_name === sectionName)?.content_value || fallback;
-    return content;
-  }, [pageContent]);
+    const section = pageContent.sections.find(s => s.section_name === sectionName);
+    return section ? section.content_value : fallback;
+  };
 
-  const getSectionId = useCallback((sectionName: string) => {
+  const getSectionId = (sectionName: string) => {
     if (!pageContent) return '';
-    const id = pageContent.sections.find(s => s.section_name === sectionName)?.id || '';
-    return id;
-  }, [pageContent]);
+    const section = pageContent.sections.find(s => s.section_name === sectionName);
+    return section ? section.id : '';
+  };
 
   console.log('PageEditor render state:', { loading, pageContent });
 
